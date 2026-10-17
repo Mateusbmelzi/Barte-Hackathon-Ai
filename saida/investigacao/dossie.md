@@ -14,9 +14,42 @@ Gerado pelo fechamento, de forma determinística: só **fatos** calculados dos a
 - CNPJ 00520815000100 · EC 1018325654
 - Divergência: R$ 15.397,42 em 118 transações
 - Devolver ao lojista: R$ 15.396,77 · Recuperar do parceiro: R$ 0,00
-- Condição contratual: Planilha linha 13 (desde 01/01/2026): débito 1,49%; crédito à vista 2,69%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'cliente estratégico - ver c/ comercial') | Isenção CC01/S07: taxa zero no checkout (MDR e antecipação) de 01/09/2026 a 31/12/2026
 
-### Fatos
+### O que aconteceu
+
+Desde 01/09 a Orbe cobra a taxa cheia em todas as faixas; o lojista tem isenção comercial (C001).
+
+### Ação pela regra
+
+Devolver ao lojista R$ 15.396,77 (sai do caixa da Tarvo — concessão comercial fora do contrato); não cobrar a Orbe. _(regras: R52, R68, R74)_
+
+### Linha do tempo
+
+| ID | Faixa | De | Até | Taxa aplicada | Taxa contratada | Qtd | Diverge |
+|---|---|---|---|---:|---:|---:|---|
+| V1 | débito | 21/08/2026 | 21/08/2026 | 1,49% | 1,49% | 1 | não |
+| V2 | débito | 08/09/2026 | 30/09/2026 | 1,49% | 0% | 12 | sim |
+| V3 | crédito à vista | 01/09/2026 | 29/09/2026 | 2,69% | 0% | 35 | sim |
+| V4 | 2–6x | 01/09/2026 | 30/09/2026 | 3,19% | 0% | 41 | sim |
+| V5 | 7–12x | 01/09/2026 | 26/09/2026 | 3,79% | 0% | 17 | sim |
+| V6 | Pix | 06/09/2026 | 29/09/2026 | 0,89% | 0% | 9 | sim |
+| V7 | antecipação | 09/09/2026 | 16/09/2026 | 2,10% | 0% | 4 | sim |
+
+### Condições do cliente
+
+- **P13** (planilha linha 13) desde 01/01/2026: débito 1,49%; crédito à vista 2,69%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'cliente estratégico - ver c/ comercial')
+- **C001** (cadastro) isenção (todas as faixas) de 01/09/2026 a 31/12/2026, aprovada por Comercial, fonte S07/S47
+
+### Regras aplicáveis
+
+- **R52** Concessão comercial fora do contrato (ex.: isenção que o Comercial deu e ninguém comunicou) não é divergência de contrato: não se cobra o parceiro e a devolução ao lojista sai do bolso da Tarvo; fica separada, em uma pendência para Helena e Comercial.
+- **R68** Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo.
+- **R13** Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso.
+- **R60** Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro.
+- **R74** Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe.
+- **R72** Isenção ou taxa zero com vigência vale para venda a partir da data de início; para antecipação vale a data da antecipação; estorno segue a taxa da venda.
+
+### Fatos detalhados
 
 - **F1** 118 transações divergentes, líquido R$ 15.397,42 (inclui 1 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 15.396,77; a recuperar da Orbe: R$ 0,00. A diferença para o líquido pela fórmula (R$ 0,65) é truncamento da Orbe. _(ref.: AN88445802, AN88445486, TX88419350)_
 - **F2** Primeira transação divergente em 01/09/2026 e última em 30/09/2026 (30 dia(s) corrido(s)), pela data da venda (no estorno, a da venda original). _(ref.: TX88410128, TX88444796)_
@@ -45,9 +78,46 @@ Exemplos: AN88445802, AN88445486, TX88419350
 - CNPJ 95927868000148 · EC 1074504011
 - Divergência: R$ 1.546,28 em 87 transações
 - Devolver ao lojista: R$ 1.545,86 · Recuperar do parceiro: R$ 1.545,86
-- Condição contratual: Planilha linha 10 (desde 01/01/2026): débito 1,49%; crédito à vista 2,49%; 2–6x 2,99%; 7–12x 3,59%; Pix 0,89%; antecipação 2,10%
 
-### Fatos
+### O que aconteceu
+
+Desde 12/09 a Orbe cobra +0,50 p.p. no crédito à vista, 2–6x e 7–12x; débito, Pix e antecipação estão corretos.
+
+### Ação pela regra
+
+Devolver ao lojista R$ 1.545,86 e contestar R$ 1.545,86 com a Orbe. _(regras: R13, R68, R74)_
+
+### Linha do tempo
+
+| ID | Faixa | De | Até | Taxa aplicada | Taxa contratada | Qtd | Diverge |
+|---|---|---|---|---:|---:|---:|---|
+| V1 | débito | 01/09/2026 | 18/09/2026 | 1,49% | 1,49% | 10 | não |
+| V2 | crédito à vista | 02/09/2026 | 11/09/2026 | 2,49% | 2,49% | 20 | não |
+| V3 | crédito à vista | 12/09/2026 | 29/09/2026 | 2,99% | 2,49% | 38 | sim |
+| V4 | 2–6x | 30/08/2026 | 11/09/2026 | 2,99% | 2,99% | 13 | não |
+| V5 | 2–6x | 12/09/2026 | 29/09/2026 | 3,49% | 2,99% | 31 | sim |
+| V6 | 7–12x | 03/09/2026 | 08/09/2026 | 3,59% | 3,59% | 11 | não |
+| V7 | 7–12x | 12/09/2026 | 30/09/2026 | 4,09% | 3,59% | 18 | sim |
+| V8 | Pix | 03/09/2026 | 30/09/2026 | 0,89% | 0,89% | 15 | não |
+| V9 | antecipação | 09/09/2026 | 22/09/2026 | 2,10% | 2,10% | 3 | não |
+
+### Condições do cliente
+
+- **P10** (planilha linha 10) desde 01/01/2026: débito 1,49%; crédito à vista 2,49%; 2–6x 2,99%; 7–12x 3,59%; Pix 0,89%; antecipação 2,10%
+
+### Regras aplicáveis
+
+- **R13** Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso.
+- **R50** Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso.
+- **R68** Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo.
+- **R60** Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro.
+- **R74** Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe.
+- **R51** Venda cobrada fora do contrato e depois estornada: venda e estorno se anulam; cobra-se só a diferença líquida.
+- **R70** A taxa do estorno é a da data da venda original.
+- **R71** Na lista de divergências, o estorno de uma venda com taxa errada também entra, com valor negativo.
+- **R02** A Orbe trunca centavos; a diferença de centavo causada por truncamento não é divergência.
+
+### Fatos detalhados
 
 - **F1** 87 transações divergentes, líquido R$ 1.546,28 (inclui 4 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 1.545,86; a recuperar da Orbe: R$ 1.545,86. A diferença para o líquido pela fórmula (R$ 0,42) é truncamento da Orbe. _(ref.: TX88440860, TX88423647, TX88444545)_
 - **F2** Primeira transação divergente em 12/09/2026 e última em 30/09/2026 (19 dia(s) corrido(s)), pela data da venda (no estorno, a da venda original). _(ref.: TX88423647, TX88444545)_
@@ -73,9 +143,36 @@ Exemplos: TX88440860, TX88423647, TX88444545
 - CNPJ 17217888000111
 - Divergência: R$ 1.418,85 em 23 operações
 - Devolver ao lojista: R$ 1.418,88 · Recuperar do parceiro: R$ 1.418,88
-- Condição contratual: Planilha linha 15 (desde 01/01/2026): spread remessa 1,20% (obs: 'spread negociado em jul/26') | Padrão quando em branco: 1,50% sobre PTAX (CC03)
 
-### Fatos
+### O que aconteceu
+
+Em setembro a Ponte aplicou 1,50% (padrão) em todas as remessas; o contratado é 1,20%.
+
+### Ação pela regra
+
+Devolver ao lojista R$ 1.418,88 e contestar R$ 1.418,88 com a Ponte. _(regras: R22, R68, R74)_
+
+### Linha do tempo
+
+| ID | Faixa | De | Até | Taxa aplicada | Taxa contratada | Qtd | Diverge |
+|---|---|---|---|---:|---:|---:|---|
+| V1 | spread de remessa | 01/09/2026 | 30/09/2026 | 1,50% | 1,20% | 23 | sim |
+
+### Condições do cliente
+
+- **P15** (planilha linha 15) desde 01/01/2026: spread de remessa 1,20% (obs: 'spread negociado em jul/26')
+- **C006** (cadastro) nota do cadastro: Caso de fronteira: a Ponte não foi avisada do spread de 1,20% (S30), mas a Helena decidiu tratar como divergência e contestar com a Ponte (S05).
+
+### Regras aplicáveis
+
+- **R22** Divergência de remessa = valor cheio que o lojista pagou a mais: (spread % aplicado − contratado) × PTAX × valor em moeda estrangeira.
+- **R50** Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso.
+- **R68** Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo.
+- **R60** Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro.
+- **R74** Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe.
+- **R20** Remessa: comissão da Tarvo = 50% do Spread R$ realizado por operação; o excesso contestável entra na nota do mês e o ajuste só entra no mês em que a Ponte devolver.
+
+### Fatos detalhados
 
 - **F1** 23 operações com spread acima do contratado; Spread R$ efetivamente cobrado a mais (realizado menos contratado x PTAX x Valor ME, S51) R$ 1.418,88; pela fórmula da lista de divergências R$ 1.418,85. A devolver ao lojista: R$ 1.418,88; a recuperar da Ponte: R$ 1.418,88. _(ref.: PC-0926-0434, PC-0926-0373, PC-0926-0566)_
 - **F2** Primeira operação divergente contratada em 01/09/2026 e última em 30/09/2026 (30 dia(s) corrido(s)). _(ref.: PC-0926-0016, PC-0926-0566)_
@@ -101,9 +198,45 @@ Exemplos: PC-0926-0434, PC-0926-0373, PC-0926-0566
 - CNPJ 22224579000109 · EC 1075624862
 - Divergência: R$ 29,95 em 5 transações
 - Devolver ao lojista: R$ 29,94 · Recuperar do parceiro: R$ 29,94
-- Condição contratual: Planilha linha 6 (até 14/09/2026): débito 1,49%; crédito à vista 2,59%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'renegociado - ver linha de baixo') | Planilha linha 7 (desde 15/09/2026): débito 1,49%; crédito à vista 2,19%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'só mudou o crédito à vista')
 
-### Fatos
+### O que aconteceu
+
+De 15/09 a 18/09 a Orbe cobrou 2,59% no crédito à vista; o contratado desde 15/09 é 2,19%; débito, 2–6x, 7–12x e Pix estão corretos.
+
+### Ação pela regra
+
+Devolver ao lojista R$ 29,94 e contestar R$ 29,94 com a Orbe. _(regras: R13, R68, R74)_
+
+### Linha do tempo
+
+| ID | Faixa | De | Até | Taxa aplicada | Taxa contratada | Qtd | Diverge |
+|---|---|---|---|---:|---:|---:|---|
+| V1 | débito | 01/09/2026 | 29/09/2026 | 1,49% | 1,49% | 15 | não |
+| V2 | crédito à vista | 01/09/2026 | 13/09/2026 | 2,59% | 2,59% | 8 | não |
+| V3 | crédito à vista | 15/09/2026 | 18/09/2026 | 2,59% | 2,19% | 5 | sim |
+| V4 | crédito à vista | 23/09/2026 | 30/09/2026 | 2,19% | 2,19% | 9 | não |
+| V5 | 2–6x | 01/09/2026 | 29/09/2026 | 3,19% | 3,19% | 42 | não |
+| V6 | 7–12x | 01/09/2026 | 27/09/2026 | 3,79% | 3,79% | 17 | não |
+| V7 | Pix | 01/09/2026 | 30/09/2026 | 0,89% | 0,89% | 13 | não |
+
+### Condições do cliente
+
+- **P6** (planilha linha 6) até 14/09/2026: débito 1,49%; crédito à vista 2,59%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'renegociado - ver linha de baixo')
+- **P7** (planilha linha 7) desde 15/09/2026: débito 1,49%; crédito à vista 2,19%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'só mudou o crédito à vista')
+
+### Regras aplicáveis
+
+- **R13** Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso.
+- **R50** Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso.
+- **R68** Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo.
+- **R60** Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro.
+- **R74** Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe.
+- **R51** Venda cobrada fora do contrato e depois estornada: venda e estorno se anulam; cobra-se só a diferença líquida.
+- **R70** A taxa do estorno é a da data da venda original.
+- **R71** Na lista de divergências, o estorno de uma venda com taxa errada também entra, com valor negativo.
+- **R02** A Orbe trunca centavos; a diferença de centavo causada por truncamento não é divergência.
+
+### Fatos detalhados
 
 - **F1** 5 transações divergentes, líquido R$ 29,95. A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 29,94; a recuperar da Orbe: R$ 29,94. A diferença para o líquido pela fórmula (R$ 0,01) é truncamento da Orbe. _(ref.: TX88431123, TX88429931, TX88428053)_
 - **F2** Primeira transação divergente em 15/09/2026 e última em 18/09/2026 (4 dia(s) corrido(s)), pela data da venda (no estorno, a da venda original). _(ref.: TX88428053, TX88431123)_

@@ -47,7 +47,9 @@ def _resposta_padrao(id_grupo, hipoteses=None):
         "id_grupo": id_grupo,
         "resumo": "Resumo de teste.",
         "hipoteses": hipoteses if hipoteses is not None else [
-            {"causa": "Causa sustentada.", "fatos_citados": ["F1"], "confianca": "alta"},
+            {"causa_categoria": "OUTRA", "causa": "Causa sustentada.", "explicacao": "Explicação.",
+             "evidencias": [{"texto": "Fato um.", "ref": "F1"}],
+             "fatos_citados": ["F1"], "fatos_contrarios": [], "confianca": "alta"},
         ],
         "conferir": ["Conferir algo."],
         "falar_com": "Orbe",
@@ -137,11 +139,11 @@ def test_saida_tem_aviso_modelo_versao(dossie):
     r = ia.investigar(dossie, cliente=ClienteFalso())
     assert r["aviso"] == "Sugestão da IA, não verificada. A decisão é da analista."
     assert r["modelo"] == "claude-sonnet-5-5"
-    assert r["versao_prompt"] == "investigacao-v3"
+    assert r["versao_prompt"] == "investigacao-v4"
     for g in r["grupos"]:
         assert g["aviso"] == ia.AVISO
         assert g["modelo"] == "claude-sonnet-5-5"
-        assert g["versao_prompt"] == "investigacao-v3"
+        assert g["versao_prompt"] == "investigacao-v4"
         assert g["modelo_resposta"] == "claude-sonnet-5-5"
         assert g["erro"] is None
 
@@ -189,7 +191,7 @@ def test_recusa_sem_fallback_registra_modelo_que_respondeu(dossie):
 
 def test_prompt_nao_contem_casos_de_setembro():
     texto = ia.montar_system().split("---", 1)[1]  # só o prompt de investigação
-    for termo in ["Rota", "Bridge", "Casa do Estudante", "Mundo Aberto", "12/09", "15/09",
+    for termo in ["Rota", "Bridge", "Casa do Estudante", "Mundo Aberto", "12/09", "15/09", "01/09", "Rota",
                   "0,50 p.p.", "S06", "vigência anterior"]:
         assert termo not in texto, termo
 
@@ -279,7 +281,7 @@ def test_openrouter_parsing_e_modelo_resposta(dossie):
     assert g["modelo_resposta"] == "anthropic/claude-sonnet-5.5"
     assert [h["causa"] for h in g["hipoteses"]] == ["Válida."]
     assert g["hipoteses_descartadas"] == 1
-    assert g["aviso"] == ia.AVISO and g["versao_prompt"] == "investigacao-v3"
+    assert g["aviso"] == ia.AVISO and g["versao_prompt"] == "investigacao-v4"
     assert CHAVE_OR not in json.dumps(r, ensure_ascii=False)
 
 
@@ -378,7 +380,7 @@ def test_alta_com_contrario_so_inexistente_continua_alta():
 
 
 def test_sem_contrarios_fica_lista_vazia_e_sem_ajuste():
-    r = _validar([{"causa": "C", "fatos_citados": ["F3"], "confianca": "alta"}])
+    r = _validar([{"causa_categoria": "OUTRA", "causa": "C", "fatos_citados": ["F3"], "confianca": "alta"}])
     assert r["hipoteses"][0]["fatos_contrarios"] == [] and r["ajustes"] == []
 
 
@@ -395,10 +397,12 @@ def test_ordena_por_confianca_estavel_e_corta_em_tres():
 
 def test_contrarios_pelo_caminho_openrouter(dossie):
     falso = UrlopenFalso(respostas={"G02": _resposta_padrao("G02", [
-        {"causa": "Tabela 2025.", "fatos_citados": ["F6", "S06"], "fatos_contrarios": ["F6", "F42"], "confianca": "alta"},
+        {"causa_categoria": "TABELA_DESATUALIZADA_NO_PARCEIRO", "causa": "Tabela 2025.", "explicacao": "E",
+         "evidencias": [], "fatos_citados": ["F6", "S06"], "fatos_contrarios": ["F6", "F42"], "confianca": "alta"},
     ])})
     g = _grupo(ia.investigar(dossie, cliente=_cliente_or(falso)), "G02")
-    assert g["hipoteses"][0] == {"causa": "Tabela 2025.", "fatos_citados": ["F6", "S06"],
+    assert g["hipoteses"][0] == {"causa_categoria": "TABELA_DESATUALIZADA_NO_PARCEIRO", "causa": "Tabela 2025.",
+                                 "explicacao": "E", "evidencias": [], "fatos_citados": ["F6", "S06"],
                                  "fatos_contrarios": ["F6"], "confianca": "media"}
     assert len(g["ajustes"]) == 2
 
@@ -408,3 +412,111 @@ def test_prompt_v3_tem_regras_de_contradicao():
     assert "fatos_contrarios" in texto
     assert "Não repita a mesma causa em duas hipóteses" in texto
     assert "contradiz" in texto
+
+
+# ---------------------------------------------------------------- prompt v4: categoria, explicação, evidências
+def _grupo_v4(natureza="CONTRATO"):
+    return {
+        "id_grupo": "GX", "natureza": natureza,
+        "fatos": [{"id": "F1", "texto": "a"}, {"id": "F2", "texto": "b"}],
+        "respostas_financeiro": [{"id": "S01", "texto": "r"}],
+        "resumo_fatos": "Resumo calculado.",
+        "acao_regra": {"texto": "Devolver.", "regras": ["R13", "R68"]},
+        "rota_valores": [{"id": "V1", "faixa": "X", "diverge": False}, {"id": "V2", "faixa": "X", "diverge": True}],
+        "condicoes_cliente": [{"id": "P10", "texto": "t"}, {"id": "C001", "texto": "t"}],
+        "regras_aplicaveis": [{"id": "R13", "texto": "t"}],
+    }
+
+
+def _hip(**kw):
+    base = {"causa_categoria": "REAJUSTE_SEM_CONTRATO", "causa": "C", "explicacao": "E",
+            "evidencias": [], "fatos_citados": [], "fatos_contrarios": [], "confianca": "media"}
+    base.update(kw)
+    return base
+
+
+def _validar4(hipoteses, grupo):
+    return ia.validar(_resposta_padrao("GX", hipoteses), grupo)
+
+
+def test_schema_v4_campos_e_enum():
+    item = ia.SCHEMA_SAIDA["properties"]["hipoteses"]["items"]
+    for c in ("causa_categoria", "explicacao", "evidencias"):
+        assert c in item["properties"] and c in item["required"]
+    assert item["properties"]["causa_categoria"]["enum"] == ia.CATEGORIAS
+    ev = item["properties"]["evidencias"]["items"]
+    assert ev["required"] == ["texto", "ref"] and ev["additionalProperties"] is False
+    assert set(ia.ROTULO_CATEGORIA) == set(ia.CATEGORIAS) and len(ia.CATEGORIAS) == 7
+
+
+def test_ids_citaveis_incluem_v_p_c_r():
+    r = _validar4([_hip(evidencias=[{"texto": f"t{i}", "ref": i} for i in ("V2", "P10", "C001", "R13", "S01", "F1")],
+                        fatos_citados=["F1"])], _grupo_v4())
+    assert [e["ref"] for e in r["hipoteses"][0]["evidencias"]] == ["V2", "P10", "C001", "R13", "S01", "F1"]
+    assert r["ajustes"] == []
+
+
+def test_evidencia_com_ref_inexistente_removida_com_ajuste():
+    r = _validar4([_hip(evidencias=[{"texto": "ok", "ref": "V1"}, {"texto": "ruim", "ref": "V9"}],
+                        fatos_citados=["F1"])], _grupo_v4())
+    assert r["hipoteses"][0]["evidencias"] == [{"texto": "ok", "ref": "V1"}]
+    assert "V9" in r["ajustes"][0]["ajuste"]
+
+
+def test_sem_evidencia_valida_nem_fato_e_descartada():
+    r = _validar4([_hip(evidencias=[{"texto": "ruim", "ref": "R99"}])], _grupo_v4())
+    assert r["hipoteses"] == [] and r["hipoteses_descartadas"] == 1
+
+
+def test_so_evidencia_valida_basta():
+    r = _validar4([_hip(evidencias=[{"texto": "ok", "ref": "R13"}])], _grupo_v4())
+    assert len(r["hipoteses"]) == 1 and r["hipoteses"][0]["fatos_citados"] == []
+
+
+def test_categoria_invalida_vira_outra():
+    r = _validar4([_hip(causa_categoria="INVENTADA", fatos_citados=["F1"])], _grupo_v4())
+    assert r["hipoteses"][0]["causa_categoria"] == "OUTRA"
+    assert "INVENTADA" in r["ajustes"][0]["ajuste"]
+
+
+def test_isencao_com_categoria_incompativel_rebaixa_confianca():
+    g = _grupo_v4("ISENCAO_NAO_INFORMADA")
+    r = _validar4([_hip(causa_categoria="REAJUSTE_SEM_CONTRATO", fatos_citados=["F1"], confianca="alta"),
+                   _hip(causa="D", causa_categoria="CONDICAO_NAO_INFORMADA_AO_PARCEIRO", fatos_citados=["F2"],
+                        confianca="alta"),
+                   _hip(causa="E", causa_categoria="CONCESSAO_COMERCIAL_FORA_DO_CONTRATO", fatos_citados=["F2"],
+                        confianca="alta")], g)
+    por_causa = {h["causa"]: h["confianca"] for h in r["hipoteses"]}
+    assert por_causa == {"C": "media", "D": "alta", "E": "alta"}
+    assert len(r["ajustes"]) == 1 and "isenção" in r["ajustes"][0]["ajuste"]
+    # fora de isenção, a mesma categoria não é rebaixada
+    r2 = _validar4([_hip(fatos_citados=["F1"], confianca="alta")], _grupo_v4())
+    assert r2["hipoteses"][0]["confianca"] == "alta" and r2["ajustes"] == []
+
+
+def test_mensagem_inclui_campos_novos_do_grupo():
+    g = _grupo_v4()
+    dossie = {"competencia": "2026-09", "grupos": [g]}
+    dados = json.loads((lambda t: t[t.index("{"):t.rindex("}") + 1])(ia.montar_mensagem(dossie, g)))
+    for c in ("resumo_fatos", "rota_valores", "condicoes_cliente", "regras_aplicaveis", "acao_regra"):
+        assert dados[c] == g[c]
+
+
+def test_prompt_v4_conteudo():
+    texto = ia.montar_system()
+    assert ia.versao_prompt() == "investigacao-v4"
+    for t in ("acao_regra", "rota_valores", "condicoes_cliente", "regras_aplicaveis", "causa_categoria",
+              "explicacao", "uma evidência por", "Não proponha ação"):
+        assert t in texto, t
+    for c in ia.CATEGORIAS:
+        assert c in texto, c
+
+
+def test_fluxo_completo_com_grupo_v4():
+    g = _grupo_v4()
+    resposta = _resposta_padrao("GX", [_hip(evidencias=[{"texto": "ok", "ref": "V2"}], fatos_citados=["F1"])])
+    cliente = ClienteFalso({"GX": resposta})
+    r = ia.investigar({"competencia": "2026-09", "grupos": [g]}, cliente=cliente)
+    h = r["grupos"][0]["hipoteses"][0]
+    assert h["causa_categoria"] == "REAJUSTE_SEM_CONTRATO" and h["explicacao"] == "E"
+    assert h["evidencias"] == [{"texto": "ok", "ref": "V2"}]

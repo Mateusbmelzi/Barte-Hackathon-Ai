@@ -146,11 +146,15 @@ def pendencias(resultado, contratos, meta_ponte, total_nota, condicoes=()):
         out.append({"tipo": "DIVERGENCIA_SPREAD_REMESSA", "ref_origem": f"CNPJ {cnpj}", "valor": total,
                     "motivo": (f"Ponte aplicou spread diferente do contratado ({fmt_pct(ls[0]['contratado'] * 100)}%) "
                                f"em {len(ls)} operações de {nomes.get(cnpj, cnpj)} (aplicado de {ap[0]}% a {ap[-1]}%). "
-                               f"Valor cheio pago a mais pelo lojista: Spread R$ realizado menos contratado x PTAX x "
-                               f"Valor ME, por operação (R22/S10/S51). Devolver ao lojista {fmt_br(total)}; "
-                               f"recuperar do parceiro (Ponte) {fmt_br(total)} (R60/S34). A fórmula da lista de "
+                               f"{'Valor cheio pago a mais pelo lojista' if total >= 0 else 'Diferença líquida'}: Spread R$ realizado menos contratado x PTAX x "
+                               f"Valor ME, por operação (R22/S10/S51). "
+                               + (f"Devolver ao lojista {fmt_br(total)}; recuperar do parceiro (Ponte) {fmt_br(total)} (R60/S34). "
+                                  if total >= 0 else
+                                  f"O parceiro cobrou {fmt_br(-total)} a menos que o contrato; não há devolução ao lojista; "
+                                  "tratar caso a caso (R50/S24). ")
+                               + f"A fórmula da lista de "
                                f"divergências ((spread% - contratado) x PTAX x ME) soma {fmt_br(formula)}. "
-                               "O que decide é a condição contratada, não o aviso (S41). Contestar com a Ponte (S15)."
+                               "O que decide é a condição contratada, não o aviso (S41)." + (" Contestar com a Ponte (S15)." if total >= 0 else "")
                                + "".join(" " + t for t in cadastro.notas_pendencia(condicoes, cnpj, "REMESSA"))),
                     "quem_decide": config.QUEM_HELENA,
                     "rastro": [("ponte", o["op"], o["dif_contrato"], "Spread R$ cobrado a mais") for o in ls]})

@@ -21,6 +21,8 @@ def _lancamento(banco, m):
     r = _regra(banco, m["descricao"])
     base = {"banco": banco, "ref": m["ref"], "data": m["data"], "descricao": m["descricao"], "valor": m["valor"],
             "observacao": "", "pendencia": None}
+    if m.get("arquivo"):                      # só com 2+ versões do extrato (rastro.csv aponta o arquivo usado)
+        base["arquivo_origem"] = m["arquivo"]
     if r is None:
         base.update(conta=config.CONTA_NAO_IDENTIFICADO, metodo="HUMANO", confianca=config.CONF_SEM_REGRA,
                     regra="sem regra: 1.1.09.002 provisório",

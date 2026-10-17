@@ -5,6 +5,7 @@ import threading
 import urllib.error
 import urllib.request
 import zipfile
+from datetime import date
 from pathlib import Path
 from urllib.parse import quote
 
@@ -16,7 +17,7 @@ from src.leitores import achatar, descobrir_arquivos
 
 @pytest.fixture()
 def url(tmp_path):
-    srv = servidor.criar_servidor(porta=0, pasta_execucoes=tmp_path / "execucoes")
+    srv = servidor.criar_servidor(porta=0, pasta_meses=tmp_path / "meses", hoje=date(2026, 10, 5))
     t = threading.Thread(target=srv.serve_forever, daemon=True)
     t.start()
     yield f"http://127.0.0.1:{srv.server_address[1]}"
@@ -66,7 +67,7 @@ def test_fluxo_completo(url, raiz, tmp_path):
     assert len(e["saidas"]) == 6 and e["previa_pendencias"]["total"] == 18
 
     # grava em execucoes/<ts>/entrada e /saida, dentro da pasta pedida
-    assert e["pasta"].startswith(str(tmp_path / "execucoes"))
+    assert e["pasta"].startswith(str(tmp_path / "meses" / "2026-09" / "execucoes"))
 
     baixado = _req(url + "/api/baixar/comissoes_por_lojista.csv")
     assert baixado == (raiz / "saida" / "comissoes_por_lojista.csv").read_bytes()
@@ -75,7 +76,7 @@ def test_fluxo_completo(url, raiz, tmp_path):
     assert sorted(z.namelist()) == sorted(n for n, _ in servidor.SAIDAS)
 
     e = _json(url + "/api/limpar", "POST", b"")
-    assert not e["pronto"] and e["resultado"] is None
+    assert e["pronto"] and e["resultado"] is None      # limpar só esvazia a tela: os arquivos do mês ficam
 
 
 def test_erro_legivel(url):
@@ -123,7 +124,7 @@ class ClienteIAFalso:
 
 
 def _servidor(tmp_path, **kw):
-    srv = servidor.criar_servidor(porta=0, pasta_execucoes=tmp_path / "execucoes", **kw)
+    srv = servidor.criar_servidor(porta=0, pasta_meses=tmp_path / "meses", hoje=date(2026, 10, 5), **kw)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     return srv, f"http://127.0.0.1:{srv.server_address[1]}"
 
@@ -160,10 +161,10 @@ def test_investigacao_com_ia_falsa(raiz, tmp_path):
         assert [h["causa"] for h in por["G01"]["hipoteses"]] == ["Causa A de G01", "Causa B de G01"]
         assert por["G01"]["hipoteses_descartadas"] == 1 and por["G01"]["modelo_resposta"] == "modelo-falso-1"
         h1 = por["G01"]["hipoteses"][0]
-        assert h1["fatos_contrarios"] == ["F4"] and h1["confianca"] == "media"      # rebaixada por ia.validar
+        assert h1["fatos_contrarios"] == ["F4"] and h1["confianca"] in ("media", "baixa")      # rebaixada por ia.validar (a regra exata é testada em test_ia)
         assert any("rebaixada" in a["ajuste"] for a in por["G01"]["ajustes"])
         pagina = _req(url + "/").decode("utf-8")
-        assert "Contra: " in pagina and "fatos_contrarios" in pagina and "Ajustes do programa" in pagina
+        assert "Contra:" in pagina and "fatos_contrarios" in pagina and "Ajustes do programa" in pagina
         assert por["G04"]["erro"] and not por["G04"]["hipoteses"]          # erro só no grupo dele
         assert not por["G02"]["erro"]
         pasta = Path(e["pasta"])
@@ -171,12 +172,12 @@ def test_investigacao_com_ia_falsa(raiz, tmp_path):
 
         # sem nome não decide
         with pytest.raises(urllib.error.HTTPError) as exc:
-            _decidir(url, id_grupo="G01", hipotese_n=1, decisao="ACEITA", analista=" ")
+            _decidir(url, id_grupo="G01", hipotese_n=1, decisao="CONCORDO", analista=" ")
         assert exc.value.code == 400
-        _decidir(url, id_grupo="G01", hipotese_n=1, decisao="ACEITA", analista="Helena")
-        _decidir(url, id_grupo="G02", hipotese_n=2, decisao="RECUSADA", comentario="Contrato não mudou (S06).",
+        _decidir(url, id_grupo="G01", hipotese_n=1, decisao="CONCORDO", analista="Helena")
+        _decidir(url, id_grupo="G02", hipotese_n=2, decisao="DISCORDO", comentario="Contrato não mudou (S06).",
                  analista="Helena")
-        e = _decidir(url, id_grupo="G01", hipotese_n=1, decisao="RECUSADA", comentario="mudei de ideia",
+        e = _decidir(url, id_grupo="G01", hipotese_n=1, decisao="DISCORDO", comentario="mudei de ideia",
                      analista="Helena")                                     # atualiza, não duplica
         assert len(e["investigacao"]["decisoes"]) == 2
 
@@ -185,7 +186,7 @@ def test_investigacao_com_ia_falsa(raiz, tmp_path):
         linhas = list(_csv.DictReader(io.StringIO(baixado), delimiter=";"))
         assert list(linhas[0]) == servidor.COLUNAS_DECISOES
         assert [(l["id_grupo"], l["hipotese_n"], l["decisao"], l["comentario"]) for l in linhas] == [
-            ("G01", "1", "RECUSADA", "mudei de ideia"), ("G02", "2", "RECUSADA", "Contrato não mudou (S06).")]
+            ("G01", "1", "DISCORDO", "mudei de ideia"), ("G02", "2", "DISCORDO", "Contrato não mudou (S06).")]
         assert linhas[1]["causa"] == "Causa B de G02" and linhas[1]["lojista"] == "Rota Global Intercâmbio Ltda"
         assert linhas[0]["analista"] == "Helena" and linhas[0]["modelo_resposta"] == "modelo-falso-1"
         assert linhas[0]["versao_prompt"] and "T" in linhas[0]["data_hora"]
@@ -227,7 +228,7 @@ def test_porta_ocupada_escolhe_outra(tmp_path):
     ocupante.listen(1)
     porta = ocupante.getsockname()[1]
     try:
-        srv = servidor.criar_servidor(porta=porta, pasta_execucoes=tmp_path / "execucoes", tentativas=10)
+        srv = servidor.criar_servidor(porta=porta, pasta_meses=tmp_path / "meses", tentativas=10)
         try:
             assert srv.server_address[1] != porta
             assert porta < srv.server_address[1] < porta + 10
@@ -242,7 +243,7 @@ def test_segundo_servidor_do_app_nao_divide_a_porta(tmp_path):
     porta1 = srv1.server_address[1]
     try:
         assert servidor.tela_existente(porta1)                 # detecta a tela já aberta
-        srv2 = servidor.criar_servidor(porta=porta1, pasta_execucoes=tmp_path / "b", tentativas=10)
+        srv2 = servidor.criar_servidor(porta=porta1, pasta_meses=tmp_path / "b", tentativas=10)
         try:
             porta2 = srv2.server_address[1]
             assert porta2 != porta1
@@ -271,5 +272,5 @@ def test_varios_arquivos_orbe(url, raiz):
     e = _json(url + "/api/enviar", "POST", corpo(b"2;b"), {"X-Nome-Arquivo": quote("orbe_a.csv")})
     orbe = next(x for x in e["esperados"] if x["chave"] == "orbe")
     assert orbe["nomes"] == ["orbe_a.csv", "orbe_b_ajustes.csv"] and e["pronto"]
-    e = _json(url + "/api/enviar", "POST", corpo(b"3;c"), {"X-Nome-Arquivo": quote("orbe_a.csv")})  # mesmo nome substitui
-    assert next(x for x in e["esperados"] if x["chave"] == "orbe")["nomes"] == ["orbe_a.csv", "orbe_b_ajustes.csv"]
+    e = _json(url + "/api/enviar", "POST", corpo(b"3;c"), {"X-Nome-Arquivo": quote("orbe_a.csv")})  # mesmo nome, outro conteúdo: nova versão (nunca substitui)
+    assert next(x for x in e["esperados"] if x["chave"] == "orbe")["nomes"] == ["orbe_a.csv", "orbe_a_v2.csv", "orbe_b_ajustes.csv"]

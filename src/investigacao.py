@@ -11,7 +11,8 @@ deste módulo: ele só LÊ o resultado do fechamento.
 """
 import json
 from collections import Counter, OrderedDict
-from decimal import Decimal
+from datetime import date
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
 
 from . import cadastro, config
@@ -159,9 +160,14 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas, con
     txt = f"{len(ls)} transações divergentes, líquido {fmt_br(total)}"
     if n_est:
         txt += f" (inclui {n_est} estorno(s) de vendas divergentes, com sinal negativo)"
-    txt += (f". A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): "
-            f"{fmt_br(devolver)}; a recuperar da {NOME_CONTRAPARTE['ORBE']}: {fmt_br(recuperar)}. "
-            f"A diferença para o líquido pela fórmula ({fmt_br(total - devolver)}) é truncamento da Orbe.")
+    if devolver >= 0:
+        txt += (f". A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): "
+                f"{fmt_br(devolver)}; a recuperar da {NOME_CONTRAPARTE['ORBE']}: {fmt_br(recuperar)}. "
+                f"A diferença para o líquido pela fórmula ({fmt_br(total - devolver)}) é truncamento da Orbe.")
+    else:
+        txt += (f". O parceiro cobrou {fmt_br(-devolver)} a menos que o contrato; não há devolução ao lojista; "
+                f"tratar caso a caso (R50/S24). A diferença para o líquido pela fórmula ({fmt_br(total - devolver)}) "
+                "é truncamento da Orbe.")
     _fato(fatos, txt, _exemplos(ls))
     # F: datas
     dias = (d1 - d0).days + 1
@@ -243,7 +249,20 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas, con
         "valor_recuperar_parceiro_brl": fmt(recuperar),
         "condicao_contratual": _condicao_checkout(linhas, ecs, condicoes, cnpj),
         "fatos": fatos, "respostas_financeiro": _respostas("CHECKOUT", cnpj), "exemplos": _exemplos(ls),
-        "_total": total,
+        "_total": total, **_etapas_2_3_checkout(cnpj, natureza, ecs, todas, ref, linhas, condicoes, devolver, recuperar),
+    }
+
+
+def _etapas_2_3_checkout(cnpj, natureza, ecs, todas, ref, linhas, condicoes, devolver, recuperar):
+    rota = _rota_checkout(todas, ref)
+    ids_isencao = sorted({c["id_condicao"] for ec in ecs for c in cadastro.do_lojista(
+        condicoes, "ISENCAO", cnpj=cnpj, ec=ec, linha="CHECKOUT")})
+    return {
+        "resumo_fatos": _resumo_checkout(rota, natureza, ids_isencao),
+        "acao_regra": _acao_regra(natureza, "CHECKOUT", "ORBE", devolver, recuperar),
+        "rota_valores": rota,
+        "condicoes_cliente": _condicoes_cliente(linhas, condicoes, cnpj, ecs, "CHECKOUT"),
+        "regras_aplicaveis": _regras_aplicaveis(natureza, "CHECKOUT"),
     }
 
 
@@ -355,6 +374,7 @@ def _exemplos(ls):
 
 def _grupos_remessa(r):
     contratos = r["dados"]["contratos"]
+    condicoes = r.get("condicoes") or []
     nomes = nome_por_cnpj(contratos)
     validas = [o for o in r["remessa"] if o["status"] == "VALIDA"]
     grupos = OrderedDict()
@@ -372,8 +392,10 @@ def _grupos_remessa(r):
         fatos = []
         _fato(fatos, f"{len(ops)} operações com spread acima do contratado; Spread R$ efetivamente cobrado a mais "
                      f"(realizado menos contratado x PTAX x Valor ME, S51) {fmt_br(a_mais)}; pela fórmula da lista de "
-                     f"divergências {fmt_br(total)}. A devolver ao lojista: {fmt_br(a_mais)}; a recuperar da Ponte: "
-                     f"{fmt_br(a_mais)}.",
+                     f"divergências {fmt_br(total)}. "
+                     + (f"A devolver ao lojista: {fmt_br(a_mais)}; a recuperar da Ponte: {fmt_br(a_mais)}." if a_mais >= 0 else
+                        f"O parceiro cobrou {fmt_br(-a_mais)} a menos que o contrato; não há devolução ao lojista; "
+                        "tratar caso a caso (R50/S24)."),
               _exemplos_rem(ops))
         _fato(fatos, f"Primeira operação divergente contratada em {_d(d0)} e última em {_d(d1)} "
                      f"({(d1 - d0).days + 1} dia(s) corrido(s)).", [ops[0]["op"], ops[-1]["op"]])
@@ -396,6 +418,7 @@ def _grupos_remessa(r):
             _fato(fatos, f"Spread aplicado de {_pct(aplic[0] * CEM)} a {_pct(aplic[-1] * CEM)}; não coincide com o "
                          f"spread padrão de {_pct(config.SPREAD_PADRAO * CEM)}.")
         _fato_vigencia(fatos, linhas, d0, d1, [ops[0]["op"]])
+        rota = _rota_remessa(todas)
         jan = [o for o in todas if d0 <= o["data"] <= d1]
         _fato(fatos, f"Entre {_d(d0)} e {_d(d1)}, {len(ops)} de {len(jan)} operações válidas do lojista divergem "
                      f"({_porc(len(ops), len(jan))}); no mês, {len(todas)} operações válidas do lojista.")
@@ -418,6 +441,11 @@ def _grupos_remessa(r):
             "condicao_contratual": _condicao_remessa(linhas),
             "fatos": fatos, "respostas_financeiro": _respostas("REMESSA", cnpj), "exemplos": _exemplos_rem(ops),
             "_total": total,
+            "resumo_fatos": _resumo_remessa(rota),
+            "acao_regra": _acao_regra(config.NATUREZA_CONTRATO, "REMESSA", "PONTE", a_mais, a_mais),
+            "rota_valores": rota,
+            "condicoes_cliente": _condicoes_cliente(linhas, condicoes, cnpj, [], "REMESSA"),
+            "regras_aplicaveis": _regras_aplicaveis(config.NATUREZA_CONTRATO, "REMESSA"),
         })
     return out
 
@@ -437,6 +465,190 @@ def _condicao_remessa(linhas):
     return " | ".join(partes)
 
 
+# ---------------------------------------------------------------- etapas 2 e 3: rota, condições, regras, ação, resumo
+MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro",
+         "novembro", "dezembro"]
+PREP = {"DEBITO": "no", "CREDITO A VISTA": "no", "PARC_2_6": "em", "PARC_7_12": "em", "PIX": "no",
+        "ANTECIPACAO": "na"}
+CENTESIMO = Decimal("0.01")
+QUATRO = Decimal("0.0001")
+
+
+def _dm(iso):
+    return f"{iso[8:10]}/{iso[5:7]}"
+
+
+def _maiuscula(txt):
+    return txt[:1].upper() + txt[1:]
+
+
+def _segmentos(itens, casas):
+    """itens = (faixa, data, aplicada, contratada, diverge, ordem). Segmentos contíguos no tempo, por faixa, com a
+    mesma (taxa aplicada, taxa contratada, diverge). IDs V1.. na ordem das faixas e do tempo."""
+    ordem = sorted({i[0] for i in itens}, key=lambda f: (FAIXAS.index(f) if f in FAIXAS else len(FAIXAS), f))
+    out, n = [], 0
+    for faixa in ordem:
+        seg = None
+        for _, data, ap, ct, dv, _o in sorted((i for i in itens if i[0] == faixa), key=lambda i: (i[1], i[5])):
+            if seg is None or seg["_chave"] != (ap, ct, dv):
+                n += 1
+                seg = {"id": f"V{n}", "faixa": faixa, "de": data.isoformat(), "ate": data.isoformat(),
+                       "taxa_aplicada": f"{ap:.{casas}f}", "taxa_contratada": f"{ct:.{casas}f}", "qtd": 0,
+                       "diverge": dv, "_chave": (ap, ct, dv)}
+                out.append(seg)
+            seg["ate"] = data.isoformat()
+            seg["qtd"] += 1
+    for s in out:
+        del s["_chave"]
+    return out
+
+
+def _rota_checkout(todas, ref):
+    itens = []
+    for l in todas:
+        if l["contratada"] is None:
+            continue
+        data, fx = ref[l["id"]]
+        itens.append((fx, data, Decimal(l["taxa_aplicada"]).quantize(CENTESIMO),
+                      Decimal(l["contratada"]).quantize(CENTESIMO), bool(l["divergente"]), l["id"]))
+    return _segmentos(itens, 2)
+
+
+def _rota_remessa(todas):
+    itens = []
+    for o in todas:
+        if o["contratado"] is None:
+            continue
+        ap = (o["spread_pct"] * CEM).quantize(CENTESIMO, rounding=ROUND_HALF_UP)      # H06: 0,01 p.p.
+        ct = (o["contratado"] * CEM).quantize(CENTESIMO, rounding=ROUND_HALF_UP)
+        itens.append(("SPREAD", o["data"], ap.quantize(QUATRO), ct.quantize(QUATRO), bool(o["divergente"]), o["op"]))
+    return _segmentos(itens, 4)
+
+
+def _rotulo_faixa(f):
+    return ROTULO.get(f) or cadastro.ROTULO_FAIXA.get(f, f).lower()
+
+
+def _condicoes_cliente(linhas, condicoes, cnpj, ecs, linha):
+    out = []
+    for c in linhas:
+        if linha == "CHECKOUT":
+            tx = "; ".join(f"{ROTULO[f]} {_pct(c['taxas'][f])}" for f in FAIXAS if c["taxas"].get(f) is not None)
+        else:
+            tx = (f"spread de remessa {_pct(c['spread'] * CEM)}" if c["spread"] is not None
+                  else f"spread de remessa padrão {_pct(config.SPREAD_PADRAO * CEM)} (célula em branco)")
+        obs = f" (obs: '{c['obs']}')" if c["obs"] else ""
+        out.append({"id": f"P{c['linha']}", "origem": f"planilha linha {c['linha']}", "texto": f"{_vig(c)}: {tx}{obs}"})
+    achadas = {}
+    for ec in (ecs or [None]):
+        for tipo in ("ISENCAO", "TAXA_ESPECIAL", "NOTA_PENDENCIA"):
+            for c in cadastro.do_lojista(condicoes, tipo, cnpj=cnpj, ec=ec, linha=linha):
+                achadas[c["id_condicao"]] = c
+    for _id, c in sorted(achadas.items()):
+        ini, fim = cadastro.periodo(c)
+        vig = f"de {_d(ini)} a {_d(fim)}" if fim else f"desde {_d(ini)}"
+        fonte = f", fonte {c['fonte']}" if c["fonte"] else ""
+        if c["tipo"] == "NOTA_PENDENCIA":
+            txt = f"nota do cadastro: {c['observacao']}"
+        else:
+            faixas = "todas as faixas" if c["campo"] == "todas" else ", ".join(_rotulo_faixa(f) for f in c["campo"].split(","))
+            if c["tipo"] == "ISENCAO":
+                txt = f"isenção ({faixas}) {vig}, aprovada por {c['aprovado_por']}{fonte}"
+            else:
+                txt = f"taxa especial {faixas} {c['valor']}% {vig}, aprovada por {c['aprovado_por']}{fonte}"
+        out.append({"id": _id, "origem": "cadastro", "texto": txt})
+    return out
+
+
+def _regras_aplicaveis(natureza, linha):
+    return [{"id": i, "texto": config.TEXTOS_REGRAS[i]} for i in config.REGRAS_APLICAVEIS[(natureza, linha)]]
+
+
+def _acao_regra(natureza, linha, contraparte, devolver, recuperar):
+    regras = list(config.REGRAS_ACAO[(natureza, linha)])
+    if natureza == config.NATUREZA_ISENCAO:
+        txt = (f"Devolver ao lojista {fmt_br(devolver)} (sai do caixa da Tarvo — concessão comercial fora do contrato); "
+               f"não cobrar a {NOME_CONTRAPARTE[contraparte]}.")
+    elif devolver < 0:
+        txt = (f"O parceiro cobrou {fmt_br(-devolver)} a menos que o contrato; não há devolução ao lojista; "
+               "tratar caso a caso (R50/S24).")
+    else:
+        txt = (f"Devolver ao lojista {fmt_br(devolver)} e contestar {fmt_br(recuperar)} com a "
+               f"{NOME_CONTRAPARTE[contraparte]}.")
+    return {"texto": txt, "regras": regras}
+
+
+def _periodo(de, ate, aberto):
+    if aberto:
+        return f"Desde {_dm(de)}"
+    return f"Em {_dm(de)}" if de == ate else f"De {_dm(de)} a {_dm(ate)}"
+
+
+def _nomes_faixas(faixas):
+    return PREP.get(faixas[0], "em") + " " + _lista_e(ROTULO[f] for f in faixas)
+
+
+def _resumo_checkout(rota, natureza, ids_isencao):
+    faixas = list(OrderedDict.fromkeys(s["faixa"] for s in rota))
+    por = {f: [s for s in rota if s["faixa"] == f] for f in faixas}
+    div = [f for f in faixas if any(s["diverge"] for s in por[f])]
+    ok = [f for f in faixas if f not in div]
+    info = {}
+    for f in div:
+        ds = [s for s in por[f] if s["diverge"]]
+        deltas = {Decimal(s["taxa_aplicada"]) - Decimal(s["taxa_contratada"]) for s in ds}
+        i0 = por[f].index(ds[0])
+        ant = por[f][i0 - 1] if i0 > 0 else None
+        info[f] = {"de": ds[0]["de"], "ate": ds[-1]["ate"], "aberto": por[f][-1]["diverge"],
+                   "delta": deltas.pop() if len(deltas) == 1 else None, "ap": ds[0]["taxa_aplicada"],
+                   "ct": ds[0]["taxa_contratada"],
+                   "desde": ds[0]["de"] if ant is not None and ant["taxa_contratada"] != ds[0]["taxa_contratada"] else None}
+    frases = []
+    if natureza == config.NATUREZA_ISENCAO:
+        de, ate = min(i["de"] for i in info.values()), max(i["ate"] for i in info.values())
+        aberto = all(i["aberto"] for i in info.values())
+        onde = "em todas as faixas" if not ok else _nomes_faixas(div)
+        cond = (f"o lojista tem isenção comercial ({', '.join(ids_isencao)})" if ids_isencao
+                else "o lojista tem isenção comercial")
+        frases.append(f"{_periodo(de, ate, aberto)} a Orbe {'cobra' if aberto else 'cobrou'} a taxa cheia {onde}; {cond}")
+    else:
+        grupos = OrderedDict()
+        for f in div:
+            i = info[f]
+            grupos.setdefault((i["delta"], i["aberto"]) if i["delta"] is not None else ("faixa", f), []).append(f)
+        for fs in grupos.values():
+            i0 = info[fs[0]]
+            de, ate = min(info[f]["de"] for f in fs), max(info[f]["ate"] for f in fs)
+            aberto = all(info[f]["aberto"] for f in fs)
+            verbo = "cobra" if aberto else "cobrou"
+            if len(fs) > 1:
+                frases.append(f"{_periodo(de, ate, aberto)} a Orbe {verbo} {_pp(i0['delta'])} {_nomes_faixas(fs)}")
+            else:
+                ct = f"o contratado {'desde ' + _dm(i0['desde']) + ' ' if i0['desde'] else ''}é {_pct(i0['ct'])}"
+                frases.append(f"{_periodo(de, ate, aberto)} a Orbe {verbo} {_pct(i0['ap'])} {_nomes_faixas(fs)}; {ct}")
+    if ok:
+        frases.append(_lista_e(ROTULO[f] for f in ok) + (" estão corretos" if len(ok) > 1 else " está correto"))
+    return _maiuscula("; ".join(frases)) + "."
+
+
+def _resumo_remessa(rota):
+    div = [s for s in rota if s["diverge"]]
+    total = sum(s["qtd"] for s in rota)
+    frases = []
+    for s in div:
+        ap = _pct(s["taxa_aplicada"])
+        if Decimal(s["taxa_aplicada"]) == config.SPREAD_PADRAO * CEM:
+            ap += " (padrão)"
+        todas = s["qtd"] == total
+        quando = (f"Em {MESES[int(s['de'][5:7]) - 1]}" if todas and s["de"][:7] == s["ate"][:7]
+                  else _periodo(s["de"], s["ate"], False))
+        frases.append(f"{quando} a Ponte aplicou {ap} {'em todas as remessas' if todas else 'nas remessas'}; "
+                      f"o contratado é {_pct(s['taxa_contratada'])}")
+    if sum(s["qtd"] for s in div) < total:
+        frases.append("as demais remessas estão corretas")
+    return _maiuscula("; ".join(frases)) + "."
+
+
 # ---------------------------------------------------------------- API
 def gerar(r, antigas=()):
     """r = resultado de fechamento.executar; antigas = leitores.ler_taxas_antigas(planilha)."""
@@ -447,7 +659,8 @@ def gerar(r, antigas=()):
         del g["_total"]
     chaves = ["id_grupo", "contraparte", "linha_negocio", "lojista", "cnpj", "ec_orbe", "natureza", "qtd",
               "valor_divergencia_brl", "valor_devolver_lojista_brl", "valor_recuperar_parceiro_brl",
-              "condicao_contratual", "fatos", "respostas_financeiro", "exemplos"]
+              "condicao_contratual", "fatos", "respostas_financeiro", "exemplos", "resumo_fatos", "acao_regra",
+              "rota_valores", "condicoes_cliente", "regras_aplicaveis"]
     return {"competencia": r["competencia"], "grupos": [{k: g[k] for k in chaves} for g in grupos]}
 
 
@@ -471,7 +684,21 @@ def markdown(dossie):
               f"{'transações' if g['linha_negocio'] == 'CHECKOUT' else 'operações'}",
               f"- Devolver ao lojista: {fmt_br(Decimal(g['valor_devolver_lojista_brl']))} · Recuperar do parceiro: "
               f"{fmt_br(Decimal(g['valor_recuperar_parceiro_brl']))}",
-              f"- Condição contratual: {g['condicao_contratual']}", "", "### Fatos", ""]
+              "", "### O que aconteceu", "", g["resumo_fatos"],
+              "", "### Ação pela regra", "", f"{g['acao_regra']['texto']} _(regras: {', '.join(g['acao_regra']['regras'])})_",
+              "", "### Linha do tempo", "",
+              "| ID | Faixa | De | Até | Taxa aplicada | Taxa contratada | Qtd | Diverge |",
+              "|---|---|---|---|---:|---:|---:|---|"]
+        for v in g["rota_valores"]:
+            de, ate = date.fromisoformat(v["de"]), date.fromisoformat(v["ate"])
+            L.append(f"| {v['id']} | {ROTULO.get(v['faixa'], 'spread de remessa')} | {_d(de)} | {_d(ate)} | "
+                     f"{_pct(v['taxa_aplicada'])} | {_pct(v['taxa_contratada'])} | {v['qtd']} | "
+                     f"{'sim' if v['diverge'] else 'não'} |")
+        L += ["", "### Condições do cliente", ""]
+        L += [f"- **{c['id']}** ({c['origem']}) {c['texto']}" for c in g["condicoes_cliente"]] or ["- Nenhuma condição registrada."]
+        L += ["", "### Regras aplicáveis", ""]
+        L += [f"- **{r['id']}** {r['texto']}" for r in g["regras_aplicaveis"]]
+        L += ["", "### Fatos detalhados", ""]
         for f in g["fatos"]:
             refs = f" _(ref.: {', '.join(f['refs'])})_" if f["refs"] else ""
             L.append(f"- **{f['id']}** {f['texto']}{refs}")

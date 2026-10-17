@@ -420,7 +420,8 @@ def _pendencia_divergencia(ls, nome, natureza, condicoes=()):
     total = soma(l["bolso"] for l in ls)
     ec = ls[0]["ec"]
     rastro = [("orbe", l["id"], l["bolso"], f"{l['tipo']} {natureza} valor_taxa Orbe - comissão contratada") for l in ls]
-    base = (f"{len(ls)} transações de {nome} (EC {ec}); a devolver {fmt_br(total)} (valor_taxa descontado pela Orbe menos "
+    a_dev = f"a devolver {fmt_br(total)}" if total >= 0 else f"líquido {fmt_br(total)} (cobrado a menos que o contrato)"
+    base = (f"{len(ls)} transações de {nome} (EC {ec}); {a_dev} (valor_taxa descontado pela Orbe menos "
             "a comissão contratada, S51), já com estornos de vendas divergentes (H02). ")
     trunc = (f"A fórmula da lista de divergências (bruto x diferença de taxa) soma {fmt_br(formula)}; a diferença de "
              f"{fmt_br(formula - total)} é truncamento da Orbe (S51). ")
@@ -442,6 +443,8 @@ def _pendencia_divergencia(ls, nome, natureza, condicoes=()):
         motivo += f"{a_menos} transações com taxa ABAIXO do contrato (H04/S24): Helena decide caso a caso. "
     if total >= 0:
         motivo += f"Devolver ao lojista {fmt_br(total)}; recuperar do parceiro (Orbe) {fmt_br(total)} (R60/S34/S51). "
+    if total < 0:
+        motivo += f"O parceiro cobrou {fmt_br(-total)} a menos que o contrato; não há devolução ao lojista; tratar caso a caso (R50/S24). "
     motivo += trunc + "Lista em divergencias_taxa.csv (natureza CONTRATO, cobrar_parceiro S)."
     return {"tipo": "DIVERGENCIA_TAXA_CHECKOUT", "ref_origem": f"EC {ec}", "valor": total, "motivo": motivo,
             "quem_decide": config.QUEM_HELENA, "rastro": rastro}

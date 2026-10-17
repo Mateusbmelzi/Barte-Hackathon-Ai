@@ -113,6 +113,125 @@
         "AN88445802",
         "AN88445486",
         "TX88419350"
+      ],
+      "resumo_fatos": "Desde 01/09 a Orbe cobra a taxa cheia em todas as faixas; o lojista tem isenção comercial (C001).",
+      "acao_regra": {
+        "texto": "Devolver ao lojista R$ 15.396,77 (sai do caixa da Tarvo — concessão comercial fora do contrato); não cobrar a Orbe.",
+        "regras": [
+          "R52",
+          "R68",
+          "R74"
+        ]
+      },
+      "rota_valores": [
+        {
+          "id": "V1",
+          "faixa": "DEBITO",
+          "de": "2026-08-21",
+          "ate": "2026-08-21",
+          "taxa_aplicada": "1.49",
+          "taxa_contratada": "1.49",
+          "qtd": 1,
+          "diverge": false
+        },
+        {
+          "id": "V2",
+          "faixa": "DEBITO",
+          "de": "2026-09-08",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "1.49",
+          "taxa_contratada": "0.00",
+          "qtd": 12,
+          "diverge": true
+        },
+        {
+          "id": "V3",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-01",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "2.69",
+          "taxa_contratada": "0.00",
+          "qtd": 35,
+          "diverge": true
+        },
+        {
+          "id": "V4",
+          "faixa": "PARC_2_6",
+          "de": "2026-09-01",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "3.19",
+          "taxa_contratada": "0.00",
+          "qtd": 41,
+          "diverge": true
+        },
+        {
+          "id": "V5",
+          "faixa": "PARC_7_12",
+          "de": "2026-09-01",
+          "ate": "2026-09-26",
+          "taxa_aplicada": "3.79",
+          "taxa_contratada": "0.00",
+          "qtd": 17,
+          "diverge": true
+        },
+        {
+          "id": "V6",
+          "faixa": "PIX",
+          "de": "2026-09-06",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "0.89",
+          "taxa_contratada": "0.00",
+          "qtd": 9,
+          "diverge": true
+        },
+        {
+          "id": "V7",
+          "faixa": "ANTECIPACAO",
+          "de": "2026-09-09",
+          "ate": "2026-09-16",
+          "taxa_aplicada": "2.10",
+          "taxa_contratada": "0.00",
+          "qtd": 4,
+          "diverge": true
+        }
+      ],
+      "condicoes_cliente": [
+        {
+          "id": "P13",
+          "origem": "planilha linha 13",
+          "texto": "desde 01/01/2026: débito 1,49%; crédito à vista 2,69%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'cliente estratégico - ver c/ comercial')"
+        },
+        {
+          "id": "C001",
+          "origem": "cadastro",
+          "texto": "isenção (todas as faixas) de 01/09/2026 a 31/12/2026, aprovada por Comercial, fonte S07/S47"
+        }
+      ],
+      "regras_aplicaveis": [
+        {
+          "id": "R52",
+          "texto": "Concessão comercial fora do contrato (ex.: isenção que o Comercial deu e ninguém comunicou) não é divergência de contrato: não se cobra o parceiro e a devolução ao lojista sai do bolso da Tarvo; fica separada, em uma pendência para Helena e Comercial."
+        },
+        {
+          "id": "R68",
+          "texto": "Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "R13",
+          "texto": "Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso."
+        },
+        {
+          "id": "R60",
+          "texto": "Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro."
+        },
+        {
+          "id": "R74",
+          "texto": "Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe."
+        },
+        {
+          "id": "R72",
+          "texto": "Isenção ou taxa zero com vigência vale para venda a partir da data de início; para antecipação vale a data da antecipação; estorno segue a taxa da venda."
+        }
       ]
     },
     {
@@ -218,6 +337,152 @@
         "TX88440860",
         "TX88423647",
         "TX88444545"
+      ],
+      "resumo_fatos": "Desde 12/09 a Orbe cobra +0,50 p.p. no crédito à vista, 2–6x e 7–12x; débito, Pix e antecipação estão corretos.",
+      "acao_regra": {
+        "texto": "Devolver ao lojista R$ 1.545,86 e contestar R$ 1.545,86 com a Orbe.",
+        "regras": [
+          "R13",
+          "R68",
+          "R74"
+        ]
+      },
+      "rota_valores": [
+        {
+          "id": "V1",
+          "faixa": "DEBITO",
+          "de": "2026-09-01",
+          "ate": "2026-09-18",
+          "taxa_aplicada": "1.49",
+          "taxa_contratada": "1.49",
+          "qtd": 10,
+          "diverge": false
+        },
+        {
+          "id": "V2",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-02",
+          "ate": "2026-09-11",
+          "taxa_aplicada": "2.49",
+          "taxa_contratada": "2.49",
+          "qtd": 20,
+          "diverge": false
+        },
+        {
+          "id": "V3",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-12",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "2.99",
+          "taxa_contratada": "2.49",
+          "qtd": 38,
+          "diverge": true
+        },
+        {
+          "id": "V4",
+          "faixa": "PARC_2_6",
+          "de": "2026-08-30",
+          "ate": "2026-09-11",
+          "taxa_aplicada": "2.99",
+          "taxa_contratada": "2.99",
+          "qtd": 13,
+          "diverge": false
+        },
+        {
+          "id": "V5",
+          "faixa": "PARC_2_6",
+          "de": "2026-09-12",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "3.49",
+          "taxa_contratada": "2.99",
+          "qtd": 31,
+          "diverge": true
+        },
+        {
+          "id": "V6",
+          "faixa": "PARC_7_12",
+          "de": "2026-09-03",
+          "ate": "2026-09-08",
+          "taxa_aplicada": "3.59",
+          "taxa_contratada": "3.59",
+          "qtd": 11,
+          "diverge": false
+        },
+        {
+          "id": "V7",
+          "faixa": "PARC_7_12",
+          "de": "2026-09-12",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "4.09",
+          "taxa_contratada": "3.59",
+          "qtd": 18,
+          "diverge": true
+        },
+        {
+          "id": "V8",
+          "faixa": "PIX",
+          "de": "2026-09-03",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "0.89",
+          "taxa_contratada": "0.89",
+          "qtd": 15,
+          "diverge": false
+        },
+        {
+          "id": "V9",
+          "faixa": "ANTECIPACAO",
+          "de": "2026-09-09",
+          "ate": "2026-09-22",
+          "taxa_aplicada": "2.10",
+          "taxa_contratada": "2.10",
+          "qtd": 3,
+          "diverge": false
+        }
+      ],
+      "condicoes_cliente": [
+        {
+          "id": "P10",
+          "origem": "planilha linha 10",
+          "texto": "desde 01/01/2026: débito 1,49%; crédito à vista 2,49%; 2–6x 2,99%; 7–12x 3,59%; Pix 0,89%; antecipação 2,10%"
+        }
+      ],
+      "regras_aplicaveis": [
+        {
+          "id": "R13",
+          "texto": "Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso."
+        },
+        {
+          "id": "R50",
+          "texto": "Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso."
+        },
+        {
+          "id": "R68",
+          "texto": "Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "R60",
+          "texto": "Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro."
+        },
+        {
+          "id": "R74",
+          "texto": "Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe."
+        },
+        {
+          "id": "R51",
+          "texto": "Venda cobrada fora do contrato e depois estornada: venda e estorno se anulam; cobra-se só a diferença líquida."
+        },
+        {
+          "id": "R70",
+          "texto": "A taxa do estorno é a da data da venda original."
+        },
+        {
+          "id": "R71",
+          "texto": "Na lista de divergências, o estorno de uma venda com taxa errada também entra, com valor negativo."
+        },
+        {
+          "id": "R02",
+          "texto": "A Orbe trunca centavos; a diferença de centavo causada por truncamento não é divergência."
+        }
       ]
     },
     {
@@ -316,6 +581,65 @@
         "PC-0926-0434",
         "PC-0926-0373",
         "PC-0926-0566"
+      ],
+      "resumo_fatos": "Em setembro a Ponte aplicou 1,50% (padrão) em todas as remessas; o contratado é 1,20%.",
+      "acao_regra": {
+        "texto": "Devolver ao lojista R$ 1.418,88 e contestar R$ 1.418,88 com a Ponte.",
+        "regras": [
+          "R22",
+          "R68",
+          "R74"
+        ]
+      },
+      "rota_valores": [
+        {
+          "id": "V1",
+          "faixa": "SPREAD",
+          "de": "2026-09-01",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "1.5000",
+          "taxa_contratada": "1.2000",
+          "qtd": 23,
+          "diverge": true
+        }
+      ],
+      "condicoes_cliente": [
+        {
+          "id": "P15",
+          "origem": "planilha linha 15",
+          "texto": "desde 01/01/2026: spread de remessa 1,20% (obs: 'spread negociado em jul/26')"
+        },
+        {
+          "id": "C006",
+          "origem": "cadastro",
+          "texto": "nota do cadastro: Caso de fronteira: a Ponte não foi avisada do spread de 1,20% (S30), mas a Helena decidiu tratar como divergência e contestar com a Ponte (S05)."
+        }
+      ],
+      "regras_aplicaveis": [
+        {
+          "id": "R22",
+          "texto": "Divergência de remessa = valor cheio que o lojista pagou a mais: (spread % aplicado − contratado) × PTAX × valor em moeda estrangeira."
+        },
+        {
+          "id": "R50",
+          "texto": "Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso."
+        },
+        {
+          "id": "R68",
+          "texto": "Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "R60",
+          "texto": "Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro."
+        },
+        {
+          "id": "R74",
+          "texto": "Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe."
+        },
+        {
+          "id": "R20",
+          "texto": "Remessa: comissão da Tarvo = 50% do Spread R$ realizado por operação; o excesso contestável entra na nota do mês e o ajuste só entra no mês em que a Ponte devolver."
+        }
       ]
     },
     {
@@ -414,6 +738,137 @@
         "TX88431123",
         "TX88429931",
         "TX88428053"
+      ],
+      "resumo_fatos": "De 15/09 a 18/09 a Orbe cobrou 2,59% no crédito à vista; o contratado desde 15/09 é 2,19%; débito, 2–6x, 7–12x e Pix estão corretos.",
+      "acao_regra": {
+        "texto": "Devolver ao lojista R$ 29,94 e contestar R$ 29,94 com a Orbe.",
+        "regras": [
+          "R13",
+          "R68",
+          "R74"
+        ]
+      },
+      "rota_valores": [
+        {
+          "id": "V1",
+          "faixa": "DEBITO",
+          "de": "2026-09-01",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "1.49",
+          "taxa_contratada": "1.49",
+          "qtd": 15,
+          "diverge": false
+        },
+        {
+          "id": "V2",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-01",
+          "ate": "2026-09-13",
+          "taxa_aplicada": "2.59",
+          "taxa_contratada": "2.59",
+          "qtd": 8,
+          "diverge": false
+        },
+        {
+          "id": "V3",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-15",
+          "ate": "2026-09-18",
+          "taxa_aplicada": "2.59",
+          "taxa_contratada": "2.19",
+          "qtd": 5,
+          "diverge": true
+        },
+        {
+          "id": "V4",
+          "faixa": "CREDITO A VISTA",
+          "de": "2026-09-23",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "2.19",
+          "taxa_contratada": "2.19",
+          "qtd": 9,
+          "diverge": false
+        },
+        {
+          "id": "V5",
+          "faixa": "PARC_2_6",
+          "de": "2026-09-01",
+          "ate": "2026-09-29",
+          "taxa_aplicada": "3.19",
+          "taxa_contratada": "3.19",
+          "qtd": 42,
+          "diverge": false
+        },
+        {
+          "id": "V6",
+          "faixa": "PARC_7_12",
+          "de": "2026-09-01",
+          "ate": "2026-09-27",
+          "taxa_aplicada": "3.79",
+          "taxa_contratada": "3.79",
+          "qtd": 17,
+          "diverge": false
+        },
+        {
+          "id": "V7",
+          "faixa": "PIX",
+          "de": "2026-09-01",
+          "ate": "2026-09-30",
+          "taxa_aplicada": "0.89",
+          "taxa_contratada": "0.89",
+          "qtd": 13,
+          "diverge": false
+        }
+      ],
+      "condicoes_cliente": [
+        {
+          "id": "P6",
+          "origem": "planilha linha 6",
+          "texto": "até 14/09/2026: débito 1,49%; crédito à vista 2,59%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'renegociado - ver linha de baixo')"
+        },
+        {
+          "id": "P7",
+          "origem": "planilha linha 7",
+          "texto": "desde 15/09/2026: débito 1,49%; crédito à vista 2,19%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'só mudou o crédito à vista')"
+        }
+      ],
+      "regras_aplicaveis": [
+        {
+          "id": "R13",
+          "texto": "Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × (taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso."
+        },
+        {
+          "id": "R50",
+          "texto": "Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor negativo); a Helena decide caso a caso."
+        },
+        {
+          "id": "R68",
+          "texto": "Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "R60",
+          "texto": "Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do parceiro."
+        },
+        {
+          "id": "R74",
+          "texto": "Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento da Orbe."
+        },
+        {
+          "id": "R51",
+          "texto": "Venda cobrada fora do contrato e depois estornada: venda e estorno se anulam; cobra-se só a diferença líquida."
+        },
+        {
+          "id": "R70",
+          "texto": "A taxa do estorno é a da data da venda original."
+        },
+        {
+          "id": "R71",
+          "texto": "Na lista de divergências, o estorno de uma venda com taxa errada também entra, com valor negativo."
+        },
+        {
+          "id": "R02",
+          "texto": "A Orbe trunca centavos; a diferença de centavo causada por truncamento não é divergência."
+        }
       ]
     }
   ]

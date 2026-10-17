@@ -12,7 +12,8 @@ from src.saidas import COLUNAS
 
 CHAVES = ["id_grupo", "contraparte", "linha_negocio", "lojista", "cnpj", "ec_orbe", "natureza", "qtd",
           "valor_divergencia_brl", "valor_devolver_lojista_brl", "valor_recuperar_parceiro_brl",
-          "condicao_contratual", "fatos", "respostas_financeiro", "exemplos"]
+          "condicao_contratual", "fatos", "respostas_financeiro", "exemplos", "resumo_fatos", "acao_regra",
+          "rota_valores", "condicoes_cliente", "regras_aplicaveis"]
 CASA, ROTA, BRIDGE, MUNDO = "00520815000100", "95927868000148", "22224579000109", "17217888000111"
 DINHEIRO = re.compile(r"^-?\d+\.\d{2}$")
 
@@ -58,6 +59,92 @@ def test_schema(dossie, resultado):
         for s in g["respostas_financeiro"]:
             assert list(s) == ["id", "texto"] and s["texto"] == config.TEXTOS_FINANCEIRO[s["id"]]
         assert 1 <= len(g["exemplos"]) <= 3 and set(g["exemplos"]) <= origem
+        _confere_etapas_2_3(g)
+
+
+def _confere_etapas_2_3(g):
+    assert g["resumo_fatos"].endswith(".") and "\n" not in g["resumo_fatos"]
+    assert list(g["acao_regra"]) == ["texto", "regras"] and g["acao_regra"]["regras"]
+    ids_regras = [r["id"] for r in g["regras_aplicaveis"]]
+    assert set(g["acao_regra"]["regras"]) <= set(ids_regras)
+    for r in g["regras_aplicaveis"]:
+        assert list(r) == ["id", "texto"] and r["texto"] == config.TEXTOS_REGRAS[r["id"]]
+    assert [v["id"] for v in g["rota_valores"]] == [f"V{n}" for n in range(1, len(g["rota_valores"]) + 1)]
+    for v in g["rota_valores"]:
+        assert list(v) == ["id", "faixa", "de", "ate", "taxa_aplicada", "taxa_contratada", "qtd", "diverge"]
+        casas = 4 if g["linha_negocio"] == "REMESSA" else 2
+        for k in ("taxa_aplicada", "taxa_contratada"):
+            assert re.fullmatch(rf"\d+\.\d{{{casas}}}", v[k]), v
+        assert v["de"] <= v["ate"] and v["qtd"] > 0 and isinstance(v["diverge"], bool)
+    assert sum(v["qtd"] for v in g["rota_valores"] if v["diverge"]) >= g["qtd"] - 1
+    for c in g["condicoes_cliente"]:
+        assert list(c) == ["id", "origem", "texto"] and c["texto"]
+        assert re.fullmatch(r"P\d+|C\d{3}", c["id"])
+        assert (c["origem"] == "cadastro") == c["id"].startswith("C")
+
+
+def _rota(g, faixa):
+    return [v for v in g["rota_valores"] if v["faixa"] == faixa]
+
+
+def test_etapas_2_3_rota(grupos):
+    g = grupos[ROTA]
+    assert g["resumo_fatos"] == ("Desde 12/09 a Orbe cobra +0,50 p.p. no crédito à vista, 2–6x e 7–12x; "
+                                 "débito, Pix e antecipação estão corretos.")
+    v = _rota(g, "CREDITO A VISTA")
+    assert [(x["de"], x["ate"], x["taxa_aplicada"], x["taxa_contratada"], x["qtd"], x["diverge"]) for x in v] == [
+        ("2026-09-02", "2026-09-11", "2.49", "2.49", 20, False), ("2026-09-12", "2026-09-29", "2.99", "2.49", 38, True)]
+    assert all(not x["diverge"] for f in ("DEBITO", "PIX", "ANTECIPACAO") for x in _rota(g, f))
+    assert [x["de"] for f in ("PARC_2_6", "PARC_7_12") for x in _rota(g, f) if x["diverge"]] == ["2026-09-12"] * 2
+    assert g["acao_regra"] == {"texto": "Devolver ao lojista R$ 1.545,86 e contestar R$ 1.545,86 com a Orbe.",
+                               "regras": ["R13", "R68", "R74"]}
+    assert [c["id"] for c in g["condicoes_cliente"]] == ["P10"]
+    assert "desde 01/01/2026: débito 1,49%" in g["condicoes_cliente"][0]["texto"]
+    assert [r["id"] for r in g["regras_aplicaveis"]][:3] == ["R13", "R50", "R68"]
+
+
+def test_etapas_2_3_bridge(grupos):
+    g = grupos[BRIDGE]
+    assert g["resumo_fatos"].startswith("De 15/09 a 18/09 a Orbe cobrou 2,59% no crédito à vista; "
+                                        "o contratado desde 15/09 é 2,19%")
+    div = [v for v in g["rota_valores"] if v["diverge"]]
+    assert [(v["faixa"], v["de"], v["ate"], v["taxa_aplicada"], v["taxa_contratada"], v["qtd"]) for v in div] == [
+        ("CREDITO A VISTA", "2026-09-15", "2026-09-18", "2.59", "2.19", 5)]
+    assert [c["id"] for c in g["condicoes_cliente"]] == ["P6", "P7"]
+    assert g["acao_regra"]["texto"] == "Devolver ao lojista R$ 29,94 e contestar R$ 29,94 com a Orbe."
+
+
+def test_etapas_2_3_casa(grupos):
+    g = grupos[CASA]
+    assert g["resumo_fatos"] == ("Desde 01/09 a Orbe cobra a taxa cheia em todas as faixas; "
+                                 "o lojista tem isenção comercial (C001).")
+    assert [c["id"] for c in g["condicoes_cliente"]] == ["P13", "C001"]
+    c001 = g["condicoes_cliente"][1]
+    assert c001["origem"] == "cadastro" and "01/09/2026 a 31/12/2026" in c001["texto"] and "Comercial" in c001["texto"]
+    assert g["acao_regra"]["texto"] == ("Devolver ao lojista R$ 15.396,77 (sai do caixa da Tarvo — concessão comercial "
+                                        "fora do contrato); não cobrar a Orbe.")
+    assert g["acao_regra"]["regras"] == ["R52", "R68", "R74"]
+    assert all(x["taxa_contratada"] == "0.00" for x in g["rota_valores"] if x["diverge"])
+    assert "R52" in [r["id"] for r in g["regras_aplicaveis"]] and "R51" not in [r["id"] for r in g["regras_aplicaveis"]]
+
+
+def test_etapas_2_3_mundo_aberto(grupos):
+    g = grupos[MUNDO]
+    assert g["resumo_fatos"] == "Em setembro a Ponte aplicou 1,50% (padrão) em todas as remessas; o contratado é 1,20%."
+    assert [(v["faixa"], v["de"], v["ate"], v["taxa_aplicada"], v["taxa_contratada"], v["qtd"], v["diverge"])
+            for v in g["rota_valores"]] == [("SPREAD", "2026-09-01", "2026-09-30", "1.5000", "1.2000", 23, True)]
+    assert g["acao_regra"] == {"texto": "Devolver ao lojista R$ 1.418,88 e contestar R$ 1.418,88 com a Ponte.",
+                               "regras": ["R22", "R68", "R74"]}
+    assert g["condicoes_cliente"][0]["id"] == "P15" and "spread de remessa 1,20%" in g["condicoes_cliente"][0]["texto"]
+
+
+def test_markdown_ordem_das_secoes(dossie):
+    md = investigacao.markdown(dossie)
+    ordem = ["### O que aconteceu", "### Ação pela regra", "### Linha do tempo", "### Condições do cliente",
+             "### Regras aplicáveis", "### Fatos detalhados", "### O que o financeiro já respondeu"]
+    pos = [md.index(t) for t in ordem]
+    assert pos == sorted(pos)
+    assert "| V1 |" in md
 
 
 def test_grupos_e_ordem(dossie, resultado):

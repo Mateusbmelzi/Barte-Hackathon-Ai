@@ -2,17 +2,20 @@
 sem alterar nada no disco). Devolvem listas de dicts com Decimal para dinheiro."""
 import csv
 import email
+import email.utils
 import io
 import re
 import unicodedata
-from datetime import date, datetime
+from collections import Counter, OrderedDict
+from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
 from email import policy
 from pathlib import Path
 
 import openpyxl
 
 from . import config
-from .dinheiro import dec
+from .dinheiro import dec, fmt_br
 
 
 # ---------------------------------------------------------------- utilidades
@@ -515,16 +518,381 @@ def validar_layout(chave, caminho):
     return {"faltantes": faltantes, "encontradas": achadas} if faltantes else None
 
 
+# ---------------------------------------------------------------- versões (2+ arquivos da mesma fonte)
+def _nat(nome):
+    """Ordem de nome 'natural' (v2 < v10); 'x (1).csv' (duplicata do navegador) vem depois de 'x.csv'."""
+    n = re.sub(r"\s*\((\d+)\)(\.\w+)$", r"~\1\2", nome.lower())
+    return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", n)]
+
+
+def _momento_eml(caminho):
+    """Cabeçalho Date do e-mail, em UTC sem fuso."""
+    with open(caminho, "rb") as f:
+        msg = email.message_from_binary_file(f, policy=policy.default)
+    dt = email.utils.parsedate_to_datetime(str(msg["Date"]))
+    return dt.astimezone(timezone.utc).replace(tzinfo=None) if dt.tzinfo else dt
+
+
+def _momento_ofx(caminho):
+    """DTSERVER do OFX (ex.: 20261001063000[-3:BRT]), em UTC."""
+    texto = Path(caminho).read_bytes().decode("cp1252", errors="replace")
+    m = re.search(r"<DTSERVER>(\d{8})(\d{6})?(?:\[([+-]?\d+(?:\.\d+)?)(?::[A-Z]+)?\])?", texto)
+    if not m:
+        return None
+    dt = datetime.strptime(m.group(1) + (m.group(2) or "000000"), "%Y%m%d%H%M%S")
+    return dt - timedelta(hours=float(m.group(3))) if m.group(3) else dt
+
+
+def _momento_aurora(caminho):
+    """Fim do 'Período: dd/mm/aaaa a dd/mm/aaaa' do cabeçalho do CSV."""
+    m = re.search(r"Per.odo:\s*\d{2}/\d{2}/\d{4}\s*a\s*(\d{2}/\d{2}/\d{4})", _texto_arquivo(caminho))
+    return datetime.combine(_data_br(m.group(1)), time.min) if m else None
+
+
+_MOMENTO_VERSAO = {"ponte": _momento_eml, "meridiano": _momento_ofx, "aurora": _momento_aurora}
+
+
+def ordenar_versoes(chave, caminhos):
+    """Da versão mais antiga para a mais nova: data/hora embutida (Ponte Date, OFX DTSERVER, Aurora fim do Período)
+    e, no empate ou sem data, ordem de nome natural. Orbe/taxas/plano (sem data embutida): ordem de nome."""
+    def k(p):
+        try:
+            dt = _MOMENTO_VERSAO[chave](p) if chave in _MOMENTO_VERSAO else None
+        except Exception:  # noqa: BLE001 - arquivo ilegível: o validador de layout reclama depois
+            dt = None
+        return (dt or datetime.min, _nat(p.name))
+    return sorted(caminhos, key=k)
+
+
+def descobrir_versoes(pasta):
+    """Como descobrir_arquivos_parcial, mas TODAS as fontes aceitam 1 ou mais arquivos (versões).
+    Devolve (achados {fonte: [Path em ordem de versão, o último é o mais novo]}, ausentes)."""
+    pasta = Path(pasta)
+    todos = [p for p in pasta.iterdir() if p.is_file()]
+    achados, ausentes = {}, []
+    for chave, padrao in config.PADROES_ARQUIVOS.items():
+        rx = re.compile(_glob_para_regex(padrao), re.IGNORECASE)
+        m = [p for p in todos if rx.fullmatch(p.name)]
+        if not m:
+            ausentes.append(chave)
+        elif chave == "orbe":
+            achados[chave] = sorted(m, key=lambda p: p.name.lower())
+        else:
+            achados[chave] = ordenar_versoes(chave, m)
+    return achados, ausentes
+
+
+def _pl(n, sing, plur):
+    return f"{n} {sing if n == 1 else plur}"
+
+
+_CAMPOS_DINHEIRO = ("valor", "valor_brl", "spread_brl", "spread_estimado", "iof")
+
+
+def _fmt_v(campo, v):
+    if isinstance(v, date):
+        return v.strftime("%d/%m/%Y")
+    if v is None or v == "":
+        return "(vazio)"
+    if isinstance(v, Decimal) and campo in _CAMPOS_DINHEIRO:
+        return fmt_br(v)
+    return str(v)
+
+
+def _difs(campos, antigo, novo):
+    return "; ".join(f"{c}: {_fmt_v(c, antigo[c])} -> {_fmt_v(c, novo[c])}" for c in campos if antigo[c] != novo[c])
+
+
+def _pend_versao(tipo, ref, valor, motivo, rastro):
+    return {"tipo": tipo, "ref_origem": ref, "valor": valor, "motivo": motivo,
+            "quem_decide": config.QUEM_HELENA, "rastro": rastro}
+
+
+def _consolidar_chaveada(versoes, chave_de, campos):
+    """Consolida versões por chave natural. versoes = [(arquivo, linhas)] da mais antiga para a mais nova.
+    A ordem e o conteúdo vêm da versão mais nova; a linha que só existia em versão antiga é MANTIDA (a da versão mais
+    recente que a continha). Devolve (linhas [(linha, arquivo)], chaves novas, conflitos, sumiram):
+      conflitos = [(chave, linha nova, arquivo novo, [(arquivo antigo, linha antiga)])] (valem os da nova);
+      sumiram   = [(chave, 1ª linha, arquivo)]."""
+    n = len(versoes)
+    grupos = []
+    for _, linhas in versoes:
+        g = OrderedDict()
+        for l in linhas:
+            g.setdefault(chave_de(l), []).append(l)
+        grupos.append(g)
+    nova = grupos[-1]
+    out = [(l, versoes[-1][0]) for l in versoes[-1][1]]
+    dono = {}
+    for i in range(n - 1):
+        for k in grupos[i]:
+            if k not in nova:
+                dono[k] = i                      # a versão mais recente (antes da nova) que ainda tinha a chave
+    sumiram = []
+    for i in range(n - 1):
+        for k, ls in grupos[i].items():
+            if dono.get(k) == i:
+                out.extend((l, versoes[i][0]) for l in ls)
+                sumiram.append((k, ls[0], versoes[i][0]))
+    conflitos = []
+    for k, ls in nova.items():
+        antigos = [(versoes[i][0], grupos[i][k][0]) for i in range(n - 1)
+                   if k in grupos[i] and any(grupos[i][k][0][c] != ls[0][c] for c in campos)]
+        if antigos:
+            conflitos.append((k, ls[0], versoes[-1][0], antigos))
+    novas = [k for k in nova if not any(k in grupos[i] for i in range(n - 1))]
+    return out, novas, conflitos, sumiram
+
+
+def _chave_aurora(m):
+    return (m["data"], m["descricao"], m["documento"], m["valor"])
+
+
+def _contem(maior, menor):
+    return all(maior[k] >= v for k, v in menor.items())
+
+
+def _consolidar_aurora(versoes):
+    """versoes = [(arquivo, movs, meta)] da mais antiga para a mais nova. Multiconjunto por
+    (data, lançamento, documento, valor).
+      - Alguma versão contém todas as outras (a mais nova, se houver empate) -> usa só ela, com as linhas físicas dela
+        (ref 'Lnn' do edital). Se a escolhida não for a mais nova, o que a nova NÃO tem vira 'sumiram'.
+      - Nenhuma contém as outras (sobreposição parcial) -> união pelo máximo de ocorrências, ref 'Lnn@arquivo'.
+    Devolve dict: movs, meta, usados, novas (qtd), sumiram [mov], sobreposta."""
+    n = len(versoes)
+    cont = [Counter(_chave_aurora(m) for m in movs) for _, movs, _ in versoes]
+    nova = cont[-1]
+    antigo_max = Counter()
+    for c in cont[:-1]:
+        for k, v in c.items():
+            antigo_max[k] = max(antigo_max[k], v)
+    novas = sum(max(0, v - antigo_max[k]) for k, v in nova.items())
+    base = next((i for i in range(n - 1, -1, -1) if all(_contem(cont[i], cont[j]) for j in range(n))), None)
+    if base is not None:
+        arq, movs, meta = versoes[base]
+        saida = [{**m, "arquivo": arq} for m in movs]
+        sumiram = []
+        if base != n - 1:
+            falta = {k: v - nova[k] for k, v in cont[base].items() if v > nova[k]}
+            for m in reversed(saida):
+                k = _chave_aurora(m)
+                if falta.get(k, 0) > 0:
+                    falta[k] -= 1
+                    sumiram.append(m)
+            sumiram.reverse()
+        return {"movs": saida, "meta": meta, "usados": [arq], "novas": novas, "sumiram": sumiram, "sobreposta": False}
+    arq_n, movs_n, _ = versoes[-1]
+    saida = [{**m, "ref": f"{m['ref']}@{arq_n}", "arquivo": arq_n} for m in movs_n]
+    tem = Counter(nova)
+    sumiram = []
+    for i in range(n - 2, -1, -1):
+        arq, movs, _ = versoes[i]
+        for m in movs:
+            k = _chave_aurora(m)
+            if tem[k] < antigo_max[k]:
+                tem[k] += 1
+                extra = {**m, "ref": f"{m['ref']}@{arq}", "arquivo": arq}
+                saida.append(extra)
+                sumiram.append(extra)
+    saida.sort(key=lambda m: m["data"])          # estável: mantém a ordem do arquivo dentro do mesmo dia
+    return {"movs": saida, "meta": {"saldo_anterior": None, "saldo_final": None},
+            "usados": [a for a, _, _ in versoes], "novas": novas, "sumiram": sumiram, "sobreposta": True}
+
+
+def _entrada_versao(fonte, arquivos, usados, novas=0, conflitos=0, sumiram=0, sobreposta=False):
+    """Resumo de versões de uma fonte (r['versoes'][fonte]); 'texto' é a linha do resumo do CLI."""
+    ignorados = [a for a in arquivos if a not in usados]
+    rotulo = config.ROTULO_VERSAO[fonte]
+    unid = config.UNIDADE_VERSAO.get(fonte)
+    if fonte == "orbe":
+        txt = f"{rotulo}: {len(arquivos)} arquivos — {' + '.join(usados)}"
+    else:
+        txt = (f"{rotulo}: {len(arquivos)} versões — " + ("usadas " if len(usados) > 1 else "usada ")
+               + " + ".join(usados))
+    if unid is None:
+        txt += f" (ignorada {', '.join(ignorados)})" if ignorados else ""
+    else:
+        det = []
+        if sobreposta:
+            det.append("união por sobreposição")
+        det.append(f"+{_pl(novas, f'{unid[0]} nov{unid[2]}', f'{unid[1]} nov{unid[2]}s')}" if novas
+                   else f"sem {unid[1]} nov{unid[2]}s")
+        if conflitos:
+            det.append(_pl(conflitos, "conflito de valor", "conflitos de valor"))
+        if sumiram:
+            det.append(_pl(sumiram, "sumiu da nova versão", "sumiram da nova versão"))
+        txt += " (" + "; ".join(det) + ")"
+    return {"fonte": fonte, "rotulo": rotulo, "arquivos": list(arquivos), "usados": list(usados),
+            "ignorados": ignorados, "novas": novas, "conflitos": conflitos, "sumiram": sumiram,
+            "sobreposta": sobreposta, "texto": txt}
+
+
+def _usados(out, nome_novo):
+    return [nome_novo] + [a for a in dict.fromkeys(a for _, a in out) if a != nome_novo]
+
+
+def _consolidar_ofx(d, lidos):
+    """lidos = [(Path, (movs, meta))] em ordem de versão. FITID é a chave; vale a versão mais nova."""
+    versoes = [(c.name, r[0]) for c, r in lidos]
+    campos = ["data", "tipo", "valor", "checknum", "descricao"]
+    out, novas, conflitos, sumiram = _consolidar_chaveada(versoes, lambda m: m["ref"], campos)
+    movs = [{**m, "arquivo": arq} for m, arq in out]
+    nome_novo = versoes[-1][0]
+    pend = []
+    for k, m, arq, antigos in conflitos:
+        quais = " | ".join(f"{a}: {_difs(campos, ant, m)}" for a, ant in antigos)
+        pend.append(_pend_versao(
+            config.TIPO_VERSAO_CONFLITANTE, k, m["valor"],
+            f"FITID {k} aparece com valores diferentes no extrato Meridiano. Vale a versão mais recente ({arq}): "
+            f"{_fmt_v('valor', m['valor'])} em {_fmt_v('data', m['data'])}, '{m['descricao']}'. Versão anterior -> mais "
+            f"recente: {quais}. Critério nosso: a mais recente vale; Helena decide qual está certa.",
+            [(f"meridiano@{arq}", k, m["valor"], "versão usada (mais recente)")]))
+    for k, m, arq in sumiram:
+        pend.append(_pend_versao(
+            config.TIPO_LANCAMENTO_SUMIU, k, m["valor"],
+            f"O lançamento {k} ('{m['descricao']}', {_fmt_v('data', m['data'])}, {_fmt_v('valor', m['valor'])}) existia em "
+            f"{arq} e não consta em {nome_novo}. Mantido no fechamento (nada some em silêncio); pode ser estorno ou "
+            "correção do banco. Helena confirma se continua valendo.",
+            [(f"meridiano@{arq}", k, m["valor"], "lançamento que sumiu da nova versão (mantido)")]))
+    for m in movs:
+        d["rastro_arquivos"][f"meridiano@{m['arquivo']}"] = m["arquivo"]
+    d["versoes"]["meridiano"] = _entrada_versao("meridiano", [a for a, _ in versoes], _usados(out, nome_novo),
+                                                len(novas), len(conflitos), len(sumiram))
+    d["pend_versoes"] += pend
+    return movs, lidos[-1][1][1]
+
+
+def _consolidar_ponte(d, lidos):
+    """lidos = [(Path, (ops, meta))]. Nº Operação é a chave entre arquivos; a repetição dentro do MESMO relatório fica
+    como está (anomalia R24, tratada em remessa.calcular)."""
+    versoes = [(c.name, r[0]) for c, r in lidos]
+    metas = {c.name: r[1] for c, r in lidos}
+    campos = ["data", "data_liq", "cnpj", "cliente", "moeda", "valor_me", "taxa_cliente", "ptax", "valor_brl",
+              "spread_brl", "spread_pct", "spread_estimado", "iof", "status", "obs"]
+    out, novas, conflitos, sumiram = _consolidar_chaveada(versoes, lambda o: o["op"], campos)
+    ops = [{**o, "arquivo": arq} for o, arq in out]
+    nome_novo = versoes[-1][0]
+    d["origem_ponte"] = {o["op"]: o["arquivo"] for o in ops}
+    pend = []
+    for k, o, arq, antigos in conflitos:
+        quais = " | ".join(f"{a}: {_difs(campos, ant, o)}" for a, ant in antigos)
+        pend.append(_pend_versao(
+            config.TIPO_VERSAO_CONFLITANTE, k, o["spread_brl"],
+            f"A operação {k} ({o['cliente']}) aparece com valores diferentes em relatórios da Ponte. Vale a versão mais "
+            f"recente ({arq}), Spread R$ {fmt_br(o['spread_brl'])}. Versão anterior -> mais recente: {quais}. "
+            "Critério nosso: a mais recente vale; Helena decide qual está certa e confirma com a Ponte.",
+            [(f"ponte@{arq}", k, o["spread_brl"], "versão usada (mais recente)")]))
+    for k, o, arq in sumiram:
+        pend.append(_pend_versao(
+            config.TIPO_LANCAMENTO_SUMIU, k, o["spread_brl"],
+            f"A operação {k} ({o['cliente']}, {_fmt_v('data', o['data'])}, Spread R$ {fmt_br(o['spread_brl'])}) existia em "
+            f"{arq} e não consta em {nome_novo}. Mantida no fechamento (nada some em silêncio); pode ser cancelamento ou "
+            "correção da Ponte. Helena confirma com a Ponte.",
+            [(f"ponte@{arq}", k, o["spread_brl"], "operação que sumiu da nova versão (mantida)")]))
+    for a in {a for _, a in out}:
+        d["rastro_arquivos"][f"ponte@{a}"] = f"{a}#{metas[a]['anexo']}"
+    d["versoes"]["ponte"] = _entrada_versao("ponte", [a for a, _ in versoes], _usados(out, nome_novo), len(novas),
+                                            len(conflitos), len(sumiram))
+    d["pend_versoes"] += pend
+    return ops, metas[nome_novo]
+
+
+def _consolidar_aurora_fonte(d, lidos):
+    versoes = [(c.name, r[0], r[1]) for c, r in lidos]
+    res = _consolidar_aurora(versoes)
+    nome_novo = versoes[-1][0]
+    pend = []
+    if res["sobreposta"]:
+        fecha, falhas = [], []
+        for arq, movs, meta in versoes:
+            si, sf = meta.get("saldo_anterior"), meta.get("saldo_final")
+            mov = sum((m["valor"] for m in movs), Decimal("0"))
+            if si is None or sf is None or si + mov == sf:
+                fecha.append(f"{arq}: fecha")
+            else:
+                txt = f"saldo anterior {fmt_br(si)} + movimentos {fmt_br(mov)} != saldo final {fmt_br(sf)}"
+                fecha.append(f"{arq}: NÃO fecha ({txt})")
+                falhas.append(_pend_versao("EXTRATO_NAO_FECHA", f"AURORA ({arq})", None,
+                                           f"{txt[0].upper()}{txt[1:]} na versão {arq}.", []))
+        antigo_max = Counter()
+        for _, movs, _ in versoes[:-1]:
+            for k, v in Counter(_chave_aurora(m) for m in movs).items():
+                antigo_max[k] = max(antigo_max[k], v)
+        vistas, so_nova = Counter(), []
+        for m in versoes[-1][1]:                       # linhas da mais recente que nenhuma versão anterior tem
+            k = _chave_aurora(m)
+            vistas[k] += 1
+            if vistas[k] > antigo_max[k]:
+                so_nova.append(m)
+        cand = [f"'{x['descricao']}' de {_fmt_v('data', x['data'])}: {fmt_br(x['valor'])} em {x['arquivo']} -> "
+                f"{fmt_br(n['valor'])} em {nome_novo}"
+                for x in res["sumiram"] for n in so_nova
+                if x["data"] == n["data"] and x["descricao"] == n["descricao"] and x["valor"] != n["valor"]]
+        aviso_corr = (" Se a versão nova corrige um lançamento da antiga, remova a versão antiga na aba Fechamento "
+                      "(botão 'remover desta pasta') e rode de novo; enquanto isso, os dois lançamentos estão contados."
+                      + (" Candidatos (mesma data e descrição, valor diferente): " + "; ".join(cand) + "." if cand else ""))
+        pend.append(_pend_versao(
+            config.TIPO_VERSAO_SOBREPOSTA, "AURORA", None,
+            f"As {len(versoes)} versões do extrato Aurora ({', '.join(a for a, _, _ in versoes)}) se sobrepõem sem que uma "
+            "contenha a outra. Foi feita a UNIÃO (cada lançamento pelo máximo de ocorrências em qualquer versão, "
+            "comparando data, lançamento, documento e valor); ref_origem fica 'Lnn@arquivo'. "
+            f"{_pl(res['novas'], 'lançamento novo', 'lançamentos novos')} na mais recente ({nome_novo}); "
+            f"{_pl(len(res['sumiram']), 'só existe', 'só existem')} em versão anterior (ver "
+            f"{config.TIPO_LANCAMENTO_SUMIU}). Saldo por versão: {'; '.join(fecha)}. O saldo do conjunto unido não é "
+            "conferido. Helena decide qual versão vale." + aviso_corr, []))
+        pend += falhas
+    for m in res["sumiram"]:
+        pend.append(_pend_versao(
+            config.TIPO_LANCAMENTO_SUMIU, m["ref"], m["valor"],
+            f"O lançamento '{m['descricao']}' de {_fmt_v('data', m['data'])} (doc. {m['documento'] or 's/n'}, "
+            f"{fmt_br(m['valor'])}) existia em {m['arquivo']} (linha {m['linha']}) e não consta em {nome_novo}. "
+            "Mantido no fechamento (nada some em silêncio); pode ser estorno ou correção do banco. "
+            "Helena confirma se continua valendo.",
+            [(f"aurora@{m['arquivo']}", m["ref"], m["valor"], "lançamento que sumiu da nova versão (mantido)")]))
+    for m in res["movs"]:
+        d["rastro_arquivos"][f"aurora@{m['arquivo']}"] = m["arquivo"]
+    d["versoes"]["aurora"] = _entrada_versao("aurora", [a for a, _, _ in versoes], res["usados"], res["novas"], 0,
+                                             len(res["sumiram"]), res["sobreposta"])
+    d["pend_versoes"] += pend
+    return res["movs"], res["meta"], (nome_novo if res["sobreposta"] else res["usados"][0])
+
+
+def _versao_referencia(d, fonte, arqs):
+    """Planilha de taxas / plano de contas em 2+ versões: vale a mais recente (ordem de nome); a outra é ignorada."""
+    usado, ignorados = arqs[-1].name, [p.name for p in arqs[:-1]]
+    rotulo = config.ROTULO_FONTE[fonte]
+    d["versoes"][fonte] = _entrada_versao(fonte, [p.name for p in arqs], [usado])
+    d["pend_versoes"].append(_pend_versao(
+        config.TIPO_VERSAO_SUBSTITUIDA, usado, None,
+        f"Há {len(arqs)} versões do arquivo '{rotulo}' na entrada. Usada a mais recente: {usado}. "
+        f"Ignorada(s): {', '.join(ignorados)}. A ordem é pelo nome/versão do arquivo (a data de modificação não é "
+        "confiável em upload). Informativa: se a ignorada é que deveria valer, remover ou renomear os arquivos.", []))
+
+
+def _versao_orbe(d, arqs):
+    nomes = [p.name for p in arqs]
+    subst = sum(1 for x in d["orbe_duplicadas"] if not x["identica"] and x["original"]["arquivo"] == nomes[-1])
+    novas = sum(1 for l in d["orbe"] if l["arquivo"] == nomes[-1]) - subst
+    conf = sum(1 for x in d["orbe_duplicadas"] if not x["identica"])
+    d["versoes"]["orbe"] = _entrada_versao("orbe", nomes, nomes, novas, conf, 0)
+
+
 def ler_tudo_parcial(pasta):
     """Como ler_tudo, mas tolerante: fonte ausente ou com layout inesperado NÃO interrompe.
     Devolve o mesmo dict (fonte indisponível = vazia) mais:
       'ok'        : conjunto das fontes lidas com sucesso;
-      'bloqueios' : [{'fonte', 'tipo' (FONTE_AUSENTE | LAYOUT_INESPERADO), 'arquivo', 'detalhe'}]."""
-    achados, ausentes = descobrir_arquivos_parcial(pasta)
+      'bloqueios' : [{'fonte', 'tipo' (FONTE_AUSENTE | LAYOUT_INESPERADO), 'arquivo', 'detalhe'}];
+      'versoes'   : por fonte com 2+ arquivos, o resumo da consolidação (arquivos, usados, novas, conflitos, texto);
+      'pend_versoes' : pendências da consolidação (VERSAO_*, LANCAMENTO_SUMIU_NA_NOVA_VERSAO);
+      'rastro_arquivos' : chave de rastro 'fonte@arquivo' -> nome mostrado em rastro.csv;
+      'origem_ponte' : {Nº Operação: e-mail} (só com 2+ relatórios da Ponte).
+    Com 1 arquivo por fonte nada disso muda o resultado."""
+    achados, ausentes = descobrir_versoes(pasta)
     ok, bloqueios = set(), []
     d = {"arquivos": {}, "arquivos_orbe": [], "orbe": [], "orbe_duplicadas": [], "contratos": [],
          "ponte": [], "meta_ponte": {"anexo": None, "assunto": None, "data_repasse": None},
-         "plano": {}, "aurora": [], "meta_aurora": {}, "meridiano": [], "meta_meridiano": {}}
+         "plano": {}, "aurora": [], "meta_aurora": {}, "meridiano": [], "meta_meridiano": {},
+         "versoes": {}, "pend_versoes": [], "rastro_arquivos": {}, "origem_ponte": {}}
 
     def bloquear(fonte, tipo, arquivo, detalhe):
         bloqueios.append({"fonte": fonte, "tipo": tipo, "arquivo": arquivo, "detalhe": detalhe})
@@ -563,19 +931,44 @@ def ler_tudo_parcial(pasta):
             d["arquivos_orbe"] = [p.name for p in validos]
             d["arquivos"]["orbe"] = ", ".join(d["arquivos_orbe"])
             ok.add("orbe")
+            if len(validos) > 1:
+                _versao_orbe(d, validos)
+    consolidadores = {"ponte": _consolidar_ponte, "meridiano": _consolidar_ofx}
     for fonte, leitor, campos in (("taxas", ler_taxas, ("contratos",)),
                                   ("ponte", ler_ponte, ("ponte", "meta_ponte")),
                                   ("plano", ler_plano, ("plano",)),
                                   ("aurora", ler_aurora, ("aurora", "meta_aurora")),
                                   ("meridiano", ler_meridiano, ("meridiano", "meta_meridiano"))):
-        if fonte not in achados:
+        arqs = achados.get(fonte)
+        if not arqs:
             continue
-        r = ler(fonte, achados[fonte], leitor)
-        if r is None:
-            continue
+        if fonte in config.FONTES_REFERENCIA or len(arqs) == 1:
+            usado = arqs[-1]                       # referência: só a versão mais recente é lida
+            r = ler(fonte, usado, leitor)
+            if r is None:
+                continue
+            nome = usado.name
+            if len(arqs) > 1:
+                _versao_referencia(d, fonte, arqs)
+        else:
+            lidos, falhou = [], False
+            for c in arqs:                          # toda versão precisa ter o layout esperado (como na Orbe)
+                rc = ler(fonte, c, leitor)
+                if rc is None:
+                    falhou = True
+                else:
+                    lidos.append((c, rc))
+            if falhou:
+                continue
+            if fonte == "aurora":
+                movs, meta, nome = _consolidar_aurora_fonte(d, lidos)
+                r = (movs, meta)
+            else:
+                r = consolidadores[fonte](d, lidos)
+                nome = arqs[-1].name
         for campo, valor in zip(campos, r if len(campos) > 1 else (r,)):
             d[campo] = valor
-        d["arquivos"][fonte] = achados[fonte].name
+        d["arquivos"][fonte] = nome
         ok.add(fonte)
     d["ok"], d["bloqueios"] = ok, bloqueios
     return d

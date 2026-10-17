@@ -8,14 +8,22 @@ Este guia é para quem fecha o mês no financeiro. Não precisa saber programar.
 Não precisa abrir terminal nem digitar comando.
 
 1. Na pasta do programa, dê **dois cliques em `fechar_mes.bat`**. Abre uma janela preta e, em seguida, o navegador com a tela **"Fechamento mensal — Tarvo"**. **Deixe a janela preta aberta** enquanto usa a tela (fechá-la encerra o programa).
-2. **Passo 1 da tela, Arquivos de entrada**: arraste os arquivos do mês para a área tracejada, todos de uma vez se quiser (ou clique nela para escolher). A lista mostra um ✓ verde, o nome e o tamanho de cada arquivo reconhecido, e "faltando" no que ainda não chegou. Os nomes precisam seguir a tabela da seção 1 abaixo. Um arquivo que não for reconhecido aparece num aviso amarelo e não é usado. Mandou o arquivo errado? Envie o certo por cima (ele substitui o anterior) ou clique em **Limpar e recomeçar**.
+2. **Passo 1 da tela, Arquivos do mês**: confira o **mês de competência** no topo do cartão (o padrão é o mês anterior ao de hoje; dá para trocar na lista ou em "Outro mês") e escreva seu nome. Depois arraste os arquivos do mês para a área tracejada, todos de uma vez se quiser (ou clique nela para escolher). A lista mostra um ✓ verde, o nome e o tamanho de cada arquivo reconhecido, e "faltando" no que ainda não chegou. Os nomes precisam seguir a tabela da seção 1 abaixo. Um arquivo que não for reconhecido aparece num aviso amarelo e não é usado. Mandou o arquivo errado? Envie o certo (entra como nova versão, a mais recente) e, se quiser, clique em **remover desta pasta** na versão errada. **Limpar resultado da tela** só esconde o resultado: os arquivos do mês continuam guardados.
 3. **Passo 2, Rodar o fechamento**: o botão só acende quando os arquivos do mês estão reconhecidos (pelo menos 1 da Orbe mais os outros 5). Clique e espere alguns segundos. Aparece o resumo: competência, comissão de checkout e de remessa, notas a emitir, divergências, lançamentos e pendências por responsável. Se algo der errado, aparece uma caixa vermelha explicando o que o programa não conseguiu ler.
 4. **Passo 3, Arquivos para baixar**: os 6 CSVs, cada um com o número de linhas e uma frase do que contém, e um botão **Baixar**. **Baixar tudo (.zip)** traz os 6 de uma vez. Logo abaixo aparecem as primeiras pendências, que são o primeiro arquivo a olhar (seção 4).
 5. **Passo 4, Investigação de divergências**: fatos de cada divergência e, se a IA estiver configurada, hipóteses de causa para você aceitar ou recusar (seção "Investigação de divergências" abaixo).
 6. Para abrir os CSVs no Excel, siga a seção 3 abaixo.
 7. Terminou: feche a janela preta.
 
-Onde ficam os arquivos: cada vez que você usa a tela, o programa guarda uma cópia do que você enviou e o que ele gerou em `execucoes\<data_hora>\entrada` e `execucoes\<data_hora>\saida`, dentro da pasta do programa (o caminho aparece no rodapé da tela). Os arquivos originais que você enviou não são alterados.
+Onde ficam os arquivos: tudo de um mês fica em `meses\<AAAA-MM>\` dentro da pasta do programa: os arquivos enviados em `entrada\` e o que cada fechamento gerou em `execucoes\<data_hora>\saida\` (o caminho aparece no rodapé da tela). Os arquivos que você enviou não são alterados nem apagados. Veja a próxima seção.
+
+## Voltar no dia seguinte: pasta do mês e versões
+Pode baixar o extrato hoje, enviar, e amanhã baixar de novo (com a transação nova) e enviar outra vez, sem refazer nada:
+- **A pasta do mês é permanente.** Ao abrir a tela, escolha o mês de competência: os arquivos que você já enviou aparecem na lista, não precisa reenviar tudo. Os meses já iniciados aparecem na lista de meses.
+- **Nada é sobrescrito.** Se o nome do arquivo já existe, o novo é guardado como versão nova (`05a_extrato_aurora.csv` vira `05a_extrato_aurora_v2.csv`). Se o conteúdo é idêntico a um arquivo já enviado, ele não é guardado de novo e a tela avisa "arquivo idêntico ao já enviado em ...".
+- **A lista mostra as versões** de cada fonte, com data e hora do envio, quem enviou, tamanho e a marca **mais recente**. O botão **remover desta pasta** move aquela versão para `entrada\_removidos\` (nunca apaga) e ela deixa de entrar no fechamento.
+- **Registro de envios:** `meses\<AAAA-MM>\entrada\_envios.csv` anota data_hora, arquivo_salvo, nome_original, tipo_reconhecido, usuario e acao (enviado ou removido).
+- **Rodar o fechamento usa a pasta do mês inteira**: o programa junta todas as versões, sem repetir o que já estava lá, e o resultado traz o bloco **Versões** dizendo o que foi usado de cada fonte. Cada execução fica em `meses\<AAAA-MM>\execucoes\<data_hora>\saida`; a mais recente é a mostrada e as anteriores continuam guardadas.
 
 Se a janela preta disser **"Não encontrei um Python com as bibliotecas necessárias"**, a instalação do `README.md` ainda não foi feita neste computador: peça a quem mantém o programa. Se o navegador não abrir sozinho, copie o endereço que aparece na janela preta (algo como `http://127.0.0.1:8765/`) para o navegador. A tela só funciona neste computador, não fica acessível pela rede.
 
@@ -24,11 +32,18 @@ As seções abaixo explicam o mesmo processo pela linha de comando e como ler ca
 ## Investigação de divergências: como ler e decidir
 Aparece na tela como **Passo 4**, depois que o fechamento roda. Serve para descobrir **por que** cada divergência aconteceu antes de falar com a Orbe, a Ponte ou o Comercial. Nada aqui muda os arquivos do fechamento.
 
-- **Um bloco por grupo** (parceiro × lojista × natureza). No cabeçalho: lojista, parceiro, natureza (*divergência de contrato* = cobrar o parceiro e devolver ao lojista; *isenção não informada ao parceiro* = só devolver ao lojista), quantidade e os valores **devolver ao lojista** e **recuperar do parceiro**.
-- **Fatos (esquerda)**: calculados pelo programa a partir dos arquivos (datas, faixas afetadas e não afetadas, diferença em p.p., se a taxa cobrada bate com outra vigência, com a aba antiga ou com o spread padrão…) e as respostas do financeiro (S##) que tocam o caso. São os mesmos de `saida/investigacao/dossie.md`, que funciona sem IA.
-- **Hipóteses (direita)**: clique em **Gerar hipóteses com IA**. Leva alguns segundos por grupo ("Analisando…"). Cada hipótese mostra a causa provável, os fatos que ela cita (passe o mouse para destacá-los à esquerda) e a confiança. O grupo mostra também o que conferir, com quem falar, que dado falta, o modelo que respondeu e o aviso "Sugestão da IA, não verificada". Hipótese que não cita fato do grupo é descartada pelo programa. Se a IA falhar num grupo, o erro aparece só nele.
-- **Botão desabilitado?** A IA não está configurada neste computador (o motivo aparece em amarelo). Os fatos continuam na tela. Para habilitar, veja "Investigação com IA (opcional)" no `README.md`.
-- **Decidir**: escreva **seu nome** no topo (fica lembrado neste navegador). Em cada hipótese, se quiser, um comentário, e **Aceitar** ou **Recusar**. Pode mudar de ideia: vale a última decisão. A decisão fica gravada com nome, data e hora em `execucoes\<data_hora>\decisoes_investigacao.csv`, e as hipóteses em `investigacao_ia.json` na mesma pasta. **Baixar decisões (.csv)** traz o arquivo. Gerar as hipóteses de novo apaga as decisões daquela execução.
+Cada divergência é **um cartão**, lido de cima para baixo em cerca de 10 segundos:
+
+1. **Cabeçalho**: lojista, parceiro (Orbe ou Ponte), natureza (*Divergência de contrato* = cobrar o parceiro e devolver ao lojista; *Concessão comercial fora do contrato* = só devolver ao lojista) e o valor.
+2. **O que aconteceu**: uma frase com o resumo dos fatos.
+3. **Linha do tempo**: tabela por faixa e período, com taxa cobrada x contratada. As linhas com divergência ficam destacadas; as faixas corretas ficam em cinza.
+4. **Ação pela regra**: o que fazer (devolver, cobrar o parceiro, contestar). É **definido pela regra, não pela IA**; passe o mouse no código da regra (R##) para ler o texto.
+5. **Causa provável**: sugestão da IA com a confiança. Mostra o nome da causa, uma explicação simples, o **Por quê** (evidências em frases) e o **Contra** quando houver. O código pequeno ao lado de cada frase (V2, F3…) é clicável: destaca o item correspondente na linha do tempo ou nos detalhes. As demais hipóteses ficam em **Outras possibilidades**. Sem IA (sem chave ou antes de gerar), este bloco mostra só o botão **Gerar hipóteses com IA**.
+6. **Para confirmar**: o que conferir e com quem falar.
+7. **Sua decisão**: escreva **seu nome** no topo (fica lembrado neste navegador) e clique em **Concordo**, **Discordo** ou **Preciso verificar**. Para Discordo e Preciso verificar o **comentário é obrigatório**; "Preciso verificar" fica marcado como pendente de checagem. Pode mudar de ideia: vale a última decisão. O status aparece no cartão. A decisão fica gravada com nome, data e hora (e a categoria da causa) em `execucoes\<data_hora>\decisoes_investigacao.csv`; as hipóteses ficam em `investigacao_ia.json` na mesma pasta. **Baixar decisões (.csv)** traz o arquivo. Gerar as hipóteses de novo apaga as decisões daquela execução.
+8. **Ver detalhes** (recolhido): condições do cliente, regras aplicáveis, fatos calculados com seus códigos, exemplos de transação, modelo e versão do prompt, ajustes feitos pelo programa e o aviso da IA. Os fatos são os mesmos de `saida/investigacao/dossie.md`, que funciona sem IA.
+
+- **Botão desabilitado?** A IA não está configurada neste computador (o motivo aparece em amarelo). Os cartões continuam mostrando os itens 1 a 4 e 8. Para habilitar, veja "Investigação com IA (opcional)" no `README.md`.
 - A IA **não decide, não altera valores, não fecha pendência e não envia nada**. Quem confere e fala com o parceiro é você.
 
 ## Aba "Clientes": ver um lojista e registrar mudança de taxa
@@ -144,7 +159,7 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 | Respostas do financeiro (S##) mostradas no dossiê de investigação, por lojista | `RESPOSTAS_FINANCEIRO`, `TEXTOS_FINANCEIRO` |
 | Nome dos arquivos de entrada | `PADROES_ARQUIVOS` |
 
-Depois de mudar: rodar `python -m pytest -q` (148 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md` (regra geral) ou no cadastro de condições (condição de cliente). O que aconteceu no mês fica em `docs/fechamento_2026-09.md` (um registro por fechamento).
+Depois de mudar: rodar `python -m pytest -q` (236 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md` (regra geral) ou no cadastro de condições (condição de cliente). O que aconteceu no mês fica em `docs/fechamento_2026-09.md` (um registro por fechamento).
 
 ## 8. Quando a solução não resolve sozinha
 Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem decide. Tipos de pendência em `pendencias.csv`:

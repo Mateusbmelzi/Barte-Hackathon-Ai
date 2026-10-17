@@ -12,3 +12,6 @@ execucoes/
 .env
 .env.*
 !.env.example
+
+# meses persistentes da interface (app/): entrada enviada, execucoes e removidos
+meses/

@@ -26,7 +26,7 @@ Testado do zero com Python 3.11 (pandas 2.2 e 3.0) e Python 3.14. Nenhuma chave 
    # .venv/bin/python -m src.fechamento                         # Linux/macOS
    ```
    Sem argumentos, lê os arquivos do case na raiz e **sobrescreve** os 6 CSVs de `saida/`. Para outro mês ou outra pasta: `--entrada <pasta com os arquivos do mês> --saida <pasta de saída>` (o nome de cada arquivo precisa conter a palavra-chave descrita em [Como rodar](#como-rodar)).
-4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (148 testes).
+4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (236 testes).
 
 Alternativa sem terminal: `.venv\Scripts\python -m app` abre a interface no navegador (enviar os arquivos do mês, rodar, baixar os CSVs), ou dois cliques em `fechar_mes.bat` no Windows. Ver [Interface visual](#interface-visual-sem-terminal).
 
@@ -87,8 +87,8 @@ python -m app --sem-navegador  # só sobe o servidor
 - Só biblioteca padrão (`http.server` + uma página HTML/CSS/JS). Nenhuma dependência nova. Fontes Inter/Outfit do Google Fonts, com fonte do sistema se estiver offline.
 - Fluxo: enviar os arquivos do mês (arrastar e soltar; a Orbe pode ter mais de um) → **Rodar fechamento** → baixar cada CSV ou um .zip com todos. O arquivo enviado é reconhecido pelos mesmos padrões de nome de `config.PADROES_ARQUIVOS` (a interface usa a função de `src/leitores.py`). O botão só habilita com pelo menos 1 arquivo da Orbe e os outros 5 reconhecidos.
 - A interface não calcula nada: chama `src.fechamento.executar()` no mesmo processo e mostra os mesmos totais do resumo da linha de comando. Um erro aparece como mensagem curta na tela (o stack trace vai só para a janela do terminal).
-- Cada uso grava em `execucoes/<AAAA-MM-DD_HHMMSS>/entrada` (cópia dos arquivos enviados) e `/saida` (os 6 CSVs e o dossiê). Se a IA for usada, grava também `investigacao_ia.json` e `decisoes_investigacao.csv` na pasta da execução. `execucoes/` está no `.gitignore`.
-- Cartão **Investigação de divergências**: fatos por grupo, botão **Gerar hipóteses com IA** (desabilitado sem chave, com o motivo), Aceitar/Recusar com comentário e **Baixar decisões (.csv)**.
+- A tela guarda tudo por mês em `meses/<AAAA-MM>/`: `entrada/` (arquivos enviados, que persistem entre os dias; nome repetido vira `_v2`, conteúdo idêntico não é salvo de novo, "remover" move para `entrada/_removidos/`, e `entrada/_envios.csv` registra cada envio) e `execucoes/<AAAA-MM-DD_HHMMSS>/saida` (os 6 CSVs e o dossiê de cada fechamento, com histórico). O fechamento usa todas as versões da pasta do mês. Se a IA for usada, grava também `investigacao_ia.json` e `decisoes_investigacao.csv` na pasta da execução. `meses/` está no `.gitignore`.
+- Cartão **Investigação de divergências**: por grupo, o que aconteceu, a linha do tempo das taxas, a **ação pela regra**, a **causa provável** (sugestão da IA, com Por quê e Contra) e os botões **Concordo / Discordo / Preciso verificar** (comentário obrigatório nas duas últimas), com **Baixar decisões (.csv)**. Gerar hipóteses com IA fica desabilitado sem chave, com o motivo.
 - Código em `app/servidor.py` (servidor) e `app/pagina.html` (tela). Teste em `tests/test_app.py`.
 
 ## Quando falta um arquivo ou o layout muda
@@ -104,7 +104,7 @@ plano de contas + cada extrato (Aurora e Meridiano são independentes). Detalhes
 ```bash
 python -m pytest -q
 ```
-148 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
+236 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
 - leitura dos arquivos, arredondamento, formato das saídas e soma do rastro;
 - `tests/test_gabarito.py` e `tests/test_gabarito_independente.py`: totais de setembro e valores fixos por lojista auditados de forma independente (`docs/02_validacao.md`), conferidos contra os CSVs gerados;
 - `tests/test_app.py`: sobe a interface numa porta livre, envia os arquivos, roda e confere os totais e que o CSV baixado é idêntico ao de `saida/`; também confere que um erro aparece sem stack trace.
@@ -118,7 +118,7 @@ Critérios novos de 17/10 (S40–S54, `REGRAS_DE_NEGOCIO.md` R67–R76): devolve
 Nenhuma chave é necessária para o fechamento: ele roda offline. A chave só habilita a investigação com IA, que é opcional (seção abaixo).
 
 ## Investigação com IA (opcional)
-O fechamento **não precisa** de chave nem de internet: os 6 CSVs e o dossiê de fatos (`saida/investigacao/dossie.json` e `.md`) saem iguais com ou sem IA. A IA (Claude Sonnet 5.5, `src/ia.py`, prompt em `src/prompts/`) só sugere hipóteses de causa para cada grupo de divergência. A analista aceita ou recusa cada uma na tela.
+O fechamento **não precisa** de chave nem de internet: os 6 CSVs e o dossiê (`saida/investigacao/dossie.json` e `.md`) saem iguais com ou sem IA. O pipeline tem 5 passos: (1) o fechamento detecta a divergência; (2) o código monta o caso (linha do tempo das taxas, condições do cliente, regras aplicáveis); (3) **a regra decide a ação** (devolver, cobrar, contestar), com valores e R##; (4) **a IA explica a causa** (Claude Sonnet 5.5, `src/ia.py`, prompt `investigacao-v4`), escolhendo numa lista fechada de causas e citando evidências com referência; (5) **a analista decide**: Concordo, Discordo ou Preciso verificar, com comentário. A IA não decide ação nem valor.
 
 A IA é o mesmo modelo por dois caminhos; escolha **um** e coloque a chave no `.env` (copie de `.env.example`; `.env` está no `.gitignore`):
 ```bash
@@ -131,9 +131,9 @@ copy .env.example .env                       # Windows (Linux/macOS: cp .env.exa
 
 A chave também pode vir de variável de ambiente com o mesmo nome (tem precedência sobre o `.env`). Se as duas existirem, vale a do OpenRouter. O valor da chave nunca é impresso nem gravado. Não há troca automática para outro modelo: se o Sonnet 5.5 não responder, o grupo mostra o erro e o dossiê continua disponível. Detalhes e limites da IA: `HIPOTESES.md`, H26.
 
-**Sem chave?** A banca pode ver uma execução real (OpenRouter, prompt `investigacao-v3`, os 4 grupos de setembro) em [docs/exemplo_investigacao_ia.md](docs/exemplo_investigacao_ia.md). A IA varia a cada execução; nenhum número oficial vem dela.
+**Sem chave?** A banca pode ver uma execução real (OpenRouter, prompt `investigacao-v4`, os 4 grupos de setembro, no formato do cartão) em [docs/exemplo_investigacao_ia.md](docs/exemplo_investigacao_ia.md). A IA varia a cada execução; nenhum número oficial vem dela.
 
-- **Tela:** cartão "Investigação de divergências" → **Gerar hipóteses com IA**. Sem chave (ou, na opção Anthropic direta, sem a biblioteca), o botão fica desabilitado com o motivo. As hipóteses vão para `execucoes/<execução>/investigacao_ia.json`. As decisões (aceitar/recusar, comentário, analista, data e hora, modelo, versão do prompt) vão para `execucoes/<execução>/decisoes_investigacao.csv`. Nada disso vai para `saida/`.
+- **Tela:** cartão "Investigação de divergências" → **Gerar hipóteses com IA**. Sem chave (ou, na opção Anthropic direta, sem a biblioteca), o botão fica desabilitado com o motivo. As hipóteses vão para `meses/<AAAA-MM>/execucoes/<execução>/investigacao_ia.json`. As decisões (Concordo/Discordo/Preciso verificar, comentário, analista, data e hora, modelo, versão do prompt) vão para `meses/<AAAA-MM>/execucoes/<execução>/decisoes_investigacao.csv`. Nada disso vai para `saida/`.
 - **Linha de comando:** `python -m src.fechamento --ia` faz o fechamento normal e grava as hipóteses em `execucoes/cli_<data_hora>/investigacao_ia.json` (imprime o caminho). Sem chave, avisa e segue.
 - A única outra conexão opcional é a das fontes do Google Fonts na interface, que cai para a fonte do sistema se estiver offline.
 
@@ -155,7 +155,7 @@ src/
   ia.py, prompts/  hipóteses com IA (opcional; requirements-ia.txt só para a Anthropic direta)
 app/               interface visual local (python -m app): servidor.py + pagina.html
 fechar_mes.bat     atalho de dois cliques para a interface (Windows)
-execucoes/         uma pasta por uso da interface (entrada + saida), fora do git
+meses/             uma pasta por mês da interface (entrada com versões + execucoes), fora do git
 tests/             testes (pytest)
 saida/             CSVs gerados
 01_...05b_...      data pack de setembro (intocado)

@@ -176,3 +176,67 @@ EFEITO_BLOQUEIO = {
     "meridiano": "lançamentos do extrato Meridiano não classificados; transferências entre contas e TED/PIX da Ponte não conferidos",
     "cadastro": "condições comerciais não aplicadas: isenções, de-para e bloqueios ignorados; notas e comissões podem estar erradas",
 }
+
+
+# ---------------------------------------------------------------- regras aplicáveis por natureza (dossiê, etapa 2c)
+# Texto curto e fiel a REGRAS_DE_NEGOCIO.md (que NÃO é lido em tempo de execução). Mudou a regra lá? Mude aqui.
+TEXTOS_REGRAS = {
+    "R02": "A Orbe trunca centavos; a diferença de centavo causada por truncamento não é divergência.",
+    "R13": ("Divergência de checkout = transação com taxa aplicada diferente da contratada; valor = valor bruto × "
+            "(taxa aplicada − contratada). Cobrar o parceiro é decisão da Helena, caso a caso."),
+    "R20": ("Remessa: comissão da Tarvo = 50% do Spread R$ realizado por operação; o excesso contestável entra na nota "
+            "do mês e o ajuste só entra no mês em que a Ponte devolver."),
+    "R22": ("Divergência de remessa = valor cheio que o lojista pagou a mais: (spread % aplicado − contratado) × PTAX "
+            "× valor em moeda estrangeira."),
+    "R50": ("Divergência é o lojista pagar diferente do contrato, para mais ou para menos (abaixo do contrato = valor "
+            "negativo); a Helena decide caso a caso."),
+    "R51": "Venda cobrada fora do contrato e depois estornada: venda e estorno se anulam; cobra-se só a diferença líquida.",
+    "R52": ("Concessão comercial fora do contrato (ex.: isenção que o Comercial deu e ninguém comunicou) não é divergência "
+            "de contrato: não se cobra o parceiro e a devolução ao lojista sai do bolso da Tarvo; fica separada, em uma "
+            "pendência para Helena e Comercial."),
+    "R60": ("Toda divergência de taxa é dinheiro a devolver ao lojista; quando é de contrato, também a recuperar do "
+            "parceiro."),
+    "R68": ("Quem deve é decidido pelo contrato, não pelo aviso: aditivo ou condição negociada e registrada é divergência "
+            "de contrato (a Helena contesta o parceiro e o lojista é ressarcido); aviso atrasado é problema de processo. "
+            "Concessão do Comercial fora do contrato: o parceiro cobrou o contratado e a devolução sai do bolso da Tarvo."),
+    "R70": "A taxa do estorno é a da data da venda original.",
+    "R71": "Na lista de divergências, o estorno de uma venda com taxa errada também entra, com valor negativo.",
+    "R72": ("Isenção ou taxa zero com vigência vale para venda a partir da data de início; para antecipação vale a data "
+            "da antecipação; estorno segue a taxa da venda."),
+    "R74": ("Valor a devolver ao lojista = o que o parceiro descontou de fato (valor_taxa; na remessa, o Spread R$) menos "
+            "a comissão contratada. A lista de divergências segue a fórmula; a diferença entre as duas é truncamento "
+            "da Orbe."),
+}
+# (natureza, linha_negocio) -> R## que valem para o caso. REGRAS_ACAO = as que sustentam a ação (acao_regra.regras).
+REGRAS_APLICAVEIS = {
+    (NATUREZA_CONTRATO, "CHECKOUT"): ["R13", "R50", "R68", "R60", "R74", "R51", "R70", "R71", "R02"],
+    (NATUREZA_CONTRATO, "REMESSA"): ["R22", "R50", "R68", "R60", "R74", "R20"],
+    (NATUREZA_ISENCAO, "CHECKOUT"): ["R52", "R68", "R13", "R60", "R74", "R72"],
+}
+REGRAS_ACAO = {
+    (NATUREZA_CONTRATO, "CHECKOUT"): ["R13", "R68", "R74"],
+    (NATUREZA_CONTRATO, "REMESSA"): ["R22", "R68", "R74"],
+    (NATUREZA_ISENCAO, "CHECKOUT"): ["R52", "R68", "R74"],
+}
+
+
+# ---------------------------------------------------------------- versões do mesmo arquivo (consolidação)
+# Reenvio de arquivo (ex.: extrato baixado de novo no dia seguinte). Com 2+ arquivos do mesmo tipo na pasta de
+# entrada, as linhas são consolidadas por fonte; nunca se soma em dobro e nunca se apaga linha em silêncio.
+# Ordem das versões (da mais antiga para a mais nova):
+#   Ponte = cabeçalho Date do e-mail; Meridiano = DTSERVER do OFX; Aurora = fim do "Período" do cabeçalho do CSV;
+#   Orbe, planilha de taxas e plano de contas (sem data embutida) = ordem de NOME (natural: v2 < v10; "x (1)" depois
+#   de "x"). Empate ou data ausente: ordem de nome. A data de modificação do arquivo NÃO é usada (upload a muda).
+# Chave natural: Orbe = id_transacao; Meridiano = FITID; Ponte = Nº Operação (a repetição DENTRO do mesmo relatório
+#   continua sendo OPERACAO_DUPLICADA); Aurora = (data, lançamento, documento, valor) como MULTICONJUNTO (duas tarifas
+#   iguais no mesmo dia são legítimas: conta-se ocorrência).
+# Fontes de referência: usa-se só a versão mais recente (ordem de nome); a outra é ignorada e vira VERSAO_SUBSTITUIDA.
+FONTES_REFERENCIA = {"taxas", "plano"}
+TIPO_VERSAO_CONFLITANTE = "VERSAO_CONFLITANTE"          # mesma chave, valores diferentes: vale a versão mais recente
+TIPO_VERSAO_SOBREPOSTA = "VERSAO_SOBREPOSTA"            # Aurora: nenhuma versão contém a outra: união
+TIPO_VERSAO_SUBSTITUIDA = "VERSAO_SUBSTITUIDA"          # referência (taxas/plano): versão antiga ignorada (informativa)
+TIPO_LANCAMENTO_SUMIU = "LANCAMENTO_SUMIU_NA_NOVA_VERSAO"   # existia na versão antiga e não está na nova: mantido
+ROTULO_VERSAO = {"orbe": "Orbe", "taxas": "Tabela de taxas", "ponte": "Ponte", "plano": "Plano de contas",
+                 "aurora": "Aurora", "meridiano": "Meridiano"}
+UNIDADE_VERSAO = {"orbe": ("transação", "transações", "a"), "ponte": ("operação", "operações", "a"),   # (singular, plural, o/a)
+                  "aurora": ("lançamento", "lançamentos", "o"), "meridiano": ("lançamento", "lançamentos", "o")}

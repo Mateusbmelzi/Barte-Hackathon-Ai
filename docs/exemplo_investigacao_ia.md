@@ -1,125 +1,247 @@
 # Exemplo de investigação com IA (execução real)
 
-> **Exemplo de uma execução; a IA varia a cada execução; nenhum número oficial vem daqui.** Os números oficiais estão nos 6 CSVs de `saida/`. Os fatos vêm do dossiê determinístico (`saida/investigacao/dossie.json`). As hipóteses são sugestões da IA, não verificadas: quem decide é a analista.
+> **Exemplo de uma execução; a IA varia a cada execução; nenhum número oficial vem daqui.** Os números oficiais estão nos 6 CSVs de `saida/`. O caso (fatos, linha do tempo, ação pela regra) vem do dossiê determinístico (`saida/investigacao/dossie.json`). A causa é sugestão da IA, não verificada: quem decide é a analista.
 
-> Versão do prompt v3; nas versões anteriores a hipótese principal da Rota foi diferente — ver `PROMPTS/MOMENTOS.md`.
+> **Evolução da Rota (G02), v1 → v4.** Nas versões v1 e v2 do prompt a hipótese principal era "tabela antiga 2025". Desde a v3 é reajuste ou alteração de cadastro do EC na Orbe; na v4, com lista fechada de causas, vira **Reajuste sem contrato**. A aba antiga de 2025 só explica 2 das 3 faixas afetadas e aparece como possibilidade de confiança baixa. Ver `PROMPTS/MOMENTOS.md`.
 
-- **Data da execução:** 2026-10-17 13:25:20
-- **Provedor:** openrouter
-- **Modelo pedido:** anthropic/claude-sonnet-5.5 · **modelo que respondeu:** anthropic/claude-sonnet-5.5
-- **Versão do prompt:** investigacao-v3
+- **Data da execução:** 2026-10-17 15:01:54
+- **Provedor / modelo:** openrouter / anthropic/claude-sonnet-5.5 (modelo que respondeu: anthropic/claude-sonnet-5.5)
+- **Prompt:** investigacao-v4
 - **Competência:** 09/2026
-- **Comando:** `python -m src.ia saida\investigacao\dossie.json execucoes\ia_real_4\investigacao_ia.json` (arquivo bruto em `execucoes/ia_real_4/`, fora do git)
+- **Comando:** `python -m src.ia saida\investigacao\dossie.json execucoes\ia_real_5\investigacao_ia.json` (arquivo bruto em `execucoes/ia_real_5/`, fora do git)
 - **Aviso fixo exibido na tela:** Sugestão da IA, não verificada. A decisão é da analista.
+- **Decisão da analista (na tela):** Concordo / Discordo / Preciso verificar, com comentário obrigatório para Discordo e Preciso verificar.
 
-## G01 — Casa do Estudante Viagens Ltda (Orbe, isenção não informada ao parceiro)
+## G01 — Casa do Estudante Viagens Ltda (Orbe)
 
-**Fatos-chave do dossiê**
+**O que aconteceu**
 
-- **F1** 118 transações divergentes, líquido R$ 15.397,42 (inclui 1 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista: R$ 15.397,42; a recuperar da Orbe: R$ 0,00.
-- **F6** Taxa aplicada = taxa da linha 13 da planilha (desde 01/01/2026), a cobrada antes da isenção, em 118 de 118 transações: débito 1,49%, crédito à vista 2,69%, 2–6x 3,19%, 7–12x 3,79%, Pix 0,89%, antecipação 2,10%.
-- **F8** A planilha de taxas não registra a isenção; ela vem do acordo comercial informado pelo financeiro (S07), válido de 01/09/2026 a 31/12/2026; a divergência começa no mesmo dia.
-- **F9** Entre 01/09/2026 e 30/09/2026, 118 de 118 transações das faixas afetadas divergem (100%); somando todas as faixas, 118 de 118 (100%).
+Desde 01/09 a Orbe cobra a taxa cheia em todas as faixas; o lojista tem isenção comercial (C001).
 
-**Resumo da IA:** Em setembro de 2026, desde 01/09/2026, a Orbe cobrou da Casa do Estudante Viagens a taxa da planilha em 118 transações do checkout, apesar da isenção acordada, num líquido de R$ 15.397,42.
+**Linha do tempo**
 
-**Hipóteses**
+| Faixa | Período | Cobrado | Contratado | Transações | Diverge |
+|---|---|---|---|---|---|
+| Débito | 21/08 a 21/08 | 1,49% | 1,49% | 1 | não |
+| Débito | 08/09 a 30/09 | 1,49% | 0,00% | 12 | sim |
+| Crédito à vista | 01/09 a 29/09 | 2,69% | 0,00% | 35 | sim |
+| Crédito 2–6x | 01/09 a 30/09 | 3,19% | 0,00% | 41 | sim |
+| Crédito 7–12x | 01/09 a 26/09 | 3,79% | 0,00% | 17 | sim |
+| Pix | 06/09 a 29/09 | 0,89% | 0,00% | 9 | sim |
+| Antecipação | 09/09 a 16/09 | 2,10% | 0,00% | 4 | sim |
 
-1. A isenção de setembro a dezembro foi fechada pelo Comercial e não foi comunicada à Orbe, então o EC seguiu com as taxas da linha 13 da planilha. A Orbe cobrou certo pelo que sabia. — *fatos citados:* F6, F7, F8, F9, S07, S18, S30 · *confiança:* alta
-2. O aviso pode ter sido enviado, mas a Orbe não atualizou o cadastro do EC. Isso não explica o que está nos fatos, pois a S30 diz que a Casa do Estudante não foi avisada. — *fatos citados:* F6, F8 · *contra:* S30, S18 · *confiança:* baixa
+**Ação pela regra** (definido pela regra, não pela IA)
 
-**Conferir**
+Devolver ao lojista R$ 15.396,77 (sai do caixa da Tarvo — concessão comercial fora do contrato); não cobrar a Orbe. Regras: R52, R68, R74.
 
-- E-mail ou registro do Comercial com a data em que a isenção foi fechada e se algo foi enviado à Orbe.
-- Taxas cadastradas para o EC 1018325654 na Orbe, para ver se estão iguais à linha 13 da planilha.
-- Termo do acordo comercial C001 para confirmar vigência de 01/09/2026 a 31/12/2026 e as faixas isentas (MDR e antecipação).
-- Transações de exemplo AN88445802, AN88445486 e TX88419350 para validar o detalhe por transação, incluindo o estorno.
+**Causa provável**
 
-**Falar com:** Comercial  
-**Dado faltante:** Registro de quando o Comercial fechou a isenção e se houve qualquer comunicação à Orbe sobre ela.  
-**Hipóteses descartadas pelo código:** 0  
-**Ajustes do código:** nenhum
+- **Condição não informada ao parceiro** — confiança alta
+- Não existe uma pessoa responsável por avisar a Orbe das condições novas. Por isso ela cobrou certo pelo que sabia, e a isenção não chegou ao sistema dela.
 
-## G02 — Rota Global Intercâmbio Ltda (Orbe, divergência de contrato)
+*Por quê*
 
-**Fatos-chave do dossiê**
+- Ninguém tem a função de avisar a Orbe; a Casa do Estudante não foi avisada. (S30)
+- A Orbe cobrou certo pela planilha porque ninguém avisou a isenção. (S18)
+- A taxa aplicada é igual à da linha 13 da planilha em 118 de 118 transações. (F6)
+- A planilha não registra a isenção, que vem do acordo comercial. (F8)
+- A isenção vale de 01/09/2026 a 31/12/2026, e a divergência começa no mesmo dia. (C001)
 
-- **F2** Primeira transação divergente em 12/09/2026 e última em 30/09/2026 (19 dia(s) corrido(s)), pela data da venda (no estorno, a da venda original).
-- **F3** Faixas afetadas: crédito à vista (38), 2–6x (31), 7–12x (18).
-- **F6** Em todas as faixas afetadas, a taxa aplicada = contratada +0,50 p.p.: crédito à vista 2,49% → 2,99%; 2–6x 2,99% → 3,49%; 7–12x 3,59% → 4,09%.
-- **F7** A aba 'ANTIGO 2025 - nao usar' da planilha (mesmo CNPJ) coincide com a taxa aplicada em 2 de 5 faixas com transações no período (crédito à vista 2,99%, 2–6x 3,49%); não explica 7–12x (aplicada 4,09%; aba 3,49%), nem débito (aplicada 1,49%; aba 1,69%) e Pix (aplicada 0,89%; aba 0,99%), que seguiram a taxa contratada vigente (linha 10, desde 01/01/2026).
+*Contra*
 
-**Resumo da IA:** Desde 12/09/2026 até 30/09/2026, a Orbe aplicou taxa 0,50 p.p. acima da contratada em 87 transações de crédito da Rota Global Intercâmbio, líquido de R$ 1.546,28.
+- Nenhum fato contrário citado.
 
-**Hipóteses**
+**Outras possibilidades**
 
-1. A Orbe passou a aplicar, a partir de 12/09, um acréscimo uniforme nas faixas de crédito do EC, por mudança de cadastro ou de tabela no lado dela. Débito, Pix e antecipação seguiram a taxa contratada. — *fatos citados:* F3, F4, F5, F6, F9, F10, F11, S06 · *confiança:* média
-2. Tabela antiga de 2025 reaplicada ao EC no cadastro da Orbe. Só explicaria crédito à vista e 2–6x. — *fatos citados:* F7, F6 · *contra:* F7, F8 · *confiança:* baixa
+- **Concessão comercial fora do contrato** — confiança média. A isenção foi aprovada pelo Comercial, mas ficou fora do contrato registrado. Por isso a Orbe só enxergou a taxa antiga.
+  - A isenção foi aprovada pelo Comercial e consta só no cadastro. (C001)
+  - A Casa do Estudante é concessão do comercial fora do contrato. (S41)
+  - Concessão fora do contrato não é divergência de contrato e não se cobra o parceiro. (R52)
+  - A planilha tem linha única, sem mudança de vigência. (F7)
 
-**Conferir**
+**Para confirmar**
 
-- Taxas cadastradas hoje no EC 1074504011 na Orbe, por faixa, e a data da última alteração.
-- E-mails ou tickets com a Orbe sobre mudança de taxa ou de cadastro do EC a partir de 12/09/2026.
-- Se a taxa de 7–12x de 4,09% existe em alguma tabela ou campanha da Orbe, já que não consta na planilha.
-- Transações TX88440860, TX88423647 e TX88444545 no relatório da Orbe, com a taxa aplicada em cada uma.
-
-**Falar com:** Orbe  
-**Dado faltante:** Histórico de alterações das taxas cadastradas no EC 1074504011 na Orbe, com datas, para ver se algo mudou em 12/09/2026.  
-**Hipóteses descartadas pelo código:** 0  
-**Ajustes do código:** nenhum
-
-## G03 — Mundo Aberto (Ponte, divergência de contrato)
-
-**Fatos-chave do dossiê**
-
-- **F1** 23 operações com spread acima do contratado; valor cheio pago a mais pelo lojista R$ 1.418,85. A devolver ao lojista: R$ 1.418,85; a recuperar da Ponte: R$ 1.418,85.
-- **F4** Diferença variável de +0,2991 p.p. a +0,3009 p.p. sobre o spread contratado (1,20%).
-- **F5** Spread aplicado de 1,4991% a 1,5009%: coincide com o spread padrão de 1,50% (R21) dentro da tolerância de 0,01 p.p. (H06) em 23 de 23 operações; contratado 1,20%.
-- **F8** No mês, outros 4 lojista(s) com spread contratado diferente do padrão (Nórdica Educação Internacional Ltda 1,25%, EduAbroad 1,30%, Lisboa Cursos e Viagens Ltda 1,60%, Novo Horizonte Intercambio 1,40%) tiveram 60 operações válidas, nenhuma divergente.
-
-**Resumo da IA:** Nas remessas da Mundo Aberto, de 01/09/2026 a 30/09/2026, a Ponte aplicou spread de 1,4991% a 1,5009% em vez dos 1,20% contratados em 23 operações, com R$ 1.418,85 pagos a mais pelo lojista.
-
-**Hipóteses**
-
-1. A Ponte não foi avisada do spread de 1,20% negociado em julho e aplicou o spread padrão de 1,50% em todas as remessas do lojista. — *fatos citados:* F5, F7, F6, F8, S30, S05 · *confiança:* alta
-2. O cadastro da Ponte pode ter sido feito ou atualizado com o spread em branco ou como padrão, em vez de 1,20%, e o spread negociado em julho nunca entrou nele. — *fatos citados:* F5, F6, F7, F4 · *contra:* F8 · *confiança:* baixa
-
-**Conferir**
-
-- E-mails ou comunicados do Comercial à Ponte sobre o spread de 1,20% da Mundo Aberto, com data de envio.
-- Cadastro do lojista na Ponte: qual spread consta como vigente em setembro.
-- Comprovantes de fechamento de câmbio de algumas operações de exemplo (PC-0926-0434, PC-0926-0373, PC-0926-0566) para ver o spread aplicado.
-- Data e registro do fechamento do spread negociado em julho junto ao Comercial.
+- Conferir com o Comercial o e-mail ou documento que formalizou a isenção de setembro a dezembro.
+- Verificar na tela de cadastro da Orbe, para o EC 1018325654, se há alguma isenção ou taxa zero registrada.
+- Ver na planilha de taxas, linha 13, se a observação 'cliente estratégico - ver c/ comercial' tem detalhe da isenção.
 
 **Falar com:** Comercial  
-**Dado faltante:** Registro de que o Comercial informou (ou não) o spread de 1,20% à Ponte, e qual spread consta no cadastro da Ponte para a Mundo Aberto.  
+**Dado faltante:** Registro de quando o Comercial fechou a isenção e se houve qualquer pedido de cadastro à Orbe.  
 **Hipóteses descartadas pelo código:** 0  
 **Ajustes do código:** nenhum
 
-## G04 — Escola Bridge de Idiomas Ltda (Orbe, divergência de contrato)
+## G02 — Rota Global Intercâmbio Ltda (Orbe)
 
-**Fatos-chave do dossiê**
+**O que aconteceu**
 
-- **F2** Primeira transação divergente em 15/09/2026 e última em 18/09/2026 (4 dia(s) corrido(s)), pela data da venda (no estorno, a da venda original).
-- **F5** Diferença constante de +0,40 p.p. sobre a taxa contratada em todas as 5 transações.
-- **F6** Taxa aplicada = vigência anterior do mesmo lojista na planilha (linha 6, até 14/09/2026) em: crédito à vista 2,59%; a vigente no período (linha 7) é crédito à vista 2,19%.
-- **F7** Planilha: linha 6 até 14/09/2026; linha 7 desde 15/09/2026. Mudança de vigência em 15/09/2026; a divergência começa no mesmo dia (15/09/2026) e termina em 18/09/2026.
+Desde 12/09 a Orbe cobra +0,50 p.p. no crédito à vista, 2–6x e 7–12x; débito, Pix e antecipação estão corretos.
 
-**Resumo da IA:** Na Escola Bridge de Idiomas, de 15/09/2026 a 18/09/2026, a Orbe aplicou crédito à vista de 2,59% em 5 transações, acima do 2,19% contratado desde 15/09/2026, com líquido de R$ 29,95.
+**Linha do tempo**
 
-**Hipóteses**
+| Faixa | Período | Cobrado | Contratado | Transações | Diverge |
+|---|---|---|---|---|---|
+| Débito | 01/09 a 18/09 | 1,49% | 1,49% | 10 | não |
+| Crédito à vista | 02/09 a 11/09 | 2,49% | 2,49% | 20 | não |
+| Crédito à vista | 12/09 a 29/09 | 2,99% | 2,49% | 38 | sim |
+| Crédito 2–6x | 30/08 a 11/09 | 2,99% | 2,99% | 13 | não |
+| Crédito 2–6x | 12/09 a 29/09 | 3,49% | 2,99% | 31 | sim |
+| Crédito 7–12x | 03/09 a 08/09 | 3,59% | 3,59% | 11 | não |
+| Crédito 7–12x | 12/09 a 30/09 | 4,09% | 3,59% | 18 | sim |
+| Pix | 03/09 a 30/09 | 0,89% | 0,89% | 15 | não |
+| Antecipação | 09/09 a 22/09 | 2,10% | 2,10% | 3 | não |
 
-1. A Orbe manteve no cadastro a taxa antiga de crédito à vista (2,59%) nos primeiros dias após a renegociação, porque a atualização só chegou depois de 15/09. Isso é consistente com o aviso tardio à Orbe e com a taxa aplicada igual à da linha 6. — *fatos citados:* F5, F6, F7, F8, S30 · *confiança:* média
-2. A Orbe recebeu o aviso e atualizou o cadastro depois de 18/09/2026, e as vendas feitas até essa data usaram a tabela anterior. Isso explicaria por que não há divergência depois de 18/09/2026. — *fatos citados:* F2, F9, F7 · *contra:* S30 · *confiança:* baixa
+**Ação pela regra** (definido pela regra, não pela IA)
 
-**Conferir**
+Devolver ao lojista R$ 1.545,86 e contestar R$ 1.545,86 com a Orbe. Regras: R13, R68, R74.
 
-- E-mail ou protocolo em que o Comercial pediu à Orbe a mudança do crédito à vista da Bridge, com a data de envio.
-- Taxa de crédito à vista cadastrada no EC 1075624862 na Orbe, com a data da última alteração.
-- Planilha de taxas, linhas 6 e 7, para confirmar a vigência do crédito à vista de 2,19% desde 15/09/2026.
-- Extrato das 5 transações divergentes (por exemplo TX88428053 e TX88431123) para ver a taxa aplicada em cada uma.
+**Causa provável**
+
+- **Reajuste sem contrato** — confiança média
+- A cobrança subiu de forma igual em todas as faixas de crédito a partir de 12/09, sem mudança no contrato da lojista. Isso lembra um reajuste aplicado pela Orbe por conta própria.
+
+*Por quê*
+
+- O contrato é linha única, vigente desde 01/01/2026, sem mudança de vigência. (F9)
+- Em todas as faixas afetadas a taxa aplicada é a contratada mais 0,50 p.p. (F6)
+- A diferença é constante em todas as 87 transações. (F5)
+- A Rota Global confirma que o contrato não mudou este ano. (S06)
+- Crédito à vista passou de 2,49% para 2,99% a partir de 12/09/2026. (V3)
+- A taxa de 7–12x de 4,09% não existe em nenhuma tabela da planilha. (F8)
+
+*Contra*
+
+- F7: A aba 'ANTIGO 2025 - nao usar' da planilha (mesmo CNPJ) coincide com a taxa aplicada em 2 de 5 faixas com transações no período (crédito à vista 2,99%, 2–6x 3,49%); não explica 7–12x (aplicada 4,09%; aba 3,49%), nem débito (aplicada 1,49%; aba 1,69%) e Pix (aplicada 0,89%; aba 0,99%), que seguiram a taxa contratada vigente (linha 10, desde 01/01/2026).
+
+**Outras possibilidades**
+
+- **Tabela desatualizada no parceiro** — confiança baixa. Em duas faixas a taxa cobrada coincide com a aba antiga de 2025. Isso sugere uma tabela velha, mas ela não explica a faixa de 7–12x.
+  - A aba antiga coincide com a taxa aplicada em crédito à vista e 2–6x. (F7)
+  - A taxa de 7–12x aplicada não aparece em nenhuma tabela da planilha. (F8)
+  - Débito, Pix e antecipação seguiram a taxa contratada no mesmo período. (F4)
+  - Contra: F7 (A aba 'ANTIGO 2025 - nao usar' da planilha (mesmo CNPJ) coincide com a taxa aplicada em 2 de 5 faixas com transações no período (crédito à vista 2,99%, 2–6x…); F8 (Taxa aplicada sem correspondência na planilha (vigente, outras vigências, abas antigas ou outros lojistas) em: 7–12x 4,09%.); F4 (No mesmo período (12/09/2026 a 30/09/2026), sem divergência: débito (7), Pix (10), antecipação (2).)
+
+**Para confirmar**
+
+- Na tela de cadastro da Orbe, a taxa do EC 1074504011 por faixa de parcelamento e a data da última alteração.
+- Se houve e-mail, aviso ou aditivo da Orbe sobre mudança de taxa por volta de 12/09/2026.
+- Se o Comercial negociou ou registrou algo com a Rota Global perto dessa data, comparando com a linha 10 da planilha.
+- As transações de exemplo TX88440860, TX88423647 e TX88444545 no extrato da Orbe.
 
 **Falar com:** Orbe  
-**Dado faltante:** Data em que a Orbe foi avisada e passou a aplicar o crédito à vista de 2,19% no EC da Bridge.  
+**Dado faltante:** Registro da Orbe sobre quando e por que a taxa do cadastro da lojista mudou em 12/09/2026.  
+**Hipóteses descartadas pelo código:** 0  
+**Ajustes do código:** nenhum
+
+## G03 — Mundo Aberto (Ponte)
+
+**O que aconteceu**
+
+Em setembro a Ponte aplicou 1,50% (padrão) em todas as remessas; o contratado é 1,20%.
+
+**Linha do tempo**
+
+| Faixa | Período | Cobrado | Contratado | Transações | Diverge |
+|---|---|---|---|---|---|
+| SPREAD | 01/09 a 30/09 | 1,5000% | 1,2000% | 23 | sim |
+
+**Ação pela regra** (definido pela regra, não pela IA)
+
+Devolver ao lojista R$ 1.418,88 e contestar R$ 1.418,88 com a Ponte. Regras: R22, R68, R74.
+
+**Causa provável**
+
+- **Condição não informada ao parceiro** — confiança alta
+- Ninguém na Tarvo tem a função de avisar a Ponte das condições novas. Por isso a corretora usou o spread padrão, como faz quando não há condição especial cadastrada.
+
+*Por quê*
+
+- O spread aplicado coincide com o padrão de 1,50% em 23 de 23 operações. (F5)
+- A planilha registra 1,20% para o lojista, negociado em julho de 2026. (P15)
+- A Mundo Aberto não foi avisada à Ponte, segundo a resposta do financeiro. (S30)
+- O cadastro registra que a Ponte não foi avisada do spread de 1,20%. (C006)
+- Em setembro, 100% das operações válidas do lojista divergem. (F7)
+- Outros lojistas com spread diferente do padrão não tiveram nenhuma operação divergente. (F8)
+- Pelo contrato, o caso é divergência e a Helena contesta com a Ponte. (S41)
+
+*Contra*
+
+- Nenhum fato contrário citado.
+
+**Outras possibilidades**
+
+- **Erro de cadastro no parceiro** — confiança baixa. Se a Ponte nunca recebeu o spread de 1,20%, o cadastro do lojista provavelmente ficou em branco ou padrão, e a corretora aplica 1,50% nesses casos.
+  - Spread em branco na remessa equivale ao padrão de 1,50%. (F5)
+  - Não há mudança de vigência na planilha; a divergência começa em 01/09/2026. (F6)
+  - Todas as moedas das operações divergentes foram afetadas. (F3)
+
+**Para confirmar**
+
+- Cadastro da Mundo Aberto na Ponte: qual spread está registrado para o lojista.
+- E-mails ou documentos enviados à Ponte sobre o spread de 1,20% negociado em julho.
+- Operações de julho e agosto da Mundo Aberto, para ver qual spread foi aplicado antes de setembro.
+- Linha 15 da planilha de taxas e a observação 'spread negociado em jul/26'.
+
+**Falar com:** Comercial  
+**Dado faltante:** Registro de quando e se o Comercial avisou a Ponte do spread de 1,20%, e o spread aplicado nas remessas antes de setembro.  
+**Hipóteses descartadas pelo código:** 0  
+**Ajustes do código:** nenhum
+
+## G04 — Escola Bridge de Idiomas Ltda (Orbe)
+
+**O que aconteceu**
+
+De 15/09 a 18/09 a Orbe cobrou 2,59% no crédito à vista; o contratado desde 15/09 é 2,19%; débito, 2–6x, 7–12x e Pix estão corretos.
+
+**Linha do tempo**
+
+| Faixa | Período | Cobrado | Contratado | Transações | Diverge |
+|---|---|---|---|---|---|
+| Débito | 01/09 a 29/09 | 1,49% | 1,49% | 15 | não |
+| Crédito à vista | 01/09 a 13/09 | 2,59% | 2,59% | 8 | não |
+| Crédito à vista | 15/09 a 18/09 | 2,59% | 2,19% | 5 | sim |
+| Crédito à vista | 23/09 a 30/09 | 2,19% | 2,19% | 9 | não |
+| Crédito 2–6x | 01/09 a 29/09 | 3,19% | 3,19% | 42 | não |
+| Crédito 7–12x | 01/09 a 27/09 | 3,79% | 3,79% | 17 | não |
+| Pix | 01/09 a 30/09 | 0,89% | 0,89% | 13 | não |
+
+**Ação pela regra** (definido pela regra, não pela IA)
+
+Devolver ao lojista R$ 29,94 e contestar R$ 29,94 com a Orbe. Regras: R13, R68, R74.
+
+**Causa provável**
+
+- **Vigência aplicada com atraso** — confiança média
+- A nova taxa valia desde 15/09, mas o cadastro da Orbe só mudou depois de 18/09. Nesse intervalo, a taxa antiga seguiu sendo cobrada.
+
+*Por quê*
+
+- A taxa cobrada de 15/09 a 18/09 é igual à da linha anterior da planilha. (F6)
+- A planilha mudou de vigência em 15/09 e a divergência começa no mesmo dia. (F7)
+- Nesse período, todas as 5 transações de crédito à vista divergem. (F8)
+- A Orbe cobrou 2,59% de 15/09 a 18/09, contra 2,19% contratado. (V3)
+- A partir de 23/09, a Orbe já cobra 2,19%. (V4)
+- A linha 7 da planilha fixa o crédito à vista em 2,19% desde 15/09. (P7)
+- A Bridge foi avisada só alguns dias depois de 15/09. (S30)
+
+*Contra*
+
+- Nenhum fato contrário citado.
+
+**Outras possibilidades**
+
+- **Condição não informada ao parceiro** — confiança média. Como ninguém tem a função de avisar a Orbe, o aviso saiu com atraso. Até lá, a Orbe seguiu com a taxa antiga.
+  - Ninguém tem a função de avisar a Orbe das condições novas. (S30)
+  - O aditivo vale desde 15/09, e o aviso atrasado é problema de processo. (R68)
+  - Só o crédito à vista mudou na planilha, e só ele divergiu. (F3)
+
+**Para confirmar**
+
+- E-mail ou comunicado do Comercial à Orbe com a nova taxa de crédito à vista e a data de envio.
+- Tela de cadastro do EC 1075624862 na Orbe, com a data em que a taxa de 2,19% passou a constar.
+- Aditivo assinado com a Bridge, com a data de vigência de 15/09/2026.
+- Transações de crédito à vista entre 19/09 e 22/09, que não aparecem na rota, para ver quando a taxa mudou.
+
+**Falar com:** Orbe  
+**Dado faltante:** Data em que a Orbe atualizou a taxa de crédito à vista no cadastro do EC e data do aviso a ela.  
 **Hipóteses descartadas pelo código:** 0  
 **Ajustes do código:** nenhum

@@ -3,12 +3,15 @@
 Escuta apenas em 127.0.0.1. Não calcula nada: recebe os arquivos, chama
 src.fechamento.executar() e devolve o resumo e os CSVs gerados.
 
-Cada execução grava em execucoes/<AAAA-MM-DD_HHMMSS>/entrada e /saida.
+Pasta do mês persistente: meses/<AAAA-MM>/entrada (nunca sobrescreve: nome repetido vira _v2, conteúdo idêntico
+não é salvo de novo, "remover" move para _removidos). Cada fechamento grava em
+meses/<AAAA-MM>/execucoes/<AAAA-MM-DD_HHMMSS>/saida e a mais recente é a mostrada.
 Investigação de divergências (PLANO_IA_01 Fase 3): o dossiê vem de saida/investigacao/; as hipóteses
 da IA (src/ia.py) e as decisões da analista ficam na pasta da execução (investigacao_ia.json e
 decisoes_investigacao.csv), nunca em saida/.
 """
 import csv
+import hashlib
 import io
 import json
 import os
@@ -37,6 +40,9 @@ except ImportError:                   # pragma: no cover - até o módulo existi
 
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_CADASTRO = RAIZ / "cadastro"
+PASTA_MESES = RAIZ / "meses"
+RX_MES = re.compile(r"\d{4}-(0[1-9]|1[0-2])")
+COLUNAS_ENVIOS = ["data_hora", "arquivo_salvo", "nome_original", "tipo_reconhecido", "usuario", "acao"]
 PAGINA = Path(__file__).resolve().parent / "pagina.html"
 TAMANHO_MAXIMO = 200 * 1024 * 1024  # 200 MB por arquivo
 
@@ -59,9 +65,10 @@ SAIDAS = [
 ]
 NOMES_SAIDA = {n for n, _ in SAIDAS}
 
-COLUNAS_DECISOES = ["id_grupo", "lojista", "hipotese_n", "causa", "decisao", "comentario", "analista",
-                    "data_hora", "modelo_resposta", "versao_prompt"]
-DECISOES = ("ACEITA", "RECUSADA")
+COLUNAS_DECISOES = ["id_grupo", "lojista", "hipotese_n", "causa", "causa_categoria", "decisao", "comentario",
+                    "analista", "data_hora", "modelo_resposta", "versao_prompt"]
+DECISOES = ("CONCORDO", "DISCORDO", "VERIFICAR")
+DECISOES_COM_COMENTARIO = ("DISCORDO", "VERIFICAR")      # sem justificativa a decisão não vale
 INSTRUCAO_CHAVE = "Crie o arquivo .env na pasta do programa com ANTHROPIC_API_KEY=sua-chave (veja o README)."
 
 
@@ -122,6 +129,7 @@ def resumo_dict(r):
         "bloqueios": [{"tipo": b["tipo"], "fonte": ROTULOS.get(b["fonte"], b["fonte"]), "arquivo": b["arquivo"]}
                       for b in r.get("bloqueios", [])],
         "bloqueado": r.get("bloqueado", {}),
+        "versoes": r.get("versoes"),      # consolidação de versões por fonte (src/fechamento); None = bloco escondido
     }
 
 
@@ -142,13 +150,35 @@ def _mensagem_erro(e):
     return {"titulo": dica, "detalhe": msg}
 
 
+def mes_anterior(hoje):
+    """Mês anterior ao de hoje, no formato AAAA-MM (competência padrão)."""
+    ultimo = hoje.replace(day=1) - timedelta(days=1)
+    return f"{ultimo:%Y-%m}"
+
+
+def _hash(conteudo):
+    return hashlib.sha256(conteudo).hexdigest()
+
+
+def _familia(nome):
+    """'x_v2.csv' e 'x.csv' são o mesmo arquivo em versões diferentes."""
+    return re.sub(r"_v\d+(?=\.[^.]*$)", "", nome).lower()
+
+
+def _data_br_hora(iso):
+    try:
+        return datetime.fromisoformat(iso).strftime("%d/%m/%Y %H:%M")
+    except ValueError:
+        return iso
+
+
 class Estado:
     """Uma execução em andamento por vez (uso local, uma analista).
     cliente_ia: cliente da API injetável (testes); None = ia.investigar cria o cliente real com a chave."""
 
-    def __init__(self, pasta_execucoes, cliente_ia=None, raiz_ia=None, pasta_cadastro=PASTA_CADASTRO,
+    def __init__(self, pasta_meses=PASTA_MESES, cliente_ia=None, raiz_ia=None, pasta_cadastro=PASTA_CADASTRO,
                  raiz_planilha=RAIZ, hoje=None):
-        self.pasta_execucoes = Path(pasta_execucoes)
+        self.pasta_meses = Path(pasta_meses)
         self.pasta_cadastro = Path(pasta_cadastro)   # cadastro/condicoes_comerciais.csv (nunca a planilha do cliente)
         self.raiz_planilha = Path(raiz_planilha)     # onde procurar a planilha de taxas se ainda não foi enviada
         self.hoje = hoje                              # None = data de hoje (injetável nos testes)
@@ -157,11 +187,80 @@ class Estado:
         self.lock = threading.Lock()
         self.clientes = Clientes(self)
         self.geracao = 0          # muda a cada execução: resposta da IA de execução antiga é descartada
+        self.mes = mes_anterior(self.hoje or date.today())   # competência escolhida (AAAA-MM)
         self.recomecar()
 
+    # ------------------------------------------------ pasta do mês
+    def entrada(self):
+        return self.pasta_meses / self.mes / "entrada"
+
+    def meses_existentes(self):
+        if not self.pasta_meses.is_dir():
+            return []
+        return sorted(p.name for p in self.pasta_meses.iterdir() if p.is_dir() and RX_MES.fullmatch(p.name))
+
+    def escolher_mes(self, mes):
+        mes = str(mes or "").strip()
+        if not RX_MES.fullmatch(mes):
+            return False, "Mês inválido: use o formato AAAA-MM (ex.: 2026-09)."
+        if mes != self.mes:
+            self.mes = mes
+            self.recomecar()
+        return True, "ok"
+
+    def _ler_envios(self):
+        f = self.entrada() / "_envios.csv"
+        if not f.exists():
+            return []
+        with open(f, encoding="utf-8", newline="") as h:
+            return list(csv.DictReader(h, delimiter=";"))
+
+    def _registrar(self, arquivo, original, tipo, usuario, acao):
+        entrada = self.entrada()
+        entrada.mkdir(parents=True, exist_ok=True)
+        f = entrada / "_envios.csv"
+        novo = not f.exists()
+        with open(f, "a", encoding="utf-8", newline="") as h:
+            w = csv.writer(h, delimiter=";", lineterminator="\n")
+            if novo:
+                w.writerow(COLUNAS_ENVIOS)
+            w.writerow([datetime.now().isoformat(timespec="seconds"), arquivo, original, tipo or "", usuario, acao])
+
+    def versoes(self):
+        """chave -> versões (mais antiga primeiro) dos arquivos ativos da pasta do mês."""
+        entrada = self.entrada()
+        if not entrada.is_dir():
+            return {}
+        envios = [e for e in self._ler_envios() if e.get("acao", "enviado") == "enviado"]
+        ordem = {e["arquivo_salvo"]: (i, e) for i, e in enumerate(envios)}
+        achados = []
+        for p in entrada.iterdir():
+            chave = reconhecer(p.name) if p.is_file() and not p.name.startswith("_") else None
+            if chave is None:
+                continue
+            i, e = ordem.get(p.name, (-1, None))
+            quando = e["data_hora"] if e else datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds")
+            achados.append((chave, (i, p.stat().st_mtime, p.name.lower()), {
+                "arquivo": p.name, "nome_original": e["nome_original"] if e else p.name, "data_hora": quando,
+                "data_hora_br": _data_br_hora(quando), "usuario": e["usuario"] if e else "",
+                "tamanho": p.stat().st_size}))
+        por = {}
+        for chave, ordenacao, v in sorted(achados, key=lambda x: x[1]):
+            por.setdefault(chave, []).append(v)
+        for chave, vs in por.items():
+            vistos = set()
+            for v in reversed(vs):       # a mais recente de cada arquivo (Orbe: de cada família) é a que vale
+                fam = _familia(v["arquivo"]) if chave in config.FONTES_MULTIPLAS else chave
+                v["mais_recente"] = fam not in vistos
+                vistos.add(fam)
+        return por
+
+    def arquivo_recente(self, chave):
+        vs = self.versoes().get(chave)
+        return self.entrada() / vs[-1]["arquivo"] if vs else None
+
     def recomecar(self):
-        self.pasta = None
-        self.arquivos = {}  # chave -> {"nome", "tamanho"}
+        self.pasta = None   # pasta da execução (saida, decisões, IA); só existe depois de rodar
         self.resultado = None
         self.r = None               # resultado completo do fechamento (a aba Clientes lê daqui o resumo do lojista)
         self.erro = None
@@ -215,18 +314,21 @@ class Estado:
             return False, "Informe seu nome antes de decidir."
         if d.get("decisao") not in DECISOES:
             return False, "Decisão inválida."
+        if d["decisao"] in DECISOES_COM_COMENTARIO and not str(d.get("comentario") or "").strip():
+            return False, "Escreva um comentário: para Discordo e Preciso verificar ele é obrigatório."
         if not self.ia_resultado:
             return False, "Gere as hipóteses antes de decidir."
         g = next((x for x in self.ia_resultado.get("grupos", []) if x.get("id_grupo") == d.get("id_grupo")), None)
         try:
-            n = int(d.get("hipotese_n"))
+            n = int(d.get("hipotese_n") or 1)       # o cartão decide sobre a causa principal (hipótese 1)
         except (TypeError, ValueError):
             n = 0
         if g is None or not 1 <= n <= len(g.get("hipoteses") or []):
             return False, "Hipótese não encontrada."
         self.decisoes[(g["id_grupo"], n)] = {
             "id_grupo": g["id_grupo"], "lojista": g.get("lojista") or "", "hipotese_n": n,
-            "causa": g["hipoteses"][n - 1]["causa"], "decisao": d["decisao"],
+            "causa": g["hipoteses"][n - 1]["causa"],
+            "causa_categoria": g["hipoteses"][n - 1].get("causa_categoria") or "", "decisao": d["decisao"],
             "comentario": str(d.get("comentario") or "").strip(), "analista": analista,
             "data_hora": datetime.now().isoformat(timespec="seconds"),
             "modelo_resposta": g.get("modelo_resposta") or g.get("modelo") or "",
@@ -257,65 +359,93 @@ class Estado:
             "ia_motivo": motivo if ok else f"{motivo} {INSTRUCAO_CHAVE}",
             "ia_estado": self.ia_estado,
             "ia": self.ia_resultado,
+            "rotulos_categoria": dict(getattr(ia, "ROTULO_CATEGORIA", None) or {}),
             "decisoes": [self.decisoes[k] for k in sorted(self.decisoes)],
         }
 
-    def _garantir_pasta(self):
-        if self.pasta is None:
-            base = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-            pasta, i = self.pasta_execucoes / base, 1
-            while pasta.exists():
-                i += 1
-                pasta = self.pasta_execucoes / f"{base}_{i}"
-            (pasta / "entrada").mkdir(parents=True)
-            self.pasta = pasta
-        return self.pasta
-
-    def receber(self, nome, conteudo):
-        nome = _nome_seguro(nome)
-        chave = reconhecer(nome) if nome else None
-        if chave is None:
-            return {"nome": nome, "reconhecido": None}
-        entrada = self._garantir_pasta() / "entrada"
-        (entrada / nome).write_bytes(conteudo)
-        if chave in config.FONTES_MULTIPLAS:
-            # Orbe: vários arquivos no mês (relatório + ajustes). Mesmo nome = substitui; nome novo = soma.
-            tamanhos = dict(self.arquivos.get(chave, {}).get("tamanhos", {}))
-            tamanhos[nome] = len(conteudo)
-            nomes = sorted(tamanhos, key=str.lower)
-            self.arquivos[chave] = {"nome": ", ".join(nomes), "nomes": nomes, "tamanhos": tamanhos,
-                                    "tamanho": sum(tamanhos.values())}
-        else:
-            anterior = self.arquivos.get(chave)
-            if anterior and anterior["nome"] != nome:
-                (entrada / anterior["nome"]).unlink(missing_ok=True)
-            self.arquivos[chave] = {"nome": nome, "tamanho": len(conteudo)}
-        self.resultado, self.r, self.erro = None, None, None  # entrada mudou: resultado antigo não vale
+    def _invalidar(self):
+        """A entrada mudou: o resultado mostrado deixa de valer (os arquivos da pasta do mês ficam)."""
+        self.resultado, self.r, self.erro, self.pasta = None, None, None, None
         self._limpar_investigacao()
-        return {"nome": nome, "reconhecido": chave}
+
+    def receber(self, nome, conteudo, usuario=""):
+        """Guarda sem nunca sobrescrever: nome repetido vira _v2/_v3; conteúdo idêntico a um arquivo ativo não é salvo."""
+        original = _nome_seguro(nome)
+        chave = reconhecer(original) if original else None
+        if chave is None:
+            return {"nome": original, "reconhecido": None}
+        entrada = self.entrada()
+        entrada.mkdir(parents=True, exist_ok=True)
+        h = _hash(conteudo)
+        for p in sorted(entrada.iterdir()):
+            if p.is_file() and not p.name.startswith("_") and _hash(p.read_bytes()) == h:
+                quando = next((e["data_hora"] for e in reversed(self._ler_envios())
+                               if e["arquivo_salvo"] == p.name and e.get("acao", "enviado") == "enviado"),
+                              datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds"))
+                return {"nome": original, "reconhecido": chave, "duplicado": True, "arquivo_salvo": p.name,
+                        "aviso": f"{original}: arquivo idêntico ao já enviado em {_data_br_hora(quando)} ({p.name}); não foi salvo de novo."}
+        salvo, n = original, 1
+        stem, ext = Path(original).stem, Path(original).suffix
+        while (entrada / salvo).exists():
+            n += 1
+            salvo = f"{stem}_v{n}{ext}"
+        (entrada / salvo).write_bytes(conteudo)
+        self._registrar(salvo, original, chave, usuario, "enviado")
+        self._invalidar()
+        return {"nome": original, "reconhecido": chave, "arquivo_salvo": salvo, "versao": n,
+                "aviso": f"{original} já existia nesta pasta: salvo como {salvo} (nova versão)." if n > 1 else None}
+
+    def remover(self, arquivo, usuario=""):
+        """Move para _removidos (nunca apaga) e registra. Devolve (ok, mensagem)."""
+        nome = _nome_seguro(str(arquivo or ""))
+        origem = self.entrada() / nome
+        if not nome or nome.startswith("_") or not origem.is_file():
+            return False, "Arquivo não encontrado nesta pasta."
+        destino_dir = self.entrada() / "_removidos"
+        destino_dir.mkdir(exist_ok=True)
+        destino, n = destino_dir / nome, 1
+        while destino.exists():
+            n += 1
+            destino = destino_dir / f"{Path(nome).stem}_r{n}{Path(nome).suffix}"
+        origem.replace(destino)
+        self._registrar(nome, nome, reconhecer(nome), usuario, "removido")
+        self._invalidar()
+        return True, "ok"
 
     def completo(self):
         """Uma fonte de cada tipo, com pelo menos 1 arquivo da Orbe (aceita N)."""
-        return all(k in self.arquivos for k in config.PADROES_ARQUIVOS)
+        return all(k in self.versoes() for k in config.PADROES_ARQUIVOS)
 
     def faltam(self):
-        return [ROTULOS.get(k, k) for k in config.PADROES_ARQUIVOS if k not in self.arquivos]
+        v = self.versoes()
+        return [ROTULOS.get(k, k) for k in config.PADROES_ARQUIVOS if k not in v]
 
     def pronto(self):
         """S53: roda com pelo menos 1 fonte reconhecida; o que faltar vira fechamento parcial."""
-        return bool(self.arquivos)
+        return bool(self.versoes())
+
+    def execucoes(self):
+        pasta = self.pasta_meses / self.mes / "execucoes"
+        return sorted((p.name for p in pasta.iterdir() if p.is_dir()), reverse=True) if pasta.is_dir() else []
 
     def rodar(self):
         if not self.pronto():
             self.erro = {"titulo": "Faltam arquivos.",
                          "detalhe": "Envie pelo menos um arquivo do mês (Orbe, taxas, Ponte, plano de contas ou extratos) antes de rodar."}
             return
-        saida = self.pasta / "saida"
+        base = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        raiz_exec = self.pasta_meses / self.mes / "execucoes"
+        pasta, i = raiz_exec / base, 1
+        while pasta.exists():
+            i += 1
+            pasta = raiz_exec / f"{base}_{i}"
+        pasta.mkdir(parents=True)
         self._limpar_investigacao()
+        self.pasta = pasta
         try:
             # as condições do cadastro (isenções, taxas especiais, bloqueios) entram no cálculo
             extra = {"cadastro": self.pasta_cadastro} if cadastro is not None else {}
-            r = fechamento.executar(self.pasta / "entrada", saida, **extra)
+            r = fechamento.executar(self.entrada(), pasta / "saida", **extra)
             self.r = r
             self.resultado = resumo_dict(r)
             self.erro = None
@@ -331,16 +461,27 @@ class Estado:
         return [{"nome": n, "descricao": d, "linhas": _contar_linhas(pasta / n)}
                 for n, d in SAIDAS if (pasta / n).exists()]
 
+    def _esperado(self, chave, padrao, vs):
+        base = {"chave": chave, "rotulo": ROTULOS.get(chave, chave), "padrao": padrao, "versoes": vs}
+        if not vs:
+            return base
+        if chave in config.FONTES_MULTIPLAS:
+            nomes = sorted((v["arquivo"] for v in vs), key=str.lower)
+            return {**base, "nome": ", ".join(nomes), "nomes": nomes, "tamanho": sum(v["tamanho"] for v in vs)}
+        return {**base, "nome": vs[-1]["arquivo"], "tamanho": vs[-1]["tamanho"]}
+
     def json(self):
+        versoes = self.versoes()
         d = {
-            "esperados": [{"chave": k, "rotulo": ROTULOS.get(k, k), "padrao": p,
-                           **(self.arquivos.get(k) or {})}
-                          for k, p in config.PADROES_ARQUIVOS.items()],
+            "mes": self.mes,
+            "meses": sorted(set(self.meses_existentes()) | {self.mes}),
+            "execucoes": self.execucoes(),
+            "esperados": [self._esperado(k, p, versoes.get(k, [])) for k, p in config.PADROES_ARQUIVOS.items()],
             "pronto": self.pronto(),
             "completo": self.completo(),
             "faltam": self.faltam(),
             "aviso_faltam": (f"faltam: {', '.join(self.faltam())} — o fechamento será parcial"
-                             if self.arquivos and not self.completo() else None),
+                             if versoes and not self.completo() else None),
             "pasta": str(self.pasta) if self.pasta else None,
             "resultado": self.resultado,
             "erro": self.erro,
@@ -466,9 +607,8 @@ class Clientes:
         return prox - timedelta(days=1)
 
     def _contratos(self):
-        if self.e.pasta and "taxas" in self.e.arquivos:
-            planilha = self.e.pasta / "entrada" / self.e.arquivos["taxas"]["nome"]
-        else:
+        planilha = self.e.arquivo_recente("taxas")
+        if planilha is None:
             padrao = re.compile(_glob_para_regex(config.PADROES_ARQUIVOS["taxas"]), re.IGNORECASE)
             achados = sorted(p for p in self.e.raiz_planilha.glob("*.xlsx") if padrao.fullmatch(p.name))
             planilha = achados[0] if achados else None
@@ -902,11 +1042,30 @@ def criar_handler(estado):
             corpo = self.rfile.read(tam) if tam else b""
             if caminho == "/api/enviar":
                 nome = unquote(self.headers.get("X-Nome-Arquivo", ""))
+                usuario = unquote(self.headers.get("X-Usuario", "")).strip()
+                mes = self.headers.get("X-Mes")
                 with estado.lock:
-                    r = estado.receber(nome, corpo)
+                    if mes and mes != estado.mes:       # aba desatualizada: não grava no mês errado
+                        return self._json({"erro": f"O mês da tela mudou para {estado.mes}; recarregue a página."}, 409)
+                    r = estado.receber(nome, corpo, usuario)
                     d = estado.json()
                 d["envio"] = r
                 self._json(d)
+            elif caminho in ("/api/mes", "/api/remover"):
+                try:
+                    pedido = json.loads(corpo.decode("utf-8") or "{}")
+                    if not isinstance(pedido, dict):
+                        raise ValueError
+                except ValueError:
+                    return self._json({"erro": "pedido inválido"}, 400)
+                with estado.lock:
+                    if caminho == "/api/mes":
+                        ok, msg = estado.escolher_mes(pedido.get("mes"))
+                    else:
+                        ok, msg = estado.remover(pedido.get("arquivo"), str(pedido.get("usuario") or "").strip())
+                    d = estado.json()
+                d["aviso"] = None if ok else msg
+                self._json(d, 200 if ok else 400)
             elif caminho == "/api/rodar":
                 with estado.lock:
                     estado.rodar()
@@ -990,11 +1149,11 @@ def mensagens_inicio(porta_obtida, porta_pedida=PORTA_PADRAO, havia_tela=False):
     return url, linhas
 
 
-def criar_servidor(porta=PORTA_PADRAO, pasta_execucoes=RAIZ / "execucoes", tentativas=20, cliente_ia=None, raiz_ia=None,
+def criar_servidor(porta=PORTA_PADRAO, pasta_meses=PASTA_MESES, tentativas=20, cliente_ia=None, raiz_ia=None,
                    **opcoes_estado):
     """Cria o servidor em 127.0.0.1. Se a porta estiver ocupada, tenta as seguintes. porta=0 = qualquer livre.
     cliente_ia/raiz_ia: injeção para testes (cliente falso da API; pasta onde procurar o .env)."""
-    estado = Estado(pasta_execucoes, cliente_ia=cliente_ia, raiz_ia=raiz_ia, **opcoes_estado)
+    estado = Estado(pasta_meses, cliente_ia=cliente_ia, raiz_ia=raiz_ia, **opcoes_estado)
     handler = criar_handler(estado)
     ultimo = None
     for p in ([0] if porta == 0 else range(porta, porta + tentativas)):

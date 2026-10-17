@@ -85,6 +85,13 @@ def _pendencias_bloqueio(bloqueios):
     return out
 
 
+def _reapontar_ponte(itens, origem):
+    """2+ relatórios da Ponte: o rastro de cada operação aponta o e-mail de onde ela foi usada ('ponte@<e-mail>')."""
+    for it in itens:
+        it["rastro"] = [(f"ponte@{origem[r[1]]}", *r[1:]) if r[0] == "ponte" and r[1] in origem else r
+                        for r in it["rastro"]]
+
+
 def _carregar_cadastro(pasta):
     """Lê as condições comerciais. Pasta/arquivo ausente NÃO derruba o fechamento: segue só com a planilha, mas conta como
     bloqueio (fechamento PARCIAL, S53): pendência CADASTRO_AUSENTE e notas/comissões PROVISORIO. Cadastro malformado
@@ -169,7 +176,9 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None)
             pen_ext = _neutralizar_conciliacoes(lancs, pen_ext, not rem_ok,
                                                 [b for b in ("aurora", "meridiano") if b not in ok])
         for l in lancs:
-            l["rastro"] = [(l["banco"].lower(), l["ref"], l["valor"], l["descricao"])]
+            # com 2+ versões do extrato, a linha aponta o arquivo de onde foi usada ('banco@arquivo')
+            chave = f"{l['banco'].lower()}@{l['arquivo_origem']}" if l.get("arquivo_origem") else l["banco"].lower()
+            l["rastro"] = [(chave, l["ref"], l["valor"], l["descricao"])]
 
     # ids legíveis
     pen_bloq = _pendencias_bloqueio(bloqueios)
@@ -177,8 +186,10 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None)
     divs = _numerar(div_chk + div_rem, "DIV")
     notas = _numerar(nf_chk + nf_rem, "NF")
     _numerar(lancs, "LAN")
-    pends = _numerar(pen_bloq + pen_chk + pen_rem + pen_ext, "PEN")
+    pends = _numerar(pen_bloq + d["pend_versoes"] + pen_chk + pen_rem + pen_ext, "PEN")
     comissoes = com_chk + com_rem
+    if d["origem_ponte"]:                      # 2+ relatórios da Ponte: cada operação aponta o seu e-mail
+        _reapontar_ponte(comissoes + divs + notas + pends, d["origem_ponte"])
 
     _conferir_rastro(comissoes, lambda x: x["comissao"])
     _conferir_rastro(divs, lambda x: x["diferenca"])
@@ -189,6 +200,7 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None)
     arquivos = dict(d["arquivos"])
     if rem_ok:
         arquivos["ponte"] = f"{d['arquivos']['ponte']}#{d['meta_ponte']['anexo']}"
+    arquivos.update(d["rastro_arquivos"])
     status = config.STATUS_PROVISORIO if parcial else None   # completo: os CSVs ficam idênticos aos de sempre
     saidas.escrever(saida, "comissoes_por_lojista.csv", saidas.linhas_comissoes(comissoes), status)
     saidas.escrever(saida, "divergencias_taxa.csv", saidas.linhas_divergencias(divs))
@@ -208,7 +220,7 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None)
     r = {"competencia": comp_txt, "dados": d, "checkout": chk, "remessa": rem,
          "comissoes": comissoes, "divergencias": divs, "notas": notas, "lancamentos": lancs,
          "pendencias": pends, "saida": Path(saida), "investigacao": None, "investigacao_erro": None,
-         "parcial": parcial, "bloqueios": bloqueios, "condicoes": condicoes, "cadastro_ausente": bool(bloq_cadastro),
+         "versoes": d["versoes"], "parcial": parcial, "bloqueios": bloqueios, "condicoes": condicoes, "cadastro_ausente": bool(bloq_cadastro),
          "bloqueado": {"checkout": not chk_ok, "remessa": not rem_ok,
                        "divergencias_remessa": not rem_ok or sem_taxas,
                        "AURORA": not (lan_ok and "aurora" in ok), "MERIDIANO": not (lan_ok and "meridiano" in ok)},
@@ -250,6 +262,10 @@ def resumo(r):
         linhas.append(f"  Lançamentos {b:<9} : {len(xs)} ({reg} por REGRA)")
     por_quem = Counter(p["quem_decide"] for p in r["pendencias"])
     linhas.append(f"  Pendências        : {len(r['pendencias'])}  " + ", ".join(f"{k}: {v}" for k, v in por_quem.items()))
+    vers = [v["texto"] for v in r.get("versoes", {}).values() if len(v["arquivos"]) > 1]
+    if vers:
+        linhas.append("  Versões de arquivos (reenvios consolidados, sem duplicar):")
+        linhas += [f"    {t}" for t in vers]
     if r.get("investigacao"):
         linhas.append(f"  Investigação      : {len(r['investigacao']['grupos'])} grupos de divergência  ->  "
                       "investigacao/dossie.md")

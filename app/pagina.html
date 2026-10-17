@@ -129,6 +129,48 @@
   .ia-extra { font-size: 13px; margin: 6px 0; }
   .ia-extra ul { margin: 2px 0 0; padding-left: 18px; }
   .aviso-ia { font-size: 12px; color: var(--texto-suave); border-top: 1px dashed var(--borda); margin-top: 8px; padding-top: 6px; }
+  .cart-cab { padding: 14px 18px; background: #f5f6f7; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  .cart-cab .nome { font-family: var(--titulo); font-weight: 600; font-size: 17px; }
+  .cart-cab .parc { color: var(--texto-suave); font-size: 14px; }
+  .valor-cab { margin-left: auto; font-family: var(--titulo); font-weight: 600; font-size: 18px; text-align: right; display: flex; flex-direction: column; line-height: 1.2; }
+  .valor-cab small { font-family: var(--corpo); font-weight: 400; font-size: 12px; color: var(--texto-suave); }
+  .selo.dec-concordo { border-color: #00b18688; background: var(--ok-10); color: #00785b; }
+  .selo.dec-discordo { border-color: #f3b6c8; background: #fdecf1; color: #7a1233; }
+  .selo.dec-verificar { border-color: #f5d38a; background: #fff7e6; color: #6b4e00; }
+  .cart-corpo { padding: 4px 18px 14px; }
+  .bloco-c { padding: 12px 0; border-top: 1px solid var(--borda); }
+  .bloco-c:first-child { border-top: 0; }
+  .bloco-c h4 { margin: 0 0 6px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .bloco-c p { margin: 4px 0; }
+  .resumo { font-size: 16px; font-weight: 500; }
+  .sem-ia { text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 12px; color: var(--texto-suave); background: #f2f2f2; border-radius: 20px; padding: 0 8px; }
+  .bloco-c.acao { background: #fafdfc; }
+  .bloco-c.acao .sem-ia { background: var(--ok-10); color: #00785b; }
+  .regra { font-family: Consolas, ui-monospace, monospace; font-size: 11px; border: 1px solid var(--borda); border-radius: 6px; padding: 0 5px; background: #fafafa; cursor: help; }
+  .regras-ids { font-size: 12px; color: var(--texto-suave); }
+  table.rota td.pct { font-family: var(--corpo); font-weight: 600; }
+  table.rota tr.ok td { color: #8a8a8a; background: #fafafa; }
+  table.rota tr.div td { background: #fdecf1; color: #7a1233; font-weight: 500; }
+  .destacado { outline: 2px solid var(--destaque); outline-offset: 1px; background: #fff1c2 !important; border-radius: 4px; }
+  .causa-rotulo { font-family: var(--titulo); font-weight: 600; font-size: 20px; color: var(--destaque-escuro); margin: 2px 0 4px; }
+  .porque ul { margin: 2px 0 6px; padding-left: 20px; }
+  .porque li { margin: 3px 0; }
+  .porque.contra { color: #7a1233; }
+  button.ref { font: 11px Consolas, ui-monospace, monospace; border: 1px solid var(--borda); border-radius: 6px; background: #fafafa; color: var(--texto-suave); padding: 0 5px; cursor: pointer; }
+  button.ref:hover { border-color: var(--destaque); color: var(--destaque); }
+  .outras { margin-top: 6px; font-size: 13px; } .outras summary, .detalhes summary { cursor: pointer; color: var(--texto-suave); }
+  .outra { padding: 6px 0 6px 12px; border-left: 3px solid var(--borda); margin: 6px 0; }
+  .dica-ia, .faltante { font-size: 12px; color: var(--texto-suave); }
+  .lista-c { margin: 2px 0 6px; padding-left: 20px; }
+  .bloco-c.decisao textarea.campo { margin: 6px 0; }
+  .erro-dec { margin-top: 8px; padding: 8px 12px; border-radius: 8px; background: #fdecf1; border: 1px solid #f3b6c8; color: #7a1233; font-size: 13px; }
+  .cart .acoes { margin-top: 6px; gap: 8px; }
+  .cart .acoes .botao { padding: 7px 16px; font-size: 14px; }
+  .detalhes { border-top: 1px solid var(--borda); padding: 10px 18px; background: #fcfcfc; font-size: 13px; }
+  .detalhes h5 { margin: 12px 0 4px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); }
+  .det-lista { list-style: none; margin: 0; padding: 0; } .det-lista li { padding: 4px 6px; border-radius: 6px; }
+  .det-lista b { font-family: Consolas, ui-monospace, monospace; }
+  .cart.decidido-concordo { border-color: #00b18688; } .cart.decidido-discordo { border-color: #f3b6c8; } .cart.decidido-verificar { border-color: #f5d38a; }
   .vazio { font-size: 13px; color: var(--texto-suave); }
   @media (max-width: 720px) { .grupo-corpo { grid-template-columns: 1fr; } .grupo-corpo > div + div { border-left: 0; border-top: 1px solid var(--borda); } }
   nav.abas { display: flex; gap: 6px; margin-top: 22px; }
@@ -182,6 +224,24 @@
   .voltar { margin-bottom: 14px; }
   .nada { color: var(--texto-suave); font-size: 14px; margin: 10px 0 0; }
   footer { text-align: center; color: var(--texto-suave); font-size: 13px; padding: 0 16px 32px; }
+  .mes-barra { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; margin-bottom: 16px; padding: 14px 16px; border: 2px solid var(--destaque); border-radius: 12px; background: var(--destaque-10); }
+  .mes-barra label { font-size: 13px; color: var(--texto-suave); display: flex; flex-direction: column; gap: 4px; }
+  .mes-barra select.campo, .mes-barra input.campo { min-width: 0; }
+  .mes-barra .dica { flex: 1 1 260px; color: var(--texto); }
+  .lista li.fonte { display: block; }
+
+  .lista li.fonte > .topo { display: flex; gap: 10px; align-items: flex-start; }
+  .lista .versoes-lista { list-style: none; margin: 8px 0 0 32px; padding: 0; font-size: 13px; }
+  .lista .versoes-lista li { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: center; padding: 5px 0; border: 0; border-top: 1px dashed var(--borda); border-radius: 0; }
+  .versoes-lista .arq { font-weight: 600; word-break: break-all; flex: 1 1 200px; }
+  .versoes-lista .meta { color: var(--texto-suave); }
+  .versoes-lista li.antiga .arq { font-weight: 400; color: var(--texto-suave); }
+  .selo.recente { border-color: #00b18688; background: var(--ok-10); color: #00785b; }
+  .botao.mini { padding: 2px 10px; font-size: 12px; border-width: 1px; }
+  .versoes-fech ul { margin: 4px 0 0; padding-left: 0; list-style: none; font-size: 14px; }
+  .versoes-fech li { padding: 6px 10px; border-radius: 8px; }
+  .versoes-fech li.aviso { background: #fff7e6; border: 1px solid #f5d38a; color: #6b4e00; margin: 4px 0; }
+  .envio-msg { margin-top: 8px; }
   @media (max-width: 560px) {
     .cartao { padding: 18px; }
     .arquivos li { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -193,7 +253,7 @@
   <div class="conteudo">
     <span class="etiqueta">Ferramenta interna do financeiro</span>
     <h1>Fechamento mensal — Tarvo</h1>
-    <p>Envie os arquivos do mês (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos que você enviar não são alterados.</p>
+    <p>Escolha o mês, envie os arquivos (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos ficam guardados na pasta do mês: dá para voltar outro dia e enviar só o que mudou. Nada é sobrescrito nem apagado.</p>
     <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabCli">Clientes</button></nav>
   </div>
 </header>
@@ -202,8 +262,14 @@
   <div class="conteudo">
     <div id="abaFechamento">
     <section class="cartao">
-      <h2><span class="passo">1</span> Arquivos de entrada</h2>
-      <p class="sub">Arraste os arquivos para a área abaixo (pode ser todos de uma vez) ou clique para escolher.</p>
+      <h2><span class="passo">1</span> Arquivos do mês</h2>
+      <div class="mes-barra">
+        <label>Mês de competência<select class="campo" id="mesSel"></select></label>
+        <label>Outro mês<input class="campo" type="month" id="mesOutro"></label>
+        <label>Seu nome (fica no registro de envios)<input class="campo" id="usuario" autocomplete="name" placeholder="ex.: Helena"></label>
+        <p class="dica" id="mesDica"></p>
+      </div>
+      <p class="sub">Arraste os arquivos para a área abaixo (pode ser todos de uma vez) ou clique para escolher. Um arquivo novo com o mesmo nome vira uma nova versão; um idêntico a um já enviado não é guardado de novo.</p>
       <label class="soltar" id="soltar">
         <input type="file" id="escolher" multiple hidden>
         <strong>Solte os arquivos aqui</strong>
@@ -212,7 +278,7 @@
       <ul class="lista" id="esperados"></ul>
       <div class="aviso oculto" id="naoReconhecidos"></div>
       <div class="acoes">
-        <button class="botao leve" id="limpar" type="button">Limpar e recomeçar</button>
+        <button class="botao leve" id="limpar" type="button">Limpar resultado da tela</button>
         <span class="status" id="contagem"></span>
       </div>
     </section>
@@ -238,7 +304,7 @@
 
     <section class="cartao oculto" id="cartaoInvestigacao">
       <h2><span class="passo">4</span> Investigação de divergências</h2>
-      <p class="sub">Para cada grupo de divergência: à esquerda, os fatos calculados pelo fechamento; à direita, as hipóteses de causa sugeridas pela IA. Você aceita ou recusa cada hipótese. Nada aqui altera os arquivos do fechamento.</p>
+      <p class="sub">Um cartão por divergência: o que aconteceu, a linha do tempo das taxas, a ação definida pela regra e a causa provável sugerida pela IA. Você concorda, discorda ou marca para verificar. Nada aqui altera os arquivos do fechamento.</p>
       <div class="inv-topo">
         <label>Seu nome (obrigatório para decidir)<input class="campo" id="analista" autocomplete="name" placeholder="ex.: Helena"></label>
         <button class="botao ia" id="gerarIA" type="button"><span class="giro"></span><span id="gerarTexto">Gerar hipóteses com IA</span></button>
@@ -277,14 +343,23 @@ async function api(url, opcoes) {
 }
 
 function desenhar(e) {
-  $("esperados").innerHTML = e.esperados.map((x) => `
-    <li class="${x.nome ? "ok" : ""}">
-      <span class="marca">✓</span>
-      <div><div class="nome">${esc(x.rotulo)}${x.nomes ? `: ${x.nomes.length} ${x.nomes.length === 1 ? "arquivo" : "arquivos"}` : ""}</div>
-      ${x.nomes ? `<div class="det">${x.nomes.length} ${x.nomes.length === 1 ? "arquivo" : "arquivos"} · ${tamanho(x.tamanho)}</div>${x.nomes.map((m) => `<div class="det">${esc(m)}</div>`).join("")}`
-      : x.nome ? `<div class="det">${esc(x.nome)} · ${tamanho(x.tamanho)}</div>`
-               : `<div class="faltando">faltando</div><div class="det">nome com “${esc(x.padrao)}”</div>`}</div>
-    </li>`).join("");
+  mesAtual = e.mes;
+  $("mesSel").innerHTML = e.meses.map((m) => `<option value="${esc(m)}" ${m === e.mes ? "selected" : ""}>${esc(m.slice(5) + "/" + m.slice(0, 4))}</option>`).join("");
+  $("mesOutro").value = "";
+  $("mesDica").textContent = `Os arquivos abaixo são da pasta meses/${e.mes}/entrada. Confira o mês antes de enviar.`;
+  $("esperados").innerHTML = e.esperados.map((x) => {
+    const vs = x.versoes || [];
+    return `<li class="fonte ${vs.length ? "ok" : ""}">
+      <div class="topo"><span class="marca">✓</span>
+      <div><div class="nome">${esc(x.rotulo)}${vs.length ? `: ${vs.length} ${vs.length === 1 ? "arquivo" : "arquivos"}` : ""}</div>
+      ${vs.length ? "" : `<div class="faltando">faltando</div><div class="det">nome com “${esc(x.padrao)}”</div>`}</div></div>
+      ${vs.length ? `<ul class="versoes-lista">${vs.slice().reverse().map((v) => `<li class="${v.mais_recente ? "" : "antiga"}">
+        <span class="arq">${esc(v.arquivo)}</span>
+        <span class="meta">enviado em ${esc(v.data_hora_br)}${v.usuario ? " por " + esc(v.usuario) : ""} · ${tamanho(v.tamanho)}</span>
+        ${v.mais_recente ? `<span class="selo recente">mais recente</span>` : ""}
+        <button type="button" class="botao leve mini" data-remover="${esc(v.arquivo)}" title="Move para meses/${esc(e.mes)}/entrada/_removidos (não apaga)">remover desta pasta</button></li>`).join("")}</ul>` : ""}
+    </li>`;
+  }).join("");
   const n = e.esperados.filter((x) => x.nome).length;
   $("contagem").textContent = `${n} de ${e.esperados.length} fontes reconhecidas`;
   $("rodar").disabled = !e.pronto || rodando;
@@ -313,7 +388,7 @@ function desenhar(e) {
         <div class="numero"><div class="r">Divergências de taxa</div><div class="v">${r.divergencias.checkout.linhas + r.divergencias.remessa.linhas} linhas</div><div class="d">Checkout ${esc(r.divergencias.checkout.valor)} · Remessa ${(r.bloqueado || {}).divergencias_remessa ? "BLOQUEADO" : esc(r.divergencias.remessa.valor)}</div></div>
         <div class="numero"><div class="r">Lançamentos classificados</div><div class="v">${int(r.lancamentos)}</div><div class="d">Extratos Aurora e Meridiano</div></div>
         <div class="numero destaque"><div class="r">Pendências para decidir</div><div class="v">${r.pendencias.quantidade}</div><div class="d">${resp}</div></div>
-      </div>`;
+      </div>` + versoesHTML(r.versoes);
     $("saidas").innerHTML = e.saidas.map((s) => `
       <li><div class="info"><span class="nome">${esc(s.nome)}</span><span class="linhas">${int(s.linhas)} linhas</span>
         <div class="desc">${esc(s.descricao)}</div></div>
@@ -324,25 +399,66 @@ function desenhar(e) {
       <div class="tabela"><table><thead><tr><th>Código</th><th>Tipo</th><th>Valor (R$)</th><th>Motivo</th><th>Quem decide</th></tr></thead>
       <tbody>${p.linhas.map((l) => `<tr><td>${esc(l[0])}</td><td>${esc(l[1])}</td><td class="valor">${esc(l[2])}</td><td class="motivo">${esc(l[3])}</td><td>${esc(l[4])}</td></tr>`).join("")}</tbody></table></div>` : "";
   }
-  $("rodape").textContent = e.pasta ? "Pasta desta execução: " + e.pasta : "";
+  $("rodape").textContent = e.pasta ? "Pasta desta execução: " + e.pasta + (e.execucoes.length > 1 ? ` (${e.execucoes.length} execuções guardadas neste mês; a mais recente é a mostrada)` : "") : "";
   desenharInvestigacao(r ? e.investigacao : null);
 }
 
+// Bloco "Versões" do resultado: o que o fechamento consolidou de cada fonte (r.versoes; escondido se não vier).
+function versoesHTML(v) {
+  const fontes = Object.entries(v || {}).filter(([, x]) => x && x.texto);
+  if (!fontes.length) return "";
+  const n = (x) => (Array.isArray(x) ? x.length : x ? 1 : 0);
+  const itens = fontes.map(([k, x]) => {
+    const avisos = [];
+    if (n(x.conflitos)) avisos.push("valores diferentes entre versões (pendência VERSAO_CONFLITANTE)");
+    if (n(x.sumiram)) avisos.push("lançamentos que sumiram na versão nova (pendência LANCAMENTO_SUMIU_NA_NOVA_VERSAO)");
+    if (x.sobreposta) avisos.push("versões sobrepostas, uma não contém a outra (pendência VERSAO_SOBREPOSTA)");
+    return `<li class="${avisos.length ? "aviso" : ""}">${esc(x.texto)}${avisos.length ? `<div><strong>Confira:</strong> ${esc(avisos.join("; "))}. Veja em pendencias.csv.</div>` : ""}</li>`;
+  });
+  return `<div class="versoes-fech"><h3>Versões usadas no fechamento</h3><ul>${itens.join("")}</ul></div>`;
+}
+const ROT_FONTE = { orbe: "Orbe", taxas: "Taxas", ponte: "Ponte Câmbio", plano: "Plano de contas", aurora: "Extrato Aurora", meridiano: "Extrato Meridiano" };
+
+const usuarioNome = () => $("usuario").value.trim();
+try { $("usuario").value = localStorage.getItem("tarvo.analista") || ""; } catch (_) {}
+$("usuario").addEventListener("change", () => { try { localStorage.setItem("tarvo.analista", usuarioNome()); } catch (_) {} });
+let mesAtual = "";
+const post = (url, obj) => api(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj) });
+
+async function trocarMes(mes) {
+  if (!mes) return;
+  $("naoReconhecidos").classList.add("oculto");
+  try { desenhar(await post("/api/mes", { mes })); } catch (err) { $("mesDica").textContent = "Mês inválido."; }
+}
+$("mesSel").addEventListener("change", (ev) => trocarMes(ev.target.value));
+$("mesOutro").addEventListener("change", (ev) => trocarMes(ev.target.value));
+
+$("esperados").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-remover]");
+  if (!b) return;
+  const nome = b.dataset.remover;
+  if (!confirm(`Remover ${nome} desta pasta?\nO arquivo vai para _removidos (não é apagado) e deixa de entrar no fechamento.`)) return;
+  try { desenhar(await post("/api/remover", { arquivo: nome, usuario: usuarioNome() })); }
+  catch (err) { $("naoReconhecidos").classList.remove("oculto"); $("naoReconhecidos").textContent = "Não foi possível remover: " + err.message; }
+});
+
 async function enviar(arquivos) {
-  const ignorados = [];
+  const ignorados = [], avisos = [];
   let e = null;
   for (const f of arquivos) {
     $("contagem").textContent = "Enviando " + f.name + "…";
     try {
-      e = await api("/api/enviar", { method: "POST", headers: { "X-Nome-Arquivo": encodeURIComponent(f.name) }, body: f });
+      e = await api("/api/enviar", { method: "POST", headers: { "X-Nome-Arquivo": encodeURIComponent(f.name), "X-Usuario": encodeURIComponent(usuarioNome()), "X-Mes": mesAtual }, body: f });
       if (!e.envio.reconhecido) ignorados.push(f.name);
-    } catch (err) { ignorados.push(f.name + " (falha no envio)"); }
+      else if (e.envio.aviso) avisos.push(e.envio.aviso);
+    } catch (err) { ignorados.push(f.name + " (falha no envio; recarregue a página se mudou o mês)"); }
   }
   if (e) desenhar(e); else desenhar(await api("/api/estado"));
   const av = $("naoReconhecidos");
-  av.classList.toggle("oculto", !ignorados.length);
-  av.innerHTML = ignorados.length ? "<strong>Não reconhecidos (não foram usados):</strong> " + ignorados.map(esc).join(", ") +
-    ". Confira se o nome contém a palavra esperada (ex.: “orbe”, “taxas”, “plano_de_contas”, “aurora”) ou termina em .eml / .ofx." : "";
+  av.classList.toggle("oculto", !ignorados.length && !avisos.length);
+  av.innerHTML = (avisos.length ? avisos.map((a) => `<div class="envio-msg">${esc(a)}</div>`).join("") : "") +
+    (ignorados.length ? "<div class=\"envio-msg\"><strong>Não reconhecidos (não foram usados):</strong> " + ignorados.map(esc).join(", ") +
+    ". Confira se o nome contém a palavra esperada (ex.: “orbe”, “taxas”, “plano_de_contas”, “aurora”) ou termina em .eml / .ofx.</div>" : "");
 }
 
 $("escolher").addEventListener("change", (ev) => { enviar([...ev.target.files]); ev.target.value = ""; });
@@ -370,10 +486,17 @@ $("rodar").addEventListener("click", async () => {
 });
 
 // ------------------------------------------------ investigação de divergências
-const NATUREZA = { CONTRATO: "Divergência de contrato", ISENCAO_NAO_INFORMADA: "Isenção não informada ao parceiro" };
+const NATUREZA = { CONTRATO: "Divergência de contrato", ISENCAO_NAO_INFORMADA: "Concessão comercial fora do contrato" };
 const PARCEIRO = { ORBE: "Orbe", PONTE: "Ponte" };
+const FAIXA_TXT = { "DEBITO": "Débito", "CREDITO A VISTA": "Crédito à vista", "PARC_2_6": "Crédito 2 a 6x", "PARC_7_12": "Crédito 7 a 12x",
+  "PIX": "Pix", "ANTECIPACAO": "Antecipação", "SPREAD_REMESSA": "Spread da remessa" };
+const CONF_TXT = { alta: "alta", media: "média", baixa: "baixa" };
+const DECISAO_TXT = { CONCORDO: "Concordo", DISCORDO: "Discordo", VERIFICAR: "Preciso verificar" };
 const reais = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-let ultimaInv = "", espera = null;
+const dataBR = (iso) => (iso ? String(iso).split("-").reverse().join("/") : "");
+const pct = (t) => (t === undefined || t === null || t === "" ? "—" : String(t).replace(".", ",") + "%");
+const humanizar = (c) => { const t = String(c || "").toLowerCase().replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
+let ultimaInv = "", espera = null, rotulos = {};
 try { $("analista").value = localStorage.getItem("tarvo.analista") || ""; } catch (_) {}
 const nomeAnalista = () => $("analista").value.trim();
 
@@ -388,52 +511,107 @@ function desenharInvestigacao(inv) {
   $("motivoIA").textContent = inv.ia_disponivel ? "" : "IA indisponível: " + inv.ia_motivo;
   clearTimeout(espera);
   if (analisando) espera = setTimeout(async () => { try { desenhar(await api("/api/estado")); } catch (_) {} }, 1500);
-  const assinatura = JSON.stringify([inv.ia_estado, inv.ia, inv.decisoes, inv.dossie.competencia, inv.dossie.grupos.length, nomeAnalista() !== ""]);
+  const assinatura = JSON.stringify([inv.ia_estado, inv.ia, inv.decisoes, inv.dossie.competencia, inv.dossie.grupos.length, nomeAnalista() !== "", inv.ia_disponivel]);
   if (assinatura === ultimaInv) return;          // não redesenha à toa (preserva comentários em digitação)
   ultimaInv = assinatura;
+  rotulos = inv.rotulos_categoria || {};
   const iaPor = Object.fromEntries(((inv.ia && inv.ia.grupos) || []).map((g) => [g.id_grupo, g]));
   const dec = Object.fromEntries(inv.decisoes.map((d) => [d.id_grupo + "#" + d.hipotese_n, d]));
-  $("grupos").innerHTML = inv.dossie.grupos.map((g) => grupoHTML(g, iaPor[g.id_grupo], dec, analisando)).join("");
+  $("grupos").innerHTML = inv.dossie.grupos.map((g) => cartaoHTML(g, iaPor[g.id_grupo], dec[g.id_grupo + "#1"], analisando, inv.ia_disponivel)).join("");
 }
 
-function grupoHTML(g, r, dec, analisando) {
-  const fatos = g.fatos.map((f) => `<li data-f="${esc(f.id)}"><b>${esc(f.id)}</b> ${esc(f.texto)}</li>`).join("")
-    + g.respostas_financeiro.map((s) => `<li data-f="${esc(s.id)}"><b>${esc(s.id)}</b> <i>Financeiro:</i> ${esc(s.texto)}</li>`).join("");
-  let dir;
-  if (analisando) dir = `<p class="vazio">Analisando…</p>`;
-  else if (!r) dir = `<p class="vazio">Nenhuma hipótese ainda. Use “Gerar hipóteses com IA”.</p>`;
-  else if (r.erro) dir = `<div class="erro" style="margin-top:0">${esc(r.erro)}</div>`;
-  else {
-    const hips = r.hipoteses.length ? r.hipoteses.map((h, i) => hipHTML(g, h, i + 1, dec[g.id_grupo + "#" + (i + 1)])).join("")
-      : `<p class="vazio">A IA não trouxe hipótese sustentada por fatos.</p>`;
-    dir = (r.resumo ? `<div class="ia-extra"><strong>Resumo:</strong> ${esc(r.resumo)}</div>` : "") + hips
-      + (r.conferir && r.conferir.length ? `<div class="ia-extra"><strong>Conferir:</strong><ul>${r.conferir.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : "")
-      + (r.falar_com ? `<div class="ia-extra"><strong>Falar com:</strong> ${esc(r.falar_com)}</div>` : "")
-      + (r.dado_faltante ? `<div class="ia-extra"><strong>Dado que falta:</strong> ${esc(r.dado_faltante)}</div>` : "")
-      + (r.hipoteses_descartadas ? `<div class="ia-extra">${r.hipoteses_descartadas} hipótese(s) descartada(s) por não citar fatos válidos.</div>` : "")
-      + (r.ajustes && r.ajustes.length ? `<div class="ajustes">Ajustes do programa: ${r.ajustes.map((a) => esc(a.ajuste) + (a.causa ? " (“" + esc(a.causa) + "”)" : "")).join("; ")}</div>` : "")
-      + `<div class="aviso-ia">${esc(r.aviso || "")} Modelo: ${esc(r.modelo_resposta || r.modelo || "?")} · prompt ${esc(r.versao_prompt || "?")}</div>`;
-  }
-  return `<div class="grupo" data-grupo="${esc(g.id_grupo)}">
-    <div class="grupo-cab"><span class="nome">${esc(g.id_grupo)} · ${esc(g.lojista)}</span>
-      <span class="selo ${g.natureza === "CONTRATO" ? "contrato" : "isencao"}">${esc(NATUREZA[g.natureza] || g.natureza)}</span>
-      <span class="meta">${esc(PARCEIRO[g.contraparte] || g.contraparte)} · ${g.qtd} ${g.linha_negocio === "REMESSA" ? "operações" : "transações"} ·
-        devolver ao lojista <strong>${reais(g.valor_devolver_lojista_brl)}</strong> · recuperar do parceiro <strong>${reais(g.valor_recuperar_parceiro_brl)}</strong></span></div>
-    <div class="grupo-corpo"><div><h4>Fatos</h4><ul class="fatos">${fatos}</ul></div><div><h4>Hipóteses da IA</h4>${dir}</div></div></div>`;
+const refBtn = (id) => `<button type="button" class="ref" data-ref-ir="${esc(id)}" title="Mostrar no cartão">${esc(id)}</button>`;
+
+function cartaoHTML(g, r, d, analisando, iaOk) {
+  const regras = Object.fromEntries((g.regras_aplicaveis || []).map((x) => [x.id, x.texto]));
+  const fatoTxt = Object.fromEntries(g.fatos.map((f) => [f.id, f.texto]).concat(g.respostas_financeiro.map((s) => [s.id, s.texto])));
+  const h = r && !r.erro && r.hipoteses && r.hipoteses[0];
+  const contrato = g.natureza === "CONTRATO";
+  const valor = g.valor_devolver_lojista_brl !== undefined ? (contrato ? "Devolver e contestar " : "Devolver ") + reais(g.valor_devolver_lojista_brl) : "";
+  const selo = d ? `<span class="selo dec-${esc(d.decisao.toLowerCase())}">${esc(DECISAO_TXT[d.decisao] || d.decisao)}</span>` : "";
+  const cab = `<div class="cart-cab"><span class="nome">${esc(g.lojista)}</span><span class="parc">${esc(PARCEIRO[g.contraparte] || g.contraparte)}</span>
+      <span class="selo ${contrato ? "contrato" : "isencao"}">${esc(NATUREZA[g.natureza] || g.natureza)}</span>${selo}
+      <span class="valor-cab">${valor}<small>${g.qtd} ${g.linha_negocio === "REMESSA" ? "operações" : "transações"}</small></span></div>`;
+
+  const resumo = g.resumo_fatos || (g.fatos[0] && g.fatos[0].texto) || "";
+  const oque = `<div class="bloco-c"><h4>O que aconteceu</h4><p class="resumo">${esc(resumo)}</p></div>`;
+
+  const rota = g.rota_valores || [];
+  const tempo = rota.length ? `<div class="bloco-c"><h4>Linha do tempo</h4><div class="tabela"><table class="rota"><thead><tr><th>Faixa</th><th>Período</th><th>Cobrado</th><th>Contratado</th><th>Transações</th></tr></thead><tbody>
+      ${rota.map((v) => `<tr data-ref="${esc(v.id)}" class="${v.diverge ? "div" : "ok"}"><td>${esc(FAIXA_TXT[v.faixa] || humanizar(v.faixa))}</td>
+        <td>${dataBR(v.de)}${v.ate && v.ate !== v.de ? " a " + dataBR(v.ate) : ""}</td><td class="pct">${pct(v.taxa_aplicada)}</td><td class="pct">${pct(v.taxa_contratada)}</td>
+        <td>${v.qtd ?? ""}</td></tr>`).join("")}</tbody></table></div></div>` : "";
+
+  const acao = g.acao_regra
+    ? `<p>${esc(g.acao_regra.texto)}</p>${(g.acao_regra.regras || []).length ? `<p class="regras-ids">Regras: ${g.acao_regra.regras.map((id) => `<span class="regra" title="${esc(regras[id] || "Regra " + id)}" tabindex="0">${esc(id)}</span>`).join(" ")}</p>` : ""}`
+    : `<p>${contrato ? `Devolver ao lojista <strong>${reais(g.valor_devolver_lojista_brl)}</strong> e recuperar do parceiro <strong>${reais(g.valor_recuperar_parceiro_brl)}</strong>.`
+        : `Devolver ao lojista <strong>${reais(g.valor_devolver_lojista_brl)}</strong>; o parceiro não é cobrado (<strong>${reais(g.valor_recuperar_parceiro_brl)}</strong>).`}</p>`;
+  const blocoAcao = `<div class="bloco-c acao"><h4>Ação pela regra <span class="sem-ia">definido pela regra, não pela IA</span></h4>${acao}</div>`;
+
+  return `<div class="grupo cart ${d ? "decidido-" + esc(d.decisao.toLowerCase()) : ""}" data-grupo="${esc(g.id_grupo)}">${cab}
+    <div class="cart-corpo">${oque}${tempo}${blocoAcao}${blocoIA(g, r, h, d, analisando, iaOk, fatoTxt)}</div>
+    ${detalhesHTML(g, r)}</div>`;
 }
 
-function hipHTML(g, h, n, d) {
-  const semNome = !nomeAnalista();
-  const status = d ? `<div class="decidido"><strong>${d.decisao === "ACEITA" ? "Aceita" : "Recusada"}</strong> por ${esc(d.analista)} em ${esc(d.data_hora.replace("T", " "))}${d.comentario ? " — “" + esc(d.comentario) + "”" : ""}</div>` : "";
+function evidHTML(lista, fatoTxt) {
+  return lista.map((e) => {
+    const t = typeof e === "object" ? e.texto : (fatoTxt[e] || "");
+    const ref = typeof e === "object" ? e.ref : e;
+    return `<li>${esc(t || "(sem texto)")} ${ref ? refBtn(ref) : ""}</li>`;
+  }).join("");
+}
+
+function blocoIA(g, r, h, d, analisando, iaOk, fatoTxt) {
+  const titulo = `<h4>Causa provável <span class="sem-ia">sugestão da IA</span></h4>`;
+  if (analisando) return `<div class="bloco-c ia">${titulo}<p class="vazio">Analisando…</p></div>`;
+  if (r && r.erro) return `<div class="bloco-c ia">${titulo}<div class="erro" style="margin-top:0">${esc(r.erro)}</div></div>`;
+  if (!r) return `<div class="bloco-c ia">${titulo}
+      <p class="vazio">Ainda sem sugestão de causa para este caso.</p>
+      <button class="botao ia" type="button" data-gerar ${iaOk ? "" : "disabled title='IA indisponível neste computador'"}>Gerar hipóteses com IA</button></div>`;
+  if (!h) return `<div class="bloco-c ia">${titulo}<p class="vazio">A IA não trouxe hipótese sustentada pelos fatos.</p></div>`;
+  const rotulo = rotulos[h.causa_categoria] || (h.causa_categoria ? humanizar(h.causa_categoria) : h.causa);
+  const explic = h.explicacao || (h.causa_categoria ? h.causa : "") || r.resumo || "";
+  const porque = (h.evidencias && h.evidencias.length) ? h.evidencias : (h.fatos_citados || []);
   const contra = h.fatos_contrarios || [];
-  return `<div class="hip ${d ? d.decisao.toLowerCase() : ""}" data-cita="${esc(h.fatos_citados.join(" "))}" data-contra="${esc(contra.join(" "))}">
-    <div class="causa">${n}. ${esc(h.causa)} <span class="conf ${esc(h.confianca)}">confiança ${esc(h.confianca === "media" ? "média" : h.confianca)}</span></div>
-    <div>Fatos citados: ${h.fatos_citados.map((f) => `<span class="chip">${esc(f)}</span>`).join("")}</div>
-    ${contra.length ? `<div class="contra-lista">Contra: ${contra.map((f) => `<span class="chip contra">${esc(f)}</span>`).join("")}</div>` : ""}
-    ${status}
-    <textarea class="campo" data-com="${esc(g.id_grupo)}#${n}" placeholder="Comentário (opcional)">${esc(d ? d.comentario : "")}</textarea>
-    <div class="acoes"><button class="botao secundario" type="button" data-decidir="ACEITA" data-g="${esc(g.id_grupo)}" data-n="${n}" ${semNome ? "disabled title='Informe seu nome'" : ""}>Aceitar</button>
-      <button class="botao leve" type="button" data-decidir="RECUSADA" data-g="${esc(g.id_grupo)}" data-n="${n}" ${semNome ? "disabled title='Informe seu nome'" : ""}>Recusar</button></div></div>`;
+  const outras = (r.hipoteses || []).slice(1);
+  const conf = CONF_TXT[h.confianca] || h.confianca;
+  const conferir = (r.conferir && r.conferir.length) || r.falar_com || r.dado_faltante ? `<div class="bloco-c"><h4>Para confirmar</h4>
+      ${r.conferir && r.conferir.length ? `<ul class="lista-c">${r.conferir.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}
+      ${r.falar_com ? `<p><strong>Falar com:</strong> ${esc(r.falar_com)}</p>` : ""}
+      ${r.dado_faltante ? `<p class="faltante"><strong>Dado que falta:</strong> ${esc(r.dado_faltante)}</p>` : ""}</div>` : "";
+  const semNome = !nomeAnalista();
+  const status = d ? `<div class="decidido"><strong>${esc(DECISAO_TXT[d.decisao] || d.decisao)}</strong> por ${esc(d.analista)} em ${esc(d.data_hora.replace("T", " "))}${d.comentario ? " — “" + esc(d.comentario) + "”" : ""}${d.decisao === "VERIFICAR" ? " (pendente de checagem)" : ""}</div>` : "";
+  const botao = (cod, cls) => `<button class="botao ${cls}" type="button" data-decidir="${cod}" data-g="${esc(g.id_grupo)}" ${semNome ? "disabled title='Informe seu nome no topo'" : ""}>${DECISAO_TXT[cod]}</button>`;
+  return `<div class="bloco-c ia"><h4>Causa provável <span class="sem-ia">sugestão da IA · confiança <span class="conf ${esc(h.confianca)}">${esc(conf)}</span></span></h4>
+      <div class="causa-rotulo">${esc(rotulo)}</div>
+      ${explic ? `<p>${esc(explic)}</p>` : ""}
+      ${porque.length ? `<div class="porque"><strong>Por quê:</strong><ul>${evidHTML(porque, fatoTxt)}</ul></div>` : ""}
+      ${contra.length ? `<div class="porque contra"><strong>Contra:</strong><ul>${evidHTML(contra, fatoTxt)}</ul></div>` : ""}
+      ${outras.length ? `<details class="outras"><summary>Outras possibilidades (${outras.length})</summary>${outras.map((o) => `<div class="outra"><strong>${esc(rotulos[o.causa_categoria] || (o.causa_categoria ? humanizar(o.causa_categoria) : o.causa))}</strong>
+          <span class="conf ${esc(o.confianca)}">${esc(CONF_TXT[o.confianca] || o.confianca)}</span>${o.explicacao ? `<div>${esc(o.explicacao)}</div>` : (o.causa_categoria ? `<div>${esc(o.causa)}</div>` : "")}</div>`).join("")}</details>` : ""}
+      <p class="dica-ia">Isto é uma sugestão. Quem confere e decide é você.</p></div>
+    ${conferir}
+    <div class="bloco-c decisao"><h4>Sua decisão</h4>${status}
+      <textarea class="campo" data-com="${esc(g.id_grupo)}" placeholder="Comentário (obrigatório para Discordo e Preciso verificar)">${esc(d ? d.comentario : "")}</textarea>
+      <div class="acoes">${botao("CONCORDO", "secundario")}${botao("DISCORDO", "leve")}${botao("VERIFICAR", "leve")}</div>
+      <div class="erro-dec oculto"></div></div>`;
+}
+
+function detalhesHTML(g, r) {
+  const cond = (g.condicoes_cliente && g.condicoes_cliente.length)
+    ? `<ul class="det-lista">${g.condicoes_cliente.map((c) => `<li data-ref="${esc(c.id)}"><b>${esc(c.id)}</b> <i>${esc(c.origem || "")}</i> ${esc(c.texto)}</li>`).join("")}</ul>`
+    : (g.condicao_contratual ? `<p>${esc(g.condicao_contratual)}</p>` : "");
+  const regras = (g.regras_aplicaveis || []).length ? `<ul class="det-lista">${g.regras_aplicaveis.map((x) => `<li data-ref="${esc(x.id)}"><b>${esc(x.id)}</b> ${esc(x.texto)}</li>`).join("")}</ul>` : "";
+  const fatos = `<ul class="det-lista">${g.fatos.map((f) => `<li data-ref="${esc(f.id)}"><b>${esc(f.id)}</b> ${esc(f.texto)}</li>`).join("")}
+    ${g.respostas_financeiro.map((s) => `<li data-ref="${esc(s.id)}"><b>${esc(s.id)}</b> <i>Financeiro:</i> ${esc(s.texto)}</li>`).join("")}</ul>`;
+  const ex = (g.exemplos || []).length ? `<p>${g.exemplos.map((e) => `<span class="chip">${esc(typeof e === "object" ? (e.id || e.id_transacao || JSON.stringify(e)) : e)}</span>`).join(" ")}</p>` : "";
+  const ia = r && !r.erro ? `${r.ajustes && r.ajustes.length ? `<p class="ajustes">Ajustes do programa: ${r.ajustes.map((a) => esc(a.ajuste) + (a.causa ? " (“" + esc(a.causa) + "”)" : "")).join("; ")}</p>` : ""}
+      ${r.hipoteses_descartadas ? `<p class="ajustes">${r.hipoteses_descartadas} hipótese(s) descartada(s) por não citar fatos válidos.</p>` : ""}
+      <div class="aviso-ia">${esc(r.aviso || "")} Modelo: ${esc(r.modelo_resposta || r.modelo || "?")} · prompt ${esc(r.versao_prompt || "?")}</div>` : "";
+  return `<details class="detalhes"><summary>Ver detalhes</summary>
+    ${cond ? `<h5>Condições do cliente</h5>${cond}` : ""}${regras ? `<h5>Regras aplicáveis</h5>${regras}` : ""}
+    ${g.valor_divergencia_brl !== undefined ? `<h5>Valores</h5><p>Diferença pela fórmula da lista de divergências (bruto × diferença de taxa): <strong>${reais(g.valor_divergencia_brl)}</strong></p>` : ""}
+    <h5>Fatos calculados</h5>${fatos}${ex ? `<h5>Exemplos de transação</h5>${ex}` : ""}${ia ? `<h5>Sobre a análise da IA</h5>${ia}` : ""}</details>`;
 }
 
 $("analista").addEventListener("input", async () => {
@@ -441,39 +619,47 @@ $("analista").addEventListener("input", async () => {
   document.querySelectorAll("[data-decidir]").forEach((b) => { b.disabled = !nomeAnalista(); });
 });
 
-$("gerarIA").addEventListener("click", async () => {
+async function gerarIA() {
   $("erroIA").classList.add("oculto");
   const r = await fetch("/api/ia/gerar", { method: "POST" });
   const e = await r.json();
   if (e.aviso_ia) { $("erroIA").classList.remove("oculto"); $("erroIA").textContent = e.aviso_ia; }
   desenhar(e);
-});
+}
+$("gerarIA").addEventListener("click", gerarIA);
 
 $("grupos").addEventListener("click", async (ev) => {
+  if (ev.target.closest("[data-gerar]")) return gerarIA();
+  const ir = ev.target.closest("[data-ref-ir]");
+  if (ir) return irParaRef(ir);
   const b = ev.target.closest("[data-decidir]");
   if (!b) return;
-  const chave = b.dataset.g + "#" + b.dataset.n;
-  const com = document.querySelector(`[data-com="${CSS.escape(chave)}"]`);
+  const cartao = b.closest(".grupo");
+  const com = cartao.querySelector("[data-com]"), msg = cartao.querySelector(".erro-dec");
+  const comentario = com ? com.value.trim() : "";
+  msg.classList.add("oculto");
+  if (b.dataset.decidir !== "CONCORDO" && !comentario) {
+    msg.textContent = "Escreva um comentário: para “" + DECISAO_TXT[b.dataset.decidir] + "” ele é obrigatório.";
+    msg.classList.remove("oculto"); if (com) com.focus(); return;
+  }
   const r = await fetch("/api/ia/decidir", { method: "POST", headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id_grupo: b.dataset.g, hipotese_n: Number(b.dataset.n), decisao: b.dataset.decidir,
-                           comentario: com ? com.value : "", analista: nomeAnalista() }) });
+    body: JSON.stringify({ id_grupo: b.dataset.g, hipotese_n: 1, decisao: b.dataset.decidir, comentario, analista: nomeAnalista() }) });
   const e = await r.json();
   $("erroIA").classList.toggle("oculto", !e.aviso_ia);
   if (e.aviso_ia) $("erroIA").textContent = e.aviso_ia;
   desenhar(e);
 });
 
-// realce dos fatos citados ao passar o mouse na hipótese
-$("grupos").addEventListener("mouseover", (ev) => {
-  const h = ev.target.closest(".hip");
-  document.querySelectorAll(".fatos li.realce, .fatos li.contra").forEach((li) => li.classList.remove("realce", "contra"));
-  if (!h) return;
-  const grupo = h.closest(".grupo");
-  const marcar = (ids, cls) => ids.split(" ").filter(Boolean).forEach((id) => {
-    const li = grupo.querySelector(`.fatos li[data-f="${CSS.escape(id)}"]`); if (li) li.classList.add(cls); });
-  marcar(h.dataset.cita, "realce");
-  marcar(h.dataset.contra || "", "contra");
-});
+// clicar numa referência (V2, F3, C001…) destaca o item correspondente no próprio cartão
+function irParaRef(btn) {
+  const cartao = btn.closest(".grupo");
+  cartao.querySelectorAll(".destacado").forEach((x) => x.classList.remove("destacado"));
+  const alvo = cartao.querySelector(`[data-ref="${CSS.escape(btn.dataset.refIr)}"]`);
+  if (!alvo) return;
+  const det = alvo.closest("details"); if (det) det.open = true;
+  alvo.classList.add("destacado");
+  alvo.scrollIntoView({ behavior: "smooth", block: "center" });
+}
 
 api("/api/estado").then(desenhar).catch(() => {});
 

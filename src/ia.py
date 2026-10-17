@@ -52,8 +52,25 @@ CAMPOS_GRUPO = [
     "id_grupo", "contraparte", "linha_negocio", "lojista", "cnpj", "ec_orbe", "natureza",
     "qtd", "valor_divergencia_brl", "valor_devolver_lojista_brl",
     "valor_recuperar_parceiro_brl", "condicao_contratual", "fatos",
-    "respostas_financeiro", "exemplos",
+    "respostas_financeiro", "exemplos", "resumo_fatos", "rota_valores", "condicoes_cliente",
+    "regras_aplicaveis", "acao_regra",
 ]
+
+CATEGORIAS = [
+    "CONDICAO_NAO_INFORMADA_AO_PARCEIRO", "VIGENCIA_APLICADA_COM_ATRASO", "REAJUSTE_SEM_CONTRATO",
+    "TABELA_DESATUALIZADA_NO_PARCEIRO", "ERRO_DE_CADASTRO_NO_PARCEIRO",
+    "CONCESSAO_COMERCIAL_FORA_DO_CONTRATO", "OUTRA",
+]
+ROTULO_CATEGORIA = {
+    "CONDICAO_NAO_INFORMADA_AO_PARCEIRO": "Condição não informada ao parceiro",
+    "VIGENCIA_APLICADA_COM_ATRASO": "Vigência aplicada com atraso",
+    "REAJUSTE_SEM_CONTRATO": "Reajuste sem contrato",
+    "TABELA_DESATUALIZADA_NO_PARCEIRO": "Tabela desatualizada no parceiro",
+    "ERRO_DE_CADASTRO_NO_PARCEIRO": "Erro de cadastro no parceiro",
+    "CONCESSAO_COMERCIAL_FORA_DO_CONTRATO": "Concessão comercial fora do contrato",
+    "OUTRA": "Outra causa",
+}
+CATEGORIAS_ISENCAO = ("CONCESSAO_COMERCIAL_FORA_DO_CONTRATO", "CONDICAO_NAO_INFORMADA_AO_PARCEIRO")
 
 SCHEMA_SAIDA = {
     "type": "object",
@@ -65,12 +82,24 @@ SCHEMA_SAIDA = {
             "items": {
                 "type": "object",
                 "properties": {
+                    "causa_categoria": {"type": "string", "enum": CATEGORIAS},
                     "causa": {"type": "string"},
+                    "explicacao": {"type": "string"},
+                    "evidencias": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {"texto": {"type": "string"}, "ref": {"type": "string"}},
+                            "required": ["texto", "ref"],
+                            "additionalProperties": False,
+                        },
+                    },
                     "fatos_citados": {"type": "array", "items": {"type": "string"}},
                     "fatos_contrarios": {"type": "array", "items": {"type": "string"}},
                     "confianca": {"type": "string", "enum": CONFIANCAS},
                 },
-                "required": ["causa", "fatos_citados", "fatos_contrarios", "confianca"],
+                "required": ["causa_categoria", "causa", "explicacao", "evidencias", "fatos_citados",
+                             "fatos_contrarios", "confianca"],
                 "additionalProperties": False,
             },
         },
@@ -179,7 +208,9 @@ def montar_mensagem(dossie: dict, grupo: dict) -> str:
 # ---------------------------------------------------------------- guarda-corpos
 def ids_do_grupo(grupo: dict) -> set[str]:
     ids = {str(f.get("id")) for f in grupo.get("fatos") or [] if f.get("id")}
-    ids |= {str(s.get("id")) for s in grupo.get("respostas_financeiro") or [] if s.get("id")}
+    for campo in ("respostas_financeiro", "rota_valores", "condicoes_cliente", "regras_aplicaveis"):
+        ids |= {str(x.get("id")) for x in grupo.get(campo) or [] if isinstance(x, dict) and x.get("id")}
+    ids |= {str(r) for r in (grupo.get("acao_regra") or {}).get("regras") or []}
     return ids
 
 
@@ -190,7 +221,11 @@ def _ids(lista) -> list[str]:
 def validar(resposta: dict, grupo: dict) -> dict:
     """Aplica os guarda-corpos sobre a resposta do modelo para um grupo.
 
-    - hipótese sem ID em `fatos_citados`, ou com ID inexistente ali → descartada;
+    - hipótese sem nenhuma evidência válida nem fato citado, ou com ID inexistente em
+      `fatos_citados` → descartada;
+    - evidência com `ref` inexistente → removida e registrada em `ajustes`;
+    - categoria fora do enum → OUTRA (ajuste); ISENCAO_NAO_INFORMADA com categoria que não seja
+      concessão comercial nem condição não informada → confiança rebaixada (ajuste);
     - ID inexistente em `fatos_contrarios` → removido (a hipótese fica) e registrado em `ajustes`;
     - hipótese com fato contrário e confiança alta → rebaixada para média, registrado em `ajustes`;
     - ordena por confiança (alta > media > baixa), estável no empate; mantém no máximo 3.
@@ -200,7 +235,19 @@ def validar(resposta: dict, grupo: dict) -> dict:
     for h in resposta.get("hipoteses") or []:
         citados = _ids(h.get("fatos_citados"))
         causa = str(h.get("causa") or "").strip()
-        if not citados:
+        evidencias, ev_removidas = [], []
+        for e in h.get("evidencias") or []:
+            if not isinstance(e, dict):
+                continue
+            texto_ev, ref = str(e.get("texto") or "").strip(), str(e.get("ref") or "").strip()
+            if texto_ev and ref in validos:
+                evidencias.append({"texto": texto_ev, "ref": ref})
+            else:
+                ev_removidas.append(ref or "(vazia)")
+        if ev_removidas:
+            ajustes.append({"causa": causa, "ajuste": "evidência com referência inexistente removida: "
+                            + ", ".join(ev_removidas)})
+        if not citados and not evidencias:
             motivos.append({"causa": causa, "motivo": "não cita nenhum fato"})
             continue
         inexistentes = [i for i in citados if i not in validos]
@@ -217,8 +264,18 @@ def validar(resposta: dict, grupo: dict) -> dict:
             confianca = "media"
             ajustes.append({"causa": causa, "ajuste": "confiança rebaixada de alta para média: há fato contrário ("
                             + ", ".join(contrarios) + ")"})
-        aceitas.append({"causa": causa, "fatos_citados": citados, "fatos_contrarios": contrarios,
-                        "confianca": confianca})
+        categoria = h.get("causa_categoria")
+        if categoria not in CATEGORIAS:
+            ajustes.append({"causa": causa, "ajuste": f"categoria inválida ({categoria or 'ausente'}); usada OUTRA"})
+            categoria = "OUTRA"
+        if grupo.get("natureza") == "ISENCAO_NAO_INFORMADA" and categoria not in CATEGORIAS_ISENCAO:
+            novo = {"alta": "media", "media": "baixa"}.get(confianca, "baixa")
+            ajustes.append({"causa": causa, "ajuste": f"categoria {categoria} incompatível com isenção não "
+                            f"informada; confiança rebaixada de {confianca} para {novo}"})
+            confianca = novo
+        aceitas.append({"causa_categoria": categoria, "causa": causa,
+                        "explicacao": str(h.get("explicacao") or "").strip(), "evidencias": evidencias,
+                        "fatos_citados": citados, "fatos_contrarios": contrarios, "confianca": confianca})
     aceitas.sort(key=lambda h: CONFIANCAS.index(h["confianca"]))  # sort é estável
     for h in aceitas[MAX_HIPOTESES:]:
         motivos.append({"causa": h["causa"], "motivo": f"acima do limite de {MAX_HIPOTESES} hipóteses"})

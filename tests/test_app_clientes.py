@@ -24,7 +24,7 @@ MUNDO = "17217888000111"    # Mundo Aberto: spread 1,20% na planilha, nota de pe
 def ctx(tmp_path, raiz):
     pasta = tmp_path / "cadastro"
     shutil.copytree(raiz / "cadastro", pasta)
-    srv = servidor.criar_servidor(porta=0, pasta_execucoes=tmp_path / "execucoes", pasta_cadastro=pasta,
+    srv = servidor.criar_servidor(porta=0, pasta_meses=tmp_path / "meses", pasta_cadastro=pasta,
                                   raiz_planilha=raiz, hoje=date(2026, 10, 17))
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{srv.server_address[1]}", pasta, raiz
