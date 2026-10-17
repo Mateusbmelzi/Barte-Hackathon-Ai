@@ -1,5 +1,6 @@
 """Linha CHECKOUT (Orbe): comissão por transação pela taxa CONTRATADA, divergências e pendências."""
-from collections import OrderedDict
+from collections import Counter, OrderedDict
+from datetime import date
 from decimal import Decimal
 
 from . import config
@@ -166,9 +167,10 @@ def calcular(orbe, contratos):
         comissao = arred(l["bruto"] * taxa / config.DIVISAO_PCT)            # R10/R01 por linha
         divergente = l["taxa_aplicada"] != taxa                               # R13 (taxa, não valor: R02)
         dif = arred(l["bruto"] * (l["taxa_aplicada"] - taxa) / config.DIVISAO_PCT) if divergente else ZERO
+        bolso = l["valor_taxa"] - comissao        # S51: o que saiu do bolso do lojista (descontado pela Orbe - contratado)
         natureza = config.NATUREZA_ISENCAO if regra.startswith("R52") else config.NATUREZA_CONTRATO
         r.update(status="FATURAVEL", cnpj=contrato["cnpj"], contratada=taxa, regra=regra,
-                 comissao=comissao, divergente=divergente, diferenca=dif, natureza=natureza)
+                 comissao=comissao, divergente=divergente, diferenca=dif, bolso=bolso, natureza=natureza)
         resultado.append(r)
     return resultado
 
@@ -269,7 +271,11 @@ def pendencias(resultado, comissoes_chk, contratos):
                         "rastro": [("orbe", l["id"], l["valor_taxa"], f"{l['parcelas']}x valor_taxa Orbe") for l in ls]})
             continue
         if bloqueado:
-            motivo = (f"{ls[0]['erro']}. {len(ls)} transações (bruto {fmt_br(bruto)}) fora de comissões e notas. "
+            cnpj_b = config.CNPJ_EC_BLOQUEADO.get(ec)
+            ident = (f" CNPJ {cnpj_b} (aba antiga da planilha, S45: só identifica o lojista; a taxa daquela aba não vale)."
+                     if cnpj_b else "")
+            motivo = (f"{ls[0]['erro']}.{ident} {len(ls)} transações (bruto {fmt_br(bruto)}) fora de comissões e notas "
+                      "(o repasse ao lojista continua, S39/S45). "
                       f"Valor = taxa que a Orbe cobrou ({fmt_br(vt)}), só referência. Confirmar taxa contratada para faturar (cadastro/contrato: Comercial, R15/R63).")
             tipo = "LOJISTA_SEM_CONTRATO"
         else:
@@ -280,10 +286,7 @@ def pendencias(resultado, comissoes_chk, contratos):
         out.append({"tipo": tipo, "ref_origem": f"EC {ec}", "valor": vt, "motivo": motivo,
                     "quem_decide": config.QUEM_COMERCIAL,
                     "rastro": [("orbe", l["id"], l["valor_taxa"], "valor_taxa Orbe") for l in ls]})
-        if bloqueado:
-            r = risco_antecipacao(ls)
-            if r:
-                out.append(r)
+    out += alertas_antecipacao(resultado)
     return out
 
 
@@ -309,65 +312,125 @@ def pendencias_estorno_duplicado(resultado):
 
 
 def pendencias_linha_duplicada(duplicadas):
-    """ORBE_LINHA_DUPLICADA: mesmo id_transacao repetido (entre arquivos ou no mesmo). Conta uma vez só."""
+    """ORBE_LINHA_DUPLICADA: mesmo id_transacao repetido (entre arquivos ou no mesmo). Idêntica: conta uma vez.
+    Valores diferentes (S52, critério nosso): vale a linha do arquivo de AJUSTE (o último em ordem de nome); a anterior
+    sai do fechamento. Cada item: os campos da linha que SAIU + 'original' = a linha que vale."""
     out = []
     for l in duplicadas:
         o = l["original"]
-        como = "idêntica" if l["identica"] else "COM VALORES DIFERENTES (conferir qual vale)"
+        val = lambda x: (f"bruto {fmt_br(x['bruto'])}, taxa aplicada {x['taxa_aplicada']}%, "
+                         f"valor_taxa {fmt_br(x['valor_taxa'])}, líquido {fmt_br(x['liquido'])}")
+        if l["identica"]:
+            motivo = (f"{l['id']} aparece de novo em {l['arquivo']} (linha {l['linha']}), idêntica a {o['arquivo']} "
+                      f"(linha {o['linha']}). Contada uma vez só; a repetição foi ignorada. "
+                      "Valor = taxa Orbe da linha repetida, só referência.")
+        else:
+            motivo = (f"{l['id']} aparece em dois arquivos com VALORES DIFERENTES. Vale a linha do arquivo de ajuste "
+                      f"{o['arquivo']} (linha {o['linha']}): {val(o)}. Saiu do fechamento a linha de {l['arquivo']} "
+                      f"(linha {l['linha']}): {val(l)}. Critério nosso (S52): o ajuste da Orbe substitui a linha anterior; "
+                      "Helena confirma qual vale. Valor = valor_taxa da linha que saiu, só referência.")
         out.append({"tipo": "ORBE_LINHA_DUPLICADA", "ref_origem": l["id"], "valor": l["valor_taxa"],
-                    "motivo": (f"{l['id']} aparece de novo em {l['arquivo']} (linha {l['linha']}), {como} em relação a "
-                               f"{o['arquivo']} (linha {o['linha']}). Contada uma vez só (a primeira); a repetição foi "
-                               "ignorada. Valor = taxa Orbe da linha repetida, só referência."),
-                    "quem_decide": config.QUEM_HELENA,
-                    "rastro": [(f"orbe@{l['arquivo']}", l["id"], l["valor_taxa"], "linha repetida (ignorada)")]})
+                    "motivo": motivo, "quem_decide": config.QUEM_HELENA,
+                    "rastro": [(f"orbe@{l['arquivo']}", l["id"], l["valor_taxa"],
+                                "linha repetida (ignorada)" if l["identica"] else "linha substituída pelo ajuste (saiu)")]})
     return out
 
 
-def risco_antecipacao(ls):
-    """H15: primeira data em que as antecipações acumuladas superam as vendas acumuladas."""
-    ants = sorted((l for l in ls if l["tipo"] == "ANTECIPACAO"), key=lambda l: l["data"])
-    for dia in sorted({l["data"] for l in ants}):
-        ate = [l for l in ants if l["data"] <= dia]
-        total_ant = soma(l["bruto"] for l in ate)
-        vendas = soma(l["bruto"] for l in ls if l["tipo"] == "VENDA" and l["data"] <= dia)
-        if total_ant > vendas:
-            break
-    else:
-        return None
-    rev = sum(1 for l in ls if l["tipo"] == "REVERSAO ANTECIPACAO")
-    total_mes = soma(l["bruto"] for l in ants)
-    return {"tipo": "ALERTA_ANTECIPACAO", "ref_origem": f"EC {ls[0]['ec']}", "valor": total_ant,
-            "motivo": (f"Lojista sem contrato antecipou {fmt_br(total_ant)} em {len(ate)} operações até "
-                       f"{dia:%d/%m/%Y}, acima das vendas acumuladas até a data ({fmt_br(vendas)}). "
-                       f"No mês: {len(ants)} antecipações ({fmt_br(total_mes)}) e {rev} reversões. "
-                       "Antecipação deveria ser só sobre o que o lojista já vendeu e não há trava (R54/S23): "
-                       "alerta para Helena e Comercial, agravado por não haver contrato (H15)."),
-            "quem_decide": config.QUEM_RISCO,
-            "rastro": [("orbe", l["id"], l["bruto"], "ANTECIPACAO bruto") for l in ate]}
+def competencia_mes(linhas):
+    """(ano, mês) mais frequente de data_movimento (mesmo critério do fechamento)."""
+    return Counter((l["data"].year, l["data"].month) for l in linhas).most_common(1)[0][0]
+
+
+def alertas_antecipacao(resultado):
+    """S42/S50 (critério nosso, config.ALERTA_ANTECIPACAO_SO_LOJISTA_NOVO): lojista NOVO (nenhuma transação com data de
+    referência anterior ao mês e primeira transação depois do 1º dia) cuja antecipação acumulada, líquida das reversões
+    já ocorridas, supera em algum dia as vendas acumuladas até a data. Alerta pelo PICO; o motivo cita as reversões
+    posteriores e o saldo líquido no fim do mês. Vale para qualquer lojista, com ou sem contrato (R54/S23, H15)."""
+    if not resultado:
+        return []
+    ano, mes = competencia_mes(resultado)
+    primeiro_dia = date(ano, mes, 1)
+    por_id = {l["id"]: l for l in resultado}
+    por_ec = OrderedDict()
+    for l in resultado:
+        por_ec.setdefault(l["ec"], []).append(l)
+
+    def data_ref(l):                                  # estorno/reversão: data da venda/antecipação original
+        if l["tipo"] in ("ESTORNO", "REVERSAO ANTECIPACAO"):
+            return l["data_orig"] or (por_id[l["id_ref"]]["data"] if l["id_ref"] in por_id else l["data"])
+        return l["data"]
+
+    out = []
+    for ec, ls in por_ec.items():
+        ants = [l for l in ls if l["tipo"] == "ANTECIPACAO"]
+        if not ants:
+            continue
+        primeira = min(data_ref(l) for l in ls)
+        if config.ALERTA_ANTECIPACAO_SO_LOJISTA_NOVO and not primeira > primeiro_dia:
+            continue
+        movs = sorted((l for l in ls if l["tipo"] in ("ANTECIPACAO", "REVERSAO ANTECIPACAO")),
+                      key=lambda l: (l["data"], l["id"]))
+        pico = None
+        for dia in sorted({l["data"] for l in ants}):
+            liq = soma(l["bruto"] for l in movs if l["data"] <= dia)
+            vendas = soma(l["bruto"] for l in ls if l["tipo"] == "VENDA" and l["data"] <= dia)
+            if liq > vendas and (pico is None or liq > pico[1]):
+                pico = (dia, liq, vendas)
+        if pico is None:
+            continue
+        dia, liq, vendas = pico
+        ate = [l for l in movs if l["data"] <= dia]
+        revs_dep = [l for l in movs if l["tipo"] == "REVERSAO ANTECIPACAO" and l["data"] > dia]
+        total_ants = soma(l["bruto"] for l in ants)
+        total_revs = soma(l["bruto"] for l in movs if l["tipo"] == "REVERSAO ANTECIPACAO")
+        bloqueado = ec in config.ECS_BLOQUEADOS
+        cnpj_b = config.CNPJ_EC_BLOQUEADO.get(ec)
+        quem = f"{ls[0]['nome']} (EC {ec}" + (f", CNPJ {cnpj_b}" if cnpj_b else "") + ")"
+        motivo = (f"Lojista novo {quem}: primeira transação em {primeira:%d/%m/%Y}, sem histórico antes do mês. "
+                  f"Pico de antecipação acumulada de {fmt_br(liq)} em {dia:%d/%m/%Y} ({len(ate)} lançamentos de "
+                  f"antecipação/reversão até a data), acima das vendas acumuladas até a data ({fmt_br(vendas)}). "
+                  + (f"Reversões posteriores ao pico: {len(revs_dep)} ({fmt_br(soma(l['bruto'] for l in revs_dep))}). "
+                     if revs_dep else "Sem reversões posteriores ao pico. ")
+                  + f"No mês: {len(ants)} antecipações ({fmt_br(total_ants)}) e reversões de {fmt_br(-total_revs)}; "
+                  f"saldo líquido de antecipação no fim do mês {fmt_br(total_ants + total_revs)}. "
+                  "Antecipação deveria ser só sobre o que o lojista já vendeu e não há trava (R54/S23); critério do alerta "
+                  "nosso (pico, lojista novo; S42/S50): alerta para Helena e Comercial"
+                  + (", agravado por não haver contrato (H15)." if bloqueado else "."))
+        out.append({"tipo": "ALERTA_ANTECIPACAO", "ref_origem": f"EC {ec}", "valor": liq, "motivo": motivo,
+                    "quem_decide": config.QUEM_RISCO,
+                    "rastro": [("orbe", l["id"], l["bruto"], f"{l['tipo']} bruto") for l in ate]})
+    return out
 
 
 def _pendencia_divergencia(ls, nome, natureza):
-    """Uma pendência por lojista e natureza (S38). Isenção não informada: só devolver ao lojista (S18/S37);
-    contrato: devolver ao lojista e recuperar do parceiro (S34)."""
-    total = soma(l["diferenca"] for l in ls)
+    """Uma pendência por lojista e natureza (S38). S51: o valor a devolver é o que saiu do bolso do lojista
+    (valor_taxa da Orbe - comissão contratada, nas linhas divergentes); a lista divergencias_taxa.csv segue a fórmula
+    bruto x diferença de taxa (S11), e a diferença entre as duas é o truncamento da Orbe. S41: concessão comercial
+    fora do contrato = só devolver ao lojista (S18/S37); contrato = devolver e recuperar do parceiro (S34)."""
+    formula = soma(l["diferenca"] for l in ls)
+    total = soma(l["bolso"] for l in ls)
     ec = ls[0]["ec"]
-    rastro = [("orbe", l["id"], l["diferenca"], f"{l['tipo']} {natureza}") for l in ls]
-    base = (f"{len(ls)} transações de {nome} (EC {ec}); líquido {fmt_br(total)}, já com estornos de vendas "
-            "divergentes (H02). ")
+    rastro = [("orbe", l["id"], l["bolso"], f"{l['tipo']} {natureza} valor_taxa Orbe - comissão contratada") for l in ls]
+    base = (f"{len(ls)} transações de {nome} (EC {ec}); a devolver {fmt_br(total)} (valor_taxa descontado pela Orbe menos "
+            "a comissão contratada, S51), já com estornos de vendas divergentes (H02). ")
+    trunc = (f"A fórmula da lista de divergências (bruto x diferença de taxa) soma {fmt_br(formula)}; a diferença de "
+             f"{fmt_br(formula - total)} é truncamento da Orbe (S51). ")
     if natureza == config.NATUREZA_ISENCAO:
-        motivo = (f"Isenção não informada à Orbe (R52): a Orbe cobrou pela planilha em {base}"
-                  f"Taxa zero acordada ({config.ISENCAO_CONDICAO.get(ec, 'cadastro')}/S07) que ninguém comunicou à Orbe "
-                  "(S18/S30). NÃO entra na cobrança da "
-                  f"Orbe: é devolução ao lojista de {fmt_br(total)}, do caixa da Tarvo (S18/S34/S37). "
+        desc = config.DESCRICAO_NATUREZA[natureza]
+        motivo = (f"{desc[0].upper() + desc[1:]} (R52/S41): a Orbe cobrou pela planilha em {base}"
+                  f"Taxa zero acordada pelo Comercial ({config.ISENCAO_CONDICAO.get(ec, 'cadastro')}/S07), fora do contrato, "
+                  "que ninguém comunicou à Orbe (S18/S30). NÃO entra na cobrança da "
+                  f"Orbe: é devolução ao lojista de {fmt_br(total)}, do caixa da Tarvo (S18/S34/S37). {trunc}"
                   "Detalhe por transação em divergencias_taxa.csv (natureza ISENCAO_NAO_INFORMADA, cobrar_parceiro N).")
         return {"tipo": "DEVOLUCAO_LOJISTA_ISENCAO", "ref_origem": f"EC {ec}", "valor": total, "motivo": motivo,
                 "quem_decide": config.QUEM_HELENA_COMERCIAL, "rastro": rastro}
     a_menos = sum(1 for l in ls if l["taxa_aplicada"] < l["contratada"])
-    motivo = f"Orbe aplicou taxa diferente da contratada em {base}"
+    motivo = ("Orbe aplicou taxa diferente da contratada (o que decide é a condição contratada, aditivo/negociação "
+              f"registrada, não o aviso à Orbe: S41) em {base}")
     if a_menos:
         motivo += f"{a_menos} transações com taxa ABAIXO do contrato (H04/S24): Helena decide caso a caso. "
     if total >= 0:
-        motivo += f"Devolver ao lojista {fmt_br(total)}; recuperar do parceiro (Orbe) {fmt_br(total)} (R60/S34). "
-    motivo += "Lista em divergencias_taxa.csv (natureza CONTRATO, cobrar_parceiro S)."
+        motivo += f"Devolver ao lojista {fmt_br(total)}; recuperar do parceiro (Orbe) {fmt_br(total)} (R60/S34/S51). "
+    motivo += trunc + "Lista em divergencias_taxa.csv (natureza CONTRATO, cobrar_parceiro S)."
     return {"tipo": "DIVERGENCIA_TAXA_CHECKOUT", "ref_origem": f"EC {ec}", "valor": total, "motivo": motivo,
             "quem_decide": config.QUEM_HELENA, "rastro": rastro}

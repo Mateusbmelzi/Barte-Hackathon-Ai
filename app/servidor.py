@@ -109,6 +109,12 @@ def resumo_dict(r):
         "lancamentos": len(r["lancamentos"]),
         "pendencias": {"quantidade": len(r["pendencias"]),
                        "por_responsavel": dict(Counter(p["quem_decide"] for p in r["pendencias"]))},
+        # S53: fechamento parcial (fonte ausente ou layout inesperado)
+        "parcial": bool(r.get("parcial")),
+        "aviso_parcial": r.get("aviso_parcial"),
+        "bloqueios": [{"tipo": b["tipo"], "fonte": ROTULOS.get(b["fonte"], b["fonte"]), "arquivo": b["arquivo"]}
+                      for b in r.get("bloqueios", [])],
+        "bloqueado": r.get("bloqueado", {}),
     }
 
 
@@ -275,14 +281,21 @@ class Estado:
         self._limpar_investigacao()
         return {"nome": nome, "reconhecido": chave}
 
-    def pronto(self):
+    def completo(self):
         """Uma fonte de cada tipo, com pelo menos 1 arquivo da Orbe (aceita N)."""
         return all(k in self.arquivos for k in config.PADROES_ARQUIVOS)
+
+    def faltam(self):
+        return [ROTULOS.get(k, k) for k in config.PADROES_ARQUIVOS if k not in self.arquivos]
+
+    def pronto(self):
+        """S53: roda com pelo menos 1 fonte reconhecida; o que faltar vira fechamento parcial."""
+        return bool(self.arquivos)
 
     def rodar(self):
         if not self.pronto():
             self.erro = {"titulo": "Faltam arquivos.",
-                         "detalhe": "Envie os arquivos do mês (Orbe, taxas, Ponte, plano de contas e os dois extratos) antes de rodar."}
+                         "detalhe": "Envie pelo menos um arquivo do mês (Orbe, taxas, Ponte, plano de contas ou extratos) antes de rodar."}
             return
         saida = self.pasta / "saida"
         self._limpar_investigacao()
@@ -308,6 +321,10 @@ class Estado:
                            **(self.arquivos.get(k) or {})}
                           for k, p in config.PADROES_ARQUIVOS.items()],
             "pronto": self.pronto(),
+            "completo": self.completo(),
+            "faltam": self.faltam(),
+            "aviso_faltam": (f"faltam: {', '.join(self.faltam())} — o fechamento será parcial"
+                             if self.arquivos and not self.completo() else None),
             "pasta": str(self.pasta) if self.pasta else None,
             "resultado": self.resultado,
             "erro": self.erro,

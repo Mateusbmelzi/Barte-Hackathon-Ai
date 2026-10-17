@@ -48,6 +48,9 @@
   .lista .nome { font-weight: 600; }
   .lista .det { font-size: 13px; color: var(--texto-suave); word-break: break-all; }
   .faltando { color: var(--destaque); font-size: 13px; font-weight: 500; }
+  .parcial { margin: 14px 0; padding: 16px 18px; border-radius: 12px; background: #fff0f0; border: 2px solid #d64545; color: #7a1f1f; }
+  .parcial h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: .02em; }
+  .parcial ul { margin: 6px 0 0 18px; padding: 0; }
   .aviso { margin-top: 14px; padding: 10px 14px; border-radius: 10px; font-size: 14px; background: #fff7e6; border: 1px solid #f5d38a; color: #6b4e00; }
   .erro { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: #fdecf1; border: 1px solid #f3b6c8; color: #7a1233; }
   .erro pre { white-space: pre-wrap; font-family: Consolas, ui-monospace, monospace; font-size: 13px; margin: 8px 0 0; }
@@ -164,7 +167,8 @@
 
     <section class="cartao">
       <h2><span class="passo">2</span> Rodar o fechamento</h2>
-      <p class="sub">O botão fica disponível quando os arquivos do mês estiverem reconhecidos (Orbe, taxas, Ponte, plano de contas e os dois extratos). Leva poucos segundos.</p>
+      <p class="sub">O botão fica disponível quando pelo menos um arquivo do mês estiver reconhecido. Se faltar algum (Orbe, taxas, Ponte, plano de contas ou extratos), o fechamento sai parcial: fecha o que não depende dele, marca o provisório e mostra o que ficou bloqueado. Leva poucos segundos.</p>
+      <div class="aviso oculto" id="avisoFaltam"></div>
       <div class="acoes" style="margin-top:0">
         <button class="botao grande" id="rodar" type="button" disabled><span class="giro"></span><span id="rodarTexto">Rodar fechamento</span></button>
       </div>
@@ -221,6 +225,8 @@ function desenhar(e) {
   const n = e.esperados.filter((x) => x.nome).length;
   $("contagem").textContent = `${n} de ${e.esperados.length} fontes reconhecidas`;
   $("rodar").disabled = !e.pronto || rodando;
+  $("avisoFaltam").classList.toggle("oculto", !e.aviso_faltam);
+  if (e.aviso_faltam) $("avisoFaltam").textContent = e.aviso_faltam;
 
   $("erro").classList.toggle("oculto", !e.erro);
   if (e.erro) $("erro").innerHTML = `<strong>Não foi possível concluir.</strong> ${esc(e.erro.titulo)}<pre>${esc(e.erro.detalhe)}</pre>`;
@@ -230,13 +236,18 @@ function desenhar(e) {
   $("cartaoSaidas").classList.toggle("oculto", !r);
   if (r) {
     const resp = Object.entries(r.pendencias.por_responsavel).map(([k, v]) => `${esc(k)}: ${v}`).join(" · ");
-    $("resumo").innerHTML = `
-      <h3>Pronto! Competência <span class="comp">${esc(r.competencia)}</span></h3>
+    const parcial = r.parcial ? `
+      <div class="parcial"><h3>FECHAMENTO PARCIAL — bloqueado</h3>
+        <ul>${r.bloqueios.map((b) => `<li><strong>${esc(b.fonte)}</strong> (${b.tipo === "FONTE_AUSENTE" ? "arquivo ausente" : "layout inesperado: " + esc(b.arquivo)})</li>`).join("")}</ul>
+        <div>${esc(r.aviso_parcial)}</div>
+        <div>Notas e comissões saem com <strong>status = PROVISORIO</strong>. Cada bloqueio virou uma pendência para a Helena (Financeiro), que libera.</div></div>` : "";
+    $("resumo").innerHTML = parcial + `
+      <h3>${r.parcial ? "Fechamento provisório." : "Pronto!"} Competência <span class="comp">${esc(r.competencia)}</span></h3>
       <div class="numeros">
-        <div class="numero"><div class="r">Comissão checkout</div><div class="v">${esc(r.checkout.valor)}</div><div class="d">${r.checkout.lojistas} lojistas · ${int(r.checkout.transacoes)} transações</div></div>
-        <div class="numero"><div class="r">Comissão remessa</div><div class="v">${esc(r.remessa.valor)}</div><div class="d">${r.remessa.lojistas} lojistas · ${int(r.remessa.operacoes)} operações</div></div>
+        <div class="numero"><div class="r">Comissão checkout</div><div class="v">${(r.bloqueado || {}).checkout ? "BLOQUEADO" : esc(r.checkout.valor)}</div><div class="d">${r.checkout.lojistas} lojistas · ${int(r.checkout.transacoes)} transações</div></div>
+        <div class="numero"><div class="r">Comissão remessa</div><div class="v">${(r.bloqueado || {}).remessa ? "BLOQUEADO" : esc(r.remessa.valor)}</div><div class="d">${r.remessa.lojistas} lojistas · ${int(r.remessa.operacoes)} operações</div></div>
         <div class="numero"><div class="r">Notas a emitir</div><div class="v">${r.notas.quantidade} notas</div><div class="d">Total ${esc(r.notas.valor)}</div></div>
-        <div class="numero"><div class="r">Divergências de taxa</div><div class="v">${r.divergencias.checkout.linhas + r.divergencias.remessa.linhas} linhas</div><div class="d">Checkout ${esc(r.divergencias.checkout.valor)} · Remessa ${esc(r.divergencias.remessa.valor)}</div></div>
+        <div class="numero"><div class="r">Divergências de taxa</div><div class="v">${r.divergencias.checkout.linhas + r.divergencias.remessa.linhas} linhas</div><div class="d">Checkout ${esc(r.divergencias.checkout.valor)} · Remessa ${(r.bloqueado || {}).divergencias_remessa ? "BLOQUEADO" : esc(r.divergencias.remessa.valor)}</div></div>
         <div class="numero"><div class="r">Lançamentos classificados</div><div class="v">${int(r.lancamentos)}</div><div class="d">Extratos Aurora e Meridiano</div></div>
         <div class="numero destaque"><div class="r">Pendências para decidir</div><div class="v">${r.pendencias.quantidade}</div><div class="d">${resp}</div></div>
       </div>`;

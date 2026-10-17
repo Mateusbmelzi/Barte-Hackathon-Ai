@@ -69,7 +69,7 @@ Atalho: abrir com o Bloco de Notas mostra o arquivo exatamente como é, útil pa
 
 Depois:
 - `notas_a_emitir.csv`: as notas fiscais prontas (tomador, CNPJ, valor e texto da discriminação).
-- `divergencias_taxa.csv`: transação por transação onde a Orbe ou a Ponte cobrou diferente do contrato. Base para devolver ao lojista e cobrar o parceiro. Estorno de uma venda cobrada a mais aparece com sinal negativo, então a soma por lojista é o líquido (setembro: R$ 16.973,65 no checkout, R$ 1.418,85 na remessa). Spread negativo da Ponte não aparece aqui: está em pendências, para contestar.
+- `divergencias_taxa.csv`: transação por transação onde a Orbe ou a Ponte cobrou diferente do contrato. Base para devolver ao lojista e cobrar o parceiro. Estorno de uma venda cobrada a mais aparece com sinal negativo, então a soma por lojista é o líquido (setembro: R$ 16.973,65 no checkout, R$ 1.418,85 na remessa). O valor a devolver ao lojista nas pendências usa o que o parceiro descontou de fato (S51): pode diferir em centavos da soma desta lista, que segue a fórmula. Spread negativo da Ponte não aparece aqui: está em pendências, para contestar.
 - `comissoes_por_lojista.csv`: comissão de cada lojista em cada linha de negócio.
 - `lancamentos_classificados.csv`: os extratos com a conta contábil. Filtre `metodo` = HUMANO (a solução não sabe a conta) e depois `confianca` menor que 1 para revisar primeiro.
 
@@ -92,6 +92,29 @@ A solução lê a aba cujo nome contém "vigentes". Mantenha as colunas com os m
 | **Spread de remessa padrão** | Deixar em branco ou escrever "padrão" = 1,5%. |
 | **Taxa digitada como texto ("1,49%") ou CNPJ sem zero** | Funciona, a solução corrige. Mas o ideal é padronizar. |
 
+## Quando falta um arquivo ou o layout muda
+
+O programa **avisa em vez de quebrar** e não segura o mês inteiro. Se um arquivo não está na pasta, ou veio com colunas
+diferentes das esperadas (nome trocado, coluna removida), ele fecha o que não depende daquilo:
+
+| Falta / mudou | O que fica bloqueado | O que continua saindo |
+|---|---|---|
+| Orbe (nenhum arquivo) ou taxas | comissões, notas e divergências do **checkout** | remessa, lançamentos |
+| E-mail da Ponte | nota da Ponte e comissões de **remessa**; conciliação de TED/PIX da Ponte | checkout, lançamentos |
+| Plano de contas | todos os **lançamentos** classificados | checkout, remessa |
+| Extrato Aurora **ou** Meridiano | só os lançamentos daquele banco | o outro banco, checkout, remessa |
+
+No resumo e na tela aparece o aviso grande **FECHAMENTO PARCIAL — bloqueado: ...**. Os 6 arquivos são gerados com o
+que foi possível; `notas_a_emitir.csv` e `comissoes_por_lojista.csv` ganham a coluna `status = PROVISORIO` (no fechamento
+completo essa coluna não existe). Cada bloqueio vira uma pendência em `pendencias.csv`, valor 0, **quem decide: Helena**:
+
+- `FONTE_AUSENTE`: diz qual arquivo falta e o que ficou sem calcular.
+- `LAYOUT_INESPERADO`: lista as colunas que faltam e as que foram encontradas.
+
+Na tela, o botão "Rodar fechamento" liga com pelo menos um arquivo reconhecido e mostra antes "faltam: ... — o
+fechamento será parcial". Para virar definitivo: enviar o arquivo certo e rodar de novo. A liberação do que saiu
+provisório é da Helena.
+
 ## 7. Mudar uma regra (para quem mantém o programa)
 Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) ou da premissa (H##).
 
@@ -110,23 +133,25 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 | Respostas do financeiro (S##) mostradas no dossiê de investigação, por lojista | `RESPOSTAS_FINANCEIRO`, `TEXTOS_FINANCEIRO` |
 | Nome dos arquivos de entrada | `PADROES_ARQUIVOS` |
 
-Depois de mudar: rodar `python -m pytest -q` (116 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
+Depois de mudar: rodar `python -m pytest -q` (148 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
 
 ## 8. Quando a solução não resolve sozinha
 Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem decide. Tipos de pendência em `pendencias.csv`:
 
 | Tipo | O que significa | Quem decide | O que fazer |
 |---|---|---|---|
-| `DIVERGENCIA_TAXA_CHECKOUT` | A Orbe cobrou de um lojista taxa diferente da contratada (natureza CONTRATO). Valor = total líquido do lojista. | Helena | Devolver ao lojista e recuperar da Orbe o valor indicado (R60). Lista em `divergencias_taxa.csv` (`cobrar_parceiro` = S). |
-| `DEVOLUCAO_LOJISTA_ISENCAO` | Isenção que ninguém avisou à Orbe (ex.: Casa do Estudante): a Orbe cobrou certo pelo que sabia. **Não entra na cobrança da Orbe.** | Helena / Comercial | Devolver ao lojista (R52). Detalhe em `divergencias_taxa.csv` (`natureza` = ISENCAO_NAO_INFORMADA, `cobrar_parceiro` = N). |
+| `DIVERGENCIA_TAXA_CHECKOUT` | A Orbe cobrou de um lojista taxa diferente da contratada (natureza CONTRATO). Valor = total líquido do lojista. | Helena | Devolver ao lojista e recuperar da Orbe o valor indicado: o descontado de fato menos a comissão contratada (R60, R74). Lista em `divergencias_taxa.csv` (`cobrar_parceiro` = S). |
+| `DEVOLUCAO_LOJISTA_ISENCAO` | Concessão comercial fora do contrato que ninguém avisou à Orbe (ex.: Casa do Estudante): a Orbe cobrou o contratado (o contrato decide, S41). **Não entra na cobrança da Orbe.** | Helena / Comercial | Devolver ao lojista (R52). Detalhe em `divergencias_taxa.csv` (`natureza` = ISENCAO_NAO_INFORMADA, `cobrar_parceiro` = N). |
 | `SALDO_CHECKOUT_NAO_POSITIVO` | Lojista fechou o mês com comissão zero ou negativa: não sai nota, saldo não transporta. | Helena | Decidir o tratamento. |
 | `LOJISTA_SEM_CONTRATO` | Lojista sem contrato vigente (Atlas). Fora das comissões e das notas. Valor = taxa que a Orbe cobrou, só referência. | Comercial | Confirmar a taxa; depois liberar em `ECS_BLOQUEADOS`. |
 | `TAXA_CONTRATADA_INDEFINIDA` | A planilha não permite achar a taxa (EC sem linha, vigência não reconhecida, faixa sem taxa). | Comercial | Corrigir a planilha e rodar de novo. |
-| `ALERTA_ANTECIPACAO` | Lojista antecipou mais do que vendeu até a data (ex.: Atlas). | Helena / Comercial | Avaliar o risco (R54). |
+| `ALERTA_ANTECIPACAO` | Só lojista novo (sem histórico antes do mês) cuja antecipação acumulada, líquida de reversões, passou das vendas acumuladas (ex.: Atlas, pico em 24/09; critério H28). | Helena / Comercial | Avaliar o risco (R54). |
 | `PARCELAMENTO_ACIMA_12X` | Venda parcelada em mais de 12x (a Tarvo não vende acima de 12x). Fora das comissões e das notas. | Helena / Comercial | Esclarecer com o lojista/Orbe (R57). |
 | `DIVERGENCIA_SPREAD_REMESSA` | A Ponte aplicou spread acima do contratado. Valor cheio pago a mais pelo lojista. | Helena | Devolver ao lojista e recuperar da Ponte (R60); contestar com a Ponte. |
 | `EXCESSO_NA_NOTA_REMESSA` | A nota da Ponte inclui a metade da Tarvo sobre esse excesso. | Helena | Se a Ponte devolver, ajustar no mês da devolução. |
-| `SPREAD_NEGATIVO` | Operações com spread negativo (trava vencida), uma pendência por lojista com as operações no motivo e no rastro. Fora da comissão e da nota. | Helena | Contestar com a Ponte (R53). |
+| `SPREAD_NEGATIVO` | Operações com spread negativo (trava vencida), uma pendência por lojista com as operações no motivo e no rastro. Fora da comissão e da nota. O motivo traz dois valores rotulados: o spread realizado e a diferença até o contratado (`valor_brl`, o que se pede à Ponte; S43). | Helena | Contestar com a Ponte (R53, R69). |
+| `ORBE_LINHA_DUPLICADA` | Mesmo id em dois arquivos da Orbe com valores diferentes: vale o último arquivo (o de ajuste) e a pendência mostra os dois valores (H31). | Helena | Conferir qual valor vale. |
+| `FONTE_AUSENTE` / `LAYOUT_INESPERADO` | Um arquivo não veio ou mudou de layout. O fechamento sai parcial: o que depende da fonte fica bloqueado e as notas e comissões ganham `status = PROVISORIO` (S53, H32). | Helena | Providenciar o arquivo certo e rodar de novo; Helena libera o parcial. |
 | `OPERACAO_DUPLICADA` | Nº de operação repetido no relatório da Ponte. Contado uma vez. | Helena | Pedir correção do relatório à Ponte. |
 | `REMESSA_FORA_COMPETENCIA` | Operações do relatório da Ponte contratadas em outro mês (o mês do fechamento vem sempre da Orbe). Ficam fora da comissão e da nota; sai 1 pendência por mês de contratação, e o resto do fechamento roda. | Helena | Verificar se o relatório da Ponte recebido é o do mês certo. |
 | `REMESSA_SEM_CONTRATO` | CNPJ de remessa sem linha válida na planilha: comissão contada, divergência não verificada. | Comercial | Cadastrar o lojista. |
@@ -140,3 +165,5 @@ Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem
 | `EXTRATO_NAO_FECHA` | Saldo inicial + movimentos ≠ saldo final do Aurora (arquivo incompleto?). | Helena | Baixar o extrato de novo. |
 
 Regra geral: resolveu a pendência mudando a planilha ou a configuração → rode de novo; os números novos saem com o rastro atualizado.
+
+Critérios novos de 17/10 (S40–S54, `REGRAS_DE_NEGOCIO.md` R67–R76): devolver ao lojista = o que o parceiro descontou de fato menos a comissão contratada (Casa R$ 15.396,77; a lista `divergencias_taxa.csv` segue a fórmula e soma R$ 15.397,42); o contrato decide quem deve, não o aviso, e a Casa é concessão fora do contrato; alerta de antecipação só para lojista novo (em setembro, só a Atlas); com fonte ausente ou layout inesperado o fechamento sai **parcial**, com `status = PROVISORIO` e pendência `FONTE_AUSENTE`/`LAYOUT_INESPERADO`.

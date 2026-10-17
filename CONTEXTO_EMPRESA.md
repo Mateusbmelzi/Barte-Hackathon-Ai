@@ -33,9 +33,14 @@ Sequência: baixar Orbe, e-mail da Ponte e extratos → casar a Orbe com a plani
 | Notas e revisão | último dia | — |
 
 ## Dores e causa raiz
+**Princípio: o contrato decide quem deve, não o aviso (S41).** Quando o parceiro cobra fora de aditivo ou condição registrada (Bridge, Mundo Aberto), é divergência de contrato e a Helena cobra o parceiro; quando o Comercial dá uma concessão fora do contrato (Casa do Estudante), o parceiro cobrou o contratado e a devolução ao lojista sai do bolso da Tarvo. O aviso atrasado é problema de processo.
+
 1. **Ninguém avisa os parceiros das condições novas.** O Comercial fecha e, quando lembra, manda e-mail. A Bridge foi avisada dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas (S30). Resultado: parceiro cobrando fora do contrato o mês inteiro.
 2. **A planilha de taxas é a única fonte e está desatualizada**, mantida por quem não decide taxa (S33, S38).
 3. **O conhecimento está em uma pessoa.** Quase tudo o que descobrimos no canal estava só na cabeça da Helena; nas férias dela ninguém fecha (S32, S33).
+
+## Fora do escopo do fechamento
+- **Provisão de setembro:** a contabilidade faz com a Helena; o fechamento só classifica o que passou nos extratos (S49).
 
 ## Riscos observados fora do escopo do fechamento
 - **Repasse antecipado pela conta garantida sem regra nem limite:** na prática a Bia às vezes paga o lojista antes da liquidação da Orbe, usando a conta garantida (S35).

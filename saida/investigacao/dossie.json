@@ -11,13 +11,13 @@
       "natureza": "ISENCAO_NAO_INFORMADA",
       "qtd": 118,
       "valor_divergencia_brl": "15397.42",
-      "valor_devolver_lojista_brl": "15397.42",
+      "valor_devolver_lojista_brl": "15396.77",
       "valor_recuperar_parceiro_brl": "0.00",
       "condicao_contratual": "Planilha linha 13 (desde 01/01/2026): débito 1,49%; crédito à vista 2,69%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'cliente estratégico - ver c/ comercial') | Isenção CC01/S07: taxa zero no checkout (MDR e antecipação) de 01/09/2026 a 31/12/2026",
       "fatos": [
         {
           "id": "F1",
-          "texto": "118 transações divergentes, líquido R$ 15.397,42 (inclui 1 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista: R$ 15.397,42; a recuperar da Orbe: R$ 0,00.",
+          "texto": "118 transações divergentes, líquido R$ 15.397,42 (inclui 1 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 15.396,77; a recuperar da Orbe: R$ 0,00. A diferença para o líquido pela fórmula (R$ 0,65) é truncamento da Orbe.",
           "refs": [
             "AN88445802",
             "AN88445486",
@@ -99,6 +99,14 @@
         {
           "id": "S30",
           "texto": "Ninguém tem a função de avisar Orbe/Ponte das condições novas; a Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas."
+        },
+        {
+          "id": "S41",
+          "texto": "O que decide cobrar a contraparte é o contrato, não o aviso: Bridge (aditivo assinado, 2,19% desde 15/09) e Mundo Aberto (1,20% negociado e registrado desde julho) são divergência, a Helena contesta com Orbe/Ponte e o lojista é ressarcido; Casa do Estudante é concessão do comercial fora do contrato: a Orbe cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "S51",
+          "texto": "Devolve-se ao lojista o que saiu do bolso dele: o valor_taxa que a Orbe descontou menos a comissão contratada. A lista de divergências segue a fórmula bruto x diferença de taxa; a diferença entre as duas é o truncamento da Orbe."
         }
       ],
       "exemplos": [
@@ -117,13 +125,13 @@
       "natureza": "CONTRATO",
       "qtd": 87,
       "valor_divergencia_brl": "1546.28",
-      "valor_devolver_lojista_brl": "1546.28",
-      "valor_recuperar_parceiro_brl": "1546.28",
+      "valor_devolver_lojista_brl": "1545.86",
+      "valor_recuperar_parceiro_brl": "1545.86",
       "condicao_contratual": "Planilha linha 10 (desde 01/01/2026): débito 1,49%; crédito à vista 2,49%; 2–6x 2,99%; 7–12x 3,59%; Pix 0,89%; antecipação 2,10%",
       "fatos": [
         {
           "id": "F1",
-          "texto": "87 transações divergentes, líquido R$ 1.546,28 (inclui 4 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista: R$ 1.546,28; a recuperar da Orbe: R$ 1.546,28.",
+          "texto": "87 transações divergentes, líquido R$ 1.546,28 (inclui 4 estorno(s) de vendas divergentes, com sinal negativo). A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 1.545,86; a recuperar da Orbe: R$ 1.545,86. A diferença para o líquido pela fórmula (R$ 0,42) é truncamento da Orbe.",
           "refs": [
             "TX88440860",
             "TX88423647",
@@ -200,6 +208,10 @@
         {
           "id": "S06",
           "texto": "Rota Global: o contrato não mudou este ano; a cobrança de +0,50 p.p. desde 12/09 é divergência."
+        },
+        {
+          "id": "S51",
+          "texto": "Devolve-se ao lojista o que saiu do bolso dele: o valor_taxa que a Orbe descontou menos a comissão contratada. A lista de divergências segue a fórmula bruto x diferença de taxa; a diferença entre as duas é o truncamento da Orbe."
         }
       ],
       "exemplos": [
@@ -218,13 +230,13 @@
       "natureza": "CONTRATO",
       "qtd": 23,
       "valor_divergencia_brl": "1418.85",
-      "valor_devolver_lojista_brl": "1418.85",
-      "valor_recuperar_parceiro_brl": "1418.85",
+      "valor_devolver_lojista_brl": "1418.88",
+      "valor_recuperar_parceiro_brl": "1418.88",
       "condicao_contratual": "Planilha linha 15 (desde 01/01/2026): spread remessa 1,20% (obs: 'spread negociado em jul/26') | Padrão quando em branco: 1,50% sobre PTAX (CC03)",
       "fatos": [
         {
           "id": "F1",
-          "texto": "23 operações com spread acima do contratado; valor cheio pago a mais pelo lojista R$ 1.418,85. A devolver ao lojista: R$ 1.418,85; a recuperar da Ponte: R$ 1.418,85.",
+          "texto": "23 operações com spread acima do contratado; Spread R$ efetivamente cobrado a mais (realizado menos contratado x PTAX x Valor ME, S51) R$ 1.418,88; pela fórmula da lista de divergências R$ 1.418,85. A devolver ao lojista: R$ 1.418,88; a recuperar da Ponte: R$ 1.418,88.",
           "refs": [
             "PC-0926-0434",
             "PC-0926-0373",
@@ -294,6 +306,10 @@
         {
           "id": "S30",
           "texto": "Ninguém tem a função de avisar Orbe/Ponte das condições novas; a Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas."
+        },
+        {
+          "id": "S41",
+          "texto": "O que decide cobrar a contraparte é o contrato, não o aviso: Bridge (aditivo assinado, 2,19% desde 15/09) e Mundo Aberto (1,20% negociado e registrado desde julho) são divergência, a Helena contesta com Orbe/Ponte e o lojista é ressarcido; Casa do Estudante é concessão do comercial fora do contrato: a Orbe cobrou o contratado e a devolução sai do bolso da Tarvo."
         }
       ],
       "exemplos": [
@@ -312,13 +328,13 @@
       "natureza": "CONTRATO",
       "qtd": 5,
       "valor_divergencia_brl": "29.95",
-      "valor_devolver_lojista_brl": "29.95",
-      "valor_recuperar_parceiro_brl": "29.95",
+      "valor_devolver_lojista_brl": "29.94",
+      "valor_recuperar_parceiro_brl": "29.94",
       "condicao_contratual": "Planilha linha 6 (até 14/09/2026): débito 1,49%; crédito à vista 2,59%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'renegociado - ver linha de baixo') | Planilha linha 7 (desde 15/09/2026): débito 1,49%; crédito à vista 2,19%; 2–6x 3,19%; 7–12x 3,79%; Pix 0,89%; antecipação 2,10% (obs: 'só mudou o crédito à vista')",
       "fatos": [
         {
           "id": "F1",
-          "texto": "5 transações divergentes, líquido R$ 29,95. A devolver ao lojista: R$ 29,95; a recuperar da Orbe: R$ 29,95.",
+          "texto": "5 transações divergentes, líquido R$ 29,95. A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): R$ 29,94; a recuperar da Orbe: R$ 29,94. A diferença para o líquido pela fórmula (R$ 0,01) é truncamento da Orbe.",
           "refs": [
             "TX88431123",
             "TX88429931",
@@ -384,6 +400,14 @@
         {
           "id": "S30",
           "texto": "Ninguém tem a função de avisar Orbe/Ponte das condições novas; a Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas."
+        },
+        {
+          "id": "S41",
+          "texto": "O que decide cobrar a contraparte é o contrato, não o aviso: Bridge (aditivo assinado, 2,19% desde 15/09) e Mundo Aberto (1,20% negociado e registrado desde julho) são divergência, a Helena contesta com Orbe/Ponte e o lojista é ressarcido; Casa do Estudante é concessão do comercial fora do contrato: a Orbe cobrou o contratado e a devolução sai do bolso da Tarvo."
+        },
+        {
+          "id": "S51",
+          "texto": "Devolve-se ao lojista o que saiu do bolso dele: o valor_taxa que a Orbe descontou menos a comissão contratada. A lista de divergências segue a fórmula bruto x diferença de taxa; a diferença entre as duas é o truncamento da Orbe."
         }
       ],
       "exemplos": [

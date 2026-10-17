@@ -46,8 +46,9 @@ def test_schema(dossie, resultado):
         assert isinstance(g["qtd"], int) and g["qtd"] > 0
         for k in ("valor_divergencia_brl", "valor_devolver_lojista_brl", "valor_recuperar_parceiro_brl"):
             assert isinstance(g[k], str) and DINHEIRO.match(g[k]), k
-        assert g["valor_devolver_lojista_brl"] == g["valor_divergencia_brl"]
-        esperado = g["valor_divergencia_brl"] if g["natureza"] == "CONTRATO" else "0.00"
+        # S51: devolver = o que saiu do bolso (difere da fórmula só pelo truncamento da Orbe / arredondamento)
+        assert abs(D(g["valor_devolver_lojista_brl"]) - D(g["valor_divergencia_brl"])) < D("1.00")
+        esperado = g["valor_devolver_lojista_brl"] if g["natureza"] == "CONTRATO" else "0.00"
         assert g["valor_recuperar_parceiro_brl"] == esperado
         assert g["condicao_contratual"]
         assert [f["id"] for f in g["fatos"]] == [f"F{n}" for n in range(1, len(g["fatos"]) + 1)]
@@ -74,8 +75,8 @@ def test_grupos_e_ordem(dossie, resultado):
 
 def test_respostas_financeiro(grupos):
     ids = {c: [s["id"] for s in g["respostas_financeiro"]] for c, g in grupos.items()}
-    assert ids == {CASA: ["S07", "S18", "S37", "S30"], ROTA: ["S06"], BRIDGE: ["S30"],
-                   MUNDO: ["S05", "S10", "S13", "S30"]}
+    assert ids == {CASA: ["S07", "S18", "S37", "S30", "S41", "S51"], ROTA: ["S06", "S51"],
+                   BRIDGE: ["S30", "S41", "S51"], MUNDO: ["S05", "S10", "S13", "S30", "S41"]}
 
 
 def test_fatos_rota(grupos):

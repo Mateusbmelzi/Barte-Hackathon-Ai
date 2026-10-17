@@ -39,6 +39,10 @@ DEPARA_EC_CNPJ = {
 ECS_BLOQUEADOS = {
     "1076801732": "Atlas Idiomas: sem contrato na aba vigente; taxa desconhecida (R15/CC05)",
 }
+# S45: CNPJ do EC bloqueado, tirado da aba antiga (2025) da planilha de taxas. Serve SÓ para identificar o lojista
+# nas pendências (a taxa daquela aba NÃO vale). Decisão nossa (S45): o lojista sem contrato fica FORA de
+# comissoes_por_lojista.csv e as transações aparecem no rastro da pendência LOJISTA_SEM_CONTRATO.
+CNPJ_EC_BLOQUEADO = {"1076801732": "39566044000119"}   # Atlas Idiomas (39.566.044/0001-19)
 
 # CC01/S07 (tratamento R52): taxa contratada ZERO no checkout (MDR e antecipação) por período.
 # Chave = EC Orbe; (início, fim) inclusivos, aplicados à data de referência da taxa
@@ -61,9 +65,24 @@ APLICAR_ESTORNO_DUPLICADO = False
 # Comparação exata: as taxas são percentuais com 2 casas; truncamento da Orbe
 # no valor_taxa NÃO é divergência (R02), por isso comparamos a TAXA, não o valor.
 
+# S42/S50: ALERTA_ANTECIPACAO. Critério NOSSO (o financeiro não definiu limite). A antecipação é sobre a agenda
+# inteira do lojista, então comparar com as vendas do mês acenderia lojista demais. Preocupação (S42) = lojista
+# NOVO, sem histórico, antecipando alto. Acende para qualquer lojista (com ou sem contrato) que:
+#  (1) seja novo: nenhuma transação com data de referência anterior ao mês do relatório (no estorno/reversão,
+#      a data da venda/antecipação original) E primeira transação depois do 1º dia do mês; e
+#  (2) tenha, em algum dia, antecipação acumulada (líquida das reversões já ocorridas) maior que as vendas
+#      acumuladas até aquele dia. O alerta é pelo PICO (S50); o motivo cita as reversões posteriores ao pico e o
+#      saldo líquido de antecipação no fim do mês.
+ALERTA_ANTECIPACAO_SO_LOJISTA_NOVO = True   # False = regra antiga (qualquer lojista com antecipação > vendas)
+
 # ---------------------------------------------------------------- remessa (Ponte Câmbio)
 CNPJ_PONTE = "75374179000146"            # R32/S04: tomadora da nota de remessa
 NOME_PONTE = "Ponte Câmbio S.A."
+# S40: ajuste de contestação da Ponte (a partir de outubro). Linha nova no relatório, Nº de Operação próprio,
+# observação "AJUSTE REF PC-…". Não é spread negativo a contestar: entra na comissão do mês como
+# PARTICIPACAO_REMESSA x Spread R$ do ajuste (PREMISSA NOSSA, pergunta em aberto: o Spread R$ do ajuste é o spread
+# inteiro, não a participação já calculada), abate a nota única da Ponte; nota <= 0 não emite e vira pendência.
+REGEX_AJUSTE_PONTE = r"AJUSTE\s+REF\.?\s+(PC-[\w-]+)"
 PARTICIPACAO_REMESSA = Decimal("0.5")    # R20/S05: 50% do Spread R$ realizado, por operação
 SPREAD_PADRAO = Decimal("0.015")         # CC03/S05: célula em branco ou "padrão" = 1,5%
 TOLERANCIA_SPREAD = Decimal("0.0001")    # H06/S10: divergência só se |aplicado-contratado| >= 0,01 p.p.
@@ -124,6 +143,13 @@ CONF_SEM_REGRA = Decimal("0.30")        # nenhuma regra casou -> HUMANO
 NATUREZA_CONTRATO = "CONTRATO"
 NATUREZA_ISENCAO = "ISENCAO_NAO_INFORMADA"
 COBRAR_PARCEIRO = {NATUREZA_CONTRATO: "S", NATUREZA_ISENCAO: "N"}
+# S41: o que decide cobrar a contraparte é a condição contratada (aditivo/negociação registrada), não o aviso à
+# Orbe/Ponte. O valor do campo `natureza` nos CSVs não muda (compatibilidade); só o texto descritivo.
+DESCRICAO_NATUREZA = {
+    NATUREZA_CONTRATO: "divergência de contrato (vale a condição contratada: aditivo/negociação registrada, não o aviso)",
+    NATUREZA_ISENCAO: ("concessão comercial fora do contrato (a Orbe cobrou o contratado; "
+                       "devolução sai do bolso da Tarvo)"),
+}
 
 # ---------------------------------------------------------------- dossiê de investigação (src/investigacao.py)
 # Respostas do financeiro (docs/00_slack_respostas_financeiro.md) que tocam cada lojista.
@@ -135,6 +161,12 @@ TEXTOS_FINANCEIRO = {
     "S10": "Divergência de remessa vale pelo valor cheio que o lojista pagou a mais, não só os 50% da Tarvo.",
     "S13": "O excesso da Mundo Aberto entra na nota de setembro pelo realizado; se a Ponte devolver, a metade da Tarvo sai no mês do ajuste.",
     "S18": "Casa do Estudante: a Orbe cobrou certo pela planilha porque ninguém avisou a isenção; não há o que cobrar da Orbe, é devolução ao lojista (Helena com o Comercial).",
+    "S41": ("O que decide cobrar a contraparte é o contrato, não o aviso: Bridge (aditivo assinado, 2,19% desde 15/09) e "
+            "Mundo Aberto (1,20% negociado e registrado desde julho) são divergência, a Helena contesta com Orbe/Ponte e o "
+            "lojista é ressarcido; Casa do Estudante é concessão do comercial fora do contrato: a Orbe cobrou o contratado "
+            "e a devolução sai do bolso da Tarvo."),
+    "S51": ("Devolve-se ao lojista o que saiu do bolso dele: o valor_taxa que a Orbe descontou menos a comissão contratada. "
+            "A lista de divergências segue a fórmula bruto x diferença de taxa; a diferença entre as duas é o truncamento da Orbe."),
     "S30": "Ninguém tem a função de avisar Orbe/Ponte das condições novas; a Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas.",
     "S37": "Casa do Estudante: uma pendência com o total e o detalhe por transação; não pode entrar na cobrança da Orbe.",
 }
@@ -144,8 +176,28 @@ CONTEXTO_PENDENCIA = {
                                     "Helena decidiu tratar como divergência e contestar com a Ponte (S05)."),
 }
 RESPOSTAS_FINANCEIRO = {
-    ("CHECKOUT", "95927868000148"): ["S06"],                      # Rota Global (EC 1074504011)
-    ("CHECKOUT", "00520815000100"): ["S07", "S18", "S37", "S30"],  # Casa do Estudante (EC 1018325654)
-    ("CHECKOUT", "22224579000109"): ["S30"],                      # Escola Bridge (EC 1075624862)
-    ("REMESSA", "17217888000111"): ["S05", "S10", "S13", "S30"],  # Mundo Aberto
+    ("CHECKOUT", "95927868000148"): ["S06", "S51"],                      # Rota Global (EC 1074504011)
+    ("CHECKOUT", "00520815000100"): ["S07", "S18", "S37", "S30", "S41", "S51"],  # Casa do Estudante (EC 1018325654)
+    ("CHECKOUT", "22224579000109"): ["S30", "S41", "S51"],                      # Escola Bridge (EC 1075624862)
+    ("REMESSA", "17217888000111"): ["S05", "S10", "S13", "S30", "S41"],  # Mundo Aberto
+}
+
+
+# ---------------------------------------------------------------- fonte ausente / layout inesperado (S53)
+# "Prefiro que a solução avise a que quebre sem ninguém perceber ... Quem libera sou eu." Fonte que falta ou
+# vem com layout diferente não derruba o mês: fecha-se o que não depende dela, marca-se o provisório e
+# abre-se pendência (FONTE_AUSENTE / LAYOUT_INESPERADO) para a Helena.
+STATUS_PROVISORIO = "PROVISORIO"      # coluna extra 'status' em comissoes/notas, só no fechamento parcial
+ROTULO_FONTE = {
+    "orbe": "relatório da Orbe", "taxas": "tabela de taxas", "ponte": "e-mail da Ponte",
+    "plano": "plano de contas", "aurora": "extrato Aurora", "meridiano": "extrato Meridiano",
+}
+# O que fica sem calcular quando a fonte não está disponível.
+EFEITO_BLOQUEIO = {
+    "orbe": "comissões, notas e divergências do checkout não calculadas",
+    "taxas": "comissões, notas e divergências do checkout não calculadas; divergências de remessa e alerta de antecipação bloqueados",
+    "ponte": "nota da Ponte e comissões de remessa não calculadas; conciliação de TED/PIX da Ponte nos extratos não feita",
+    "plano": "lançamentos dos extratos Aurora e Meridiano não classificados",
+    "aurora": "lançamentos do extrato Aurora não classificados; transferências entre contas não conferidas",
+    "meridiano": "lançamentos do extrato Meridiano não classificados; transferências entre contas e TED/PIX da Ponte não conferidos",
 }

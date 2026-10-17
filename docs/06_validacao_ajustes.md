@@ -41,7 +41,7 @@ Nenhum.
 - Correção sugerida: acrescentar na própria linha 20–21 "(só 01; com o 06: 203.735,34 / 203.740,84)", ou mover o aviso da linha 363 para o topo do arquivo.
 
 **B2. Constante que parece chave em `tests/test_ia.py:198`.**
-- Exemplo: `CHAVE_OR = "sk-or-v1-CHAVE-FALSA-DE-TESTE-123"` casa com o padrão `sk-or-` + 20 caracteres que um scanner (ou a banca) usaria. Não é chave real, mas gera alarme falso e a pessoa que revisar vai ter que abrir o arquivo para descobrir.
+- Exemplo: `CHAVE_OR = "sk-or-teste (chave falsa, já encurtada)"` casa com o padrão `sk-or-` + 20 caracteres que um scanner (ou a banca) usaria. Não é chave real, mas gera alarme falso e a pessoa que revisar vai ter que abrir o arquivo para descobrir.
 - Correção sugerida: montar o valor em tempo de execução (`"sk-or-" + "v1-falsa"`, ou `"sk-or-FALSA"`, com menos de 20 caracteres), ou deixar um comentário "valor fictício" na linha. O arquivo ainda é não versionado: vale incluí-lo no commit só depois dessa troca.
 
 **B3. A duplicata entre arquivos Orbe é tratada pela 1ª ocorrência em ordem de nome, sem checar quem é o mais novo.**

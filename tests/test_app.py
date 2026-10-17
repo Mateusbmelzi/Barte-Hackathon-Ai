@@ -264,7 +264,7 @@ def test_varios_arquivos_orbe(url, raiz):
     for k, v in arq.items():
         if k != "orbe":
             e = _json(url + "/api/enviar", "POST", v.read_bytes(), {"X-Nome-Arquivo": quote(v.name)})
-    assert not e["pronto"]                                   # falta a Orbe
+    assert e["pronto"] and not e["completo"] and "Relatório(s) Orbe" in e["faltam"]   # S53: roda parcial sem a Orbe
     corpo = lambda n: b"id_transacao;x\r\n" + n
     e = _json(url + "/api/enviar", "POST", corpo(b"1;a"), {"X-Nome-Arquivo": quote("orbe_b_ajustes.csv")})
     assert e["pronto"]                                       # 1 Orbe basta

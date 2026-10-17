@@ -71,13 +71,19 @@ def linhas_rastro(itens_com_rastro, arquivos, origem_orbe=None):
     return out
 
 
-def escrever(pasta, nome, linhas):
+def escrever(pasta, nome, linhas, status=None):
+    """status=None: arquivo no formato do edital (completo). status='PROVISORIO': fechamento parcial, ganha a
+    coluna extra 'status' ao final (S53); no fechamento completo nada muda, byte a byte."""
     pasta = Path(pasta)
     pasta.mkdir(parents=True, exist_ok=True)
     try:
         with open(pasta / nome, "w", encoding="utf-8", newline="") as f:
             w = csv.writer(f, delimiter=";", lineterminator="\n")
-            w.writerow(COLUNAS[nome])
-            w.writerows(linhas)
+            if status is None:
+                w.writerow(COLUNAS[nome])
+                w.writerows(linhas)
+            else:
+                w.writerow(COLUNAS[nome] + ["status"])
+                w.writerows(l + [status] for l in linhas)
     except PermissionError as e:
         raise PermissionError(f"Feche o arquivo {nome} no Excel (ou em outro programa) e rode de novo.") from e

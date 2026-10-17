@@ -99,9 +99,10 @@ def test_pendencias_esperadas(resultado):
     assert tipos[("TRANSFERENCIA_EM_TRANSITO", "L92")] == D("-300000.00")
     assert tipos[("ACOMPANHAR_REMESSA_FUTURA", "MRD2026090425")] == D("18240.00")
     assert tipos[("OPERACAO_DUPLICADA", "PC-0926-0162")] == D("821.88")
-    assert soma(p["valor"] for p in resultado["pendencias"] if p["tipo"] == "SPREAD_NEGATIVO") == D("-1834.05")
+    # S43: valor_brl = diferença até o spread contratado (realizado em -1.834,05; ver test_regras_s40_s54)
+    assert soma(p["valor"] for p in resultado["pendencias"] if p["tipo"] == "SPREAD_NEGATIVO") == D("-3565.98")
     assert tipos[("CONFERIR_REPASSE_PONTE", "Nota REMESSA")] == D("39543.45")
-    assert tipos[("ALERTA_ANTECIPACAO", "EC 1076801732")] == D("179592.82")
+    assert tipos[("ALERTA_ANTECIPACAO", "EC 1076801732")] == D("183581.24")    # S42/S50: pico líquido de reversões
 
 
 def test_arquivos_de_origem_intocados(resultado):
@@ -112,14 +113,14 @@ def test_fase0_pendencias_s18_s22_s34_s38(resultado):
     """S18/S37 Casa fora da cobrança da Orbe; S34 devolver/recuperar; S22 PIX = remessa futura; S38 Comercial."""
     p = {(x["tipo"], x["ref_origem"]): x for x in resultado["pendencias"]}
     casa = p[("DEVOLUCAO_LOJISTA_ISENCAO", "EC 1018325654")]
-    assert casa["valor"] == D("15397.42") and casa["quem_decide"] == "Helena (Financeiro) / Comercial"
+    assert casa["valor"] == D("15396.77") and casa["quem_decide"] == "Helena (Financeiro) / Comercial"
     assert "NÃO entra na cobrança da Orbe" in casa["motivo"] and "devolução ao lojista" in casa["motivo"]
     assert not any(x["tipo"] == "DIVERGENCIA_TAXA_CHECKOUT" and x["ref_origem"] == "EC 1018325654"
                    for x in resultado["pendencias"])
     rota = p[("DIVERGENCIA_TAXA_CHECKOUT", "EC 1074504011")]
-    assert "Devolver ao lojista R$ 1.546,28; recuperar do parceiro (Orbe) R$ 1.546,28" in rota["motivo"]
+    assert "Devolver ao lojista R$ 1.545,86; recuperar do parceiro (Orbe) R$ 1.545,86" in rota["motivo"]
     ma = p[("DIVERGENCIA_SPREAD_REMESSA", "CNPJ 17217888000111")]
-    assert "Devolver ao lojista R$ 1.418,85; recuperar do parceiro (Ponte) R$ 1.418,85" in ma["motivo"]
+    assert "Devolver ao lojista R$ 1.418,88; recuperar do parceiro (Ponte) R$ 1.418,88" in ma["motivo"]
     assert "(S30)" in ma["motivo"] and "(S05)" in ma["motivo"]          # B5: caso de fronteira
     assert p[("LOJISTA_SEM_CONTRATO", "EC 1076801732")]["quem_decide"] == "Comercial"
     assert p[("ALERTA_ANTECIPACAO", "EC 1076801732")]["quem_decide"] == "Helena (Financeiro) / Comercial"

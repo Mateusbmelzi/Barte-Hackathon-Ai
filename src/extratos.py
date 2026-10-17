@@ -34,7 +34,7 @@ def _lancamento(banco, m):
 
 
 def _ops_unicas(ponte_resultado):
-    return [o for o in ponte_resultado if o["status"] != "DUPLICATA"]
+    return [o for o in ponte_resultado if o["status"] not in ("DUPLICATA", "AJUSTE")]   # S40: ajuste não é operação de câmbio
 
 
 def _conciliar_ted_ponte(lancs, ops):

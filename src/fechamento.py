@@ -10,11 +10,12 @@ import json
 import sys
 from collections import Counter
 from datetime import datetime
+from decimal import Decimal
 from pathlib import Path
 
-from . import checkout, extratos, investigacao, remessa, saidas
+from . import checkout, config, extratos, investigacao, remessa, saidas
 from .dinheiro import soma, fmt_br
-from .leitores import descobrir_arquivos, ler_taxas_antigas, ler_tudo
+from .leitores import ler_taxas_antigas, ler_tudo_parcial
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -42,36 +43,116 @@ def _conferir_rastro(itens, valor_de):
             raise AssertionError(f"rastro de {it['id']} soma {s} != valor reportado {v}")
 
 
-def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
-    d = ler_tudo(entrada)
-    comp_mes, comp_txt = _competencia(d["orbe"])
+def _competencia_alternativa(d):
+    """Sem Orbe: competência pelo mês mais frequente das datas da Ponte ou, na falta, dos extratos."""
+    for datas in ([o["data"] for o in d["ponte"]], [m["data"] for m in d["aurora"] + d["meridiano"]]):
+        if datas:
+            (ano, mes), _ = Counter((x.year, x.month) for x in datas).most_common(1)[0]
+            return (ano, mes), f"{mes:02d}/{ano}"
+    return None, "indisponível"
 
-    # checkout
-    chk = checkout.calcular(d["orbe"], d["contratos"])
-    com_chk = checkout.comissoes(chk, d["contratos"])
-    nf_chk = checkout.notas(com_chk, comp_txt)
-    div_chk = checkout.divergencias(chk, d["contratos"])
-    pen_chk = checkout.pendencias(chk, com_chk, d["contratos"]) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
 
-    # remessa
-    rem = remessa.calcular(d["ponte"], d["contratos"], comp_mes)
-    com_rem = remessa.comissoes(rem, d["contratos"])
-    nf_rem = remessa.nota(rem, comp_txt)
-    div_rem = remessa.divergencias(rem, d["contratos"])
-    pen_rem = remessa.pendencias(rem, d["contratos"], d["meta_ponte"], nf_rem[0]["valor"] if nf_rem else None)
+def _pendencias_bloqueio(bloqueios):
+    """Uma pendência por fonte bloqueada (valor 0): qual arquivo, o que ficou bloqueado, quem libera."""
+    out = []
+    for b in bloqueios:
+        f = b["fonte"]
+        rotulo = config.ROTULO_FONTE.get(f, f)
+        efeito = config.EFEITO_BLOQUEIO.get(f, "parte do fechamento não calculada")
+        if b["tipo"] == "FONTE_AUSENTE":
+            motivo = (f"Falta o arquivo da fonte {rotulo} (esperado nome '{b['arquivo']}'). Bloqueado: {efeito}. "
+                      "O restante foi fechado e está marcado como PROVISORIO. Enviar o arquivo e rodar de novo, "
+                      "ou liberar o mês assim.")
+        else:
+            motivo = (f"O arquivo {b['arquivo']} ({rotulo}) veio com layout diferente do esperado: "
+                      f"{b['detalhe'].split(': ', 1)[-1]}. Bloqueado: {efeito}. O restante foi fechado e está "
+                      "marcado como PROVISORIO. Conferir com quem gerou o arquivo ou ajustar o leitor.")
+            if f == "orbe":
+                motivo += (" O checkout inteiro ficou bloqueado: nenhum arquivo Orbe foi usado, porque calcular "
+                           "com só parte deles daria comissões, notas e saldos errados.")
+        out.append({"tipo": b["tipo"], "ref_origem": b["arquivo"], "valor": Decimal("0"), "motivo": motivo,
+                    "quem_decide": config.QUEM_HELENA, "rastro": []})
+    return out
 
-    # extratos
-    lancs, pen_ext = extratos.classificar(d["aurora"], d["meridiano"], rem, d["plano"], d["meta_aurora"],
-                                           sorted(checkout.nome_por_cnpj(d["contratos"]).values()))
+
+def _neutralizar_conciliacoes(lancs, pend, sem_ponte, bancos_ausentes):
+    """Sem a Ponte (ou sem o outro banco) a conciliação de TED/PIX/transferência não pode ser feita: em vez de
+    pendências enganosas ('não bate', 'em trânsito'), o lançamento fica com a classificação por regra e uma
+    observação dizendo que a conciliação está bloqueada."""
+    tipos = set()
+    if sem_ponte:
+        tipos |= {"TED_PONTE_NAO_CONCILIADO", "ACOMPANHAR_REMESSA_FUTURA"}
+    if bancos_ausentes:
+        tipos |= {"TRANSFERENCIA_EM_TRANSITO"}
     for l in lancs:
-        l["rastro"] = [(l["banco"].lower(), l["ref"], l["valor"], l["descricao"])]
+        if l["pendencia"] and l["pendencia"][0] in tipos:
+            tipo = l["pendencia"][0]
+            l["pendencia"] = None
+            if tipo == "TRANSFERENCIA_EM_TRANSITO":
+                l["observacao"] = "conciliação bloqueada: falta o extrato do outro banco"
+            else:
+                l["regra"] = l["regra"].split("; S22")[0]
+                l["observacao"] = "conciliação bloqueada: e-mail da Ponte ausente"
+                l["metodo"], l["confianca"] = "HUMANO", config.CONF_NAO_CONCILIADO
+    return [p for p in pend if p["tipo"] not in tipos]
+
+
+def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
+    d = ler_tudo_parcial(entrada)
+    ok, bloqueios = d["ok"], d["bloqueios"]
+    if not ok:
+        raise ValueError("Nenhum arquivo do mês pôde ser lido:\n" + "\n".join(
+            f"- {config.ROTULO_FONTE.get(b['fonte'], b['fonte'])}: "
+            + ("arquivo não encontrado" if b["tipo"] == "FONTE_AUSENTE" else b["detalhe"]) for b in bloqueios))
+    chk_ok = "orbe" in ok and "taxas" in ok
+    rem_ok = "ponte" in ok
+    lan_ok = "plano" in ok and ("aurora" in ok or "meridiano" in ok)
+    parcial = bool(bloqueios)
+    sem_taxas = "taxas" not in ok
+
+    if "orbe" in ok:
+        comp_mes, comp_txt = _competencia(d["orbe"])
+    else:
+        comp_mes, comp_txt = _competencia_alternativa(d)
+
+    # checkout (precisa de Orbe + taxas)
+    chk, com_chk, nf_chk, div_chk, pen_chk = [], [], [], [], []
+    if chk_ok:
+        chk = checkout.calcular(d["orbe"], d["contratos"])
+        com_chk = checkout.comissoes(chk, d["contratos"])
+        nf_chk = checkout.notas(com_chk, comp_txt)
+        div_chk = checkout.divergencias(chk, d["contratos"])
+        pen_chk = checkout.pendencias(chk, com_chk, d["contratos"]) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
+
+    # remessa (precisa do e-mail da Ponte; sem taxas não há divergência nem cadastro para conferir)
+    rem, com_rem, nf_rem, div_rem, pen_rem = [], [], [], [], []
+    if rem_ok:
+        rem = remessa.calcular(d["ponte"], d["contratos"], comp_mes)
+        com_rem = remessa.comissoes(rem, d["contratos"])
+        nf_rem = remessa.nota(rem, comp_txt)
+        div_rem = remessa.divergencias(rem, d["contratos"])
+        pen_rem = remessa.pendencias(rem, d["contratos"], d["meta_ponte"], nf_rem[0]["valor"] if nf_rem else None)
+        if sem_taxas:
+            pen_rem = [p for p in pen_rem if p["tipo"] != "REMESSA_SEM_CONTRATO"]
+
+    # extratos (precisam do plano de contas; cada banco é independente)
+    lancs, pen_ext = [], []
+    if lan_ok:
+        lancs, pen_ext = extratos.classificar(d["aurora"], d["meridiano"], rem, d["plano"], d["meta_aurora"],
+                                               sorted(checkout.nome_por_cnpj(d["contratos"]).values()))
+        if parcial:
+            pen_ext = _neutralizar_conciliacoes(lancs, pen_ext, not rem_ok,
+                                                [b for b in ("aurora", "meridiano") if b not in ok])
+        for l in lancs:
+            l["rastro"] = [(l["banco"].lower(), l["ref"], l["valor"], l["descricao"])]
 
     # ids legíveis
+    pen_bloq = _pendencias_bloqueio(bloqueios)
     _numerar(com_chk, "COM-CHK"); _numerar(com_rem, "COM-REM")
     divs = _numerar(div_chk + div_rem, "DIV")
     notas = _numerar(nf_chk + nf_rem, "NF")
     _numerar(lancs, "LAN")
-    pends = _numerar(pen_chk + pen_rem + pen_ext, "PEN")
+    pends = _numerar(pen_bloq + pen_chk + pen_rem + pen_ext, "PEN")
     comissoes = com_chk + com_rem
 
     _conferir_rastro(comissoes, lambda x: x["comissao"])
@@ -81,25 +162,39 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
     _conferir_rastro(pends, lambda x: x["valor"])
 
     arquivos = dict(d["arquivos"])
-    arquivos["ponte"] = f"{d['arquivos']['ponte']}#{d['meta_ponte']['anexo']}"
-    saidas.escrever(saida, "comissoes_por_lojista.csv", saidas.linhas_comissoes(comissoes))
+    if rem_ok:
+        arquivos["ponte"] = f"{d['arquivos']['ponte']}#{d['meta_ponte']['anexo']}"
+    status = config.STATUS_PROVISORIO if parcial else None   # completo: os CSVs ficam idênticos aos de sempre
+    saidas.escrever(saida, "comissoes_por_lojista.csv", saidas.linhas_comissoes(comissoes), status)
     saidas.escrever(saida, "divergencias_taxa.csv", saidas.linhas_divergencias(divs))
-    saidas.escrever(saida, "notas_a_emitir.csv", saidas.linhas_notas(notas))
+    saidas.escrever(saida, "notas_a_emitir.csv", saidas.linhas_notas(notas), status)
     saidas.escrever(saida, "lancamentos_classificados.csv", saidas.linhas_lancamentos(lancs))
     saidas.escrever(saida, "pendencias.csv", saidas.linhas_pendencias(pends))
     com_valor = [p for p in pends if p["valor"] is not None]
     origem_orbe = {l["id"]: l["arquivo"] for l in d["orbe"]}
     saidas.escrever(saida, "rastro.csv", saidas.linhas_rastro(comissoes + divs + notas + com_valor + lancs, arquivos, origem_orbe))
 
+    # o que ficou bloqueado, para o resumo e a tela (S53)
+    efeitos = []
+    for b in bloqueios:
+        motivo = "falta" if b["tipo"] == "FONTE_AUSENTE" else "layout inesperado em"
+        efeitos.append(f"{config.EFEITO_BLOQUEIO.get(b['fonte'], b['fonte'])} "
+                       f"({motivo} {config.ROTULO_FONTE.get(b['fonte'], b['fonte'])})")
     r = {"competencia": comp_txt, "dados": d, "checkout": chk, "remessa": rem,
          "comissoes": comissoes, "divergencias": divs, "notas": notas, "lancamentos": lancs,
-         "pendencias": pends, "saida": Path(saida), "investigacao": None, "investigacao_erro": None}
+         "pendencias": pends, "saida": Path(saida), "investigacao": None, "investigacao_erro": None,
+         "parcial": parcial, "bloqueios": bloqueios,
+         "bloqueado": {"checkout": not chk_ok, "remessa": not rem_ok,
+                       "divergencias_remessa": not rem_ok or sem_taxas,
+                       "AURORA": not (lan_ok and "aurora" in ok), "MERIDIANO": not (lan_ok and "meridiano" in ok)},
+         "aviso_parcial": ("FECHAMENTO PARCIAL — bloqueado: " + "; ".join(efeitos)) if parcial else None}
 
     # dossiê de investigação (PLANO_IA_01 Fase 1): só LÊ o resultado, depois dos 6 CSVs gravados.
     # Um erro aqui não desfaz nem altera o fechamento; fica registrado e avisado.
-    if investigar:
+    # Só roda com checkout e remessa disponíveis (ele cruza as duas linhas com a planilha de taxas).
+    if investigar and chk_ok and rem_ok:
         try:
-            antigas = ler_taxas_antigas(descobrir_arquivos(entrada)["taxas"])
+            antigas = ler_taxas_antigas(Path(entrada) / d["arquivos"]["taxas"])
             r["investigacao"] = investigacao.gerar(r, antigas)
             investigacao.escrever(r["investigacao"], saida)
         except Exception as e:  # noqa: BLE001
@@ -133,7 +228,28 @@ def resumo(r):
     if r.get("investigacao"):
         linhas.append(f"  Investigação      : {len(r['investigacao']['grupos'])} grupos de divergência  ->  "
                       "investigacao/dossie.md")
+    if r.get("parcial"):
+        linhas = _marcar_bloqueios(linhas, r)
     return "\n".join(linhas)
+
+
+def _marcar_bloqueios(linhas, r):
+    """Fechamento parcial (S53): aviso grande no topo e 'BLOQUEADO' nas linhas que não puderam ser calculadas."""
+    b = r["bloqueado"]
+    chaves = []                                  # (prefixo da linha do resumo, bloqueada?)
+    for ln in ("CHECKOUT", "REMESSA"):
+        chaves += [(f"  Comissão {ln}", b[ln.lower()]), (f"  Notas {ln}", b[ln.lower()])]
+    chaves += [("  Divergências CHECKOUT", b["checkout"]), ("  Divergências REMESSA", b.get("divergencias_remessa", b["remessa"]))]
+    chaves += [(f"  Lançamentos {k}", b[k]) for k in ("AURORA", "MERIDIANO")]
+    out = []
+    for l in linhas:
+        bloqueada = any(bloq and l.startswith(k) for k, bloq in chaves)
+        out.append(l.split(":")[0] + ": BLOQUEADO (sem os dados necessários)" if bloqueada else l)
+    barra = "=" * 78
+    topo = [barra, r["aviso_parcial"],
+            "Notas e comissões saem com status=PROVISORIO. Cada bloqueio virou uma pendência (FONTE_AUSENTE /",
+            "LAYOUT_INESPERADO) para Helena (Financeiro), que decide a liberação.", barra]
+    return topo + out
 
 
 def main(argv=None):
@@ -144,7 +260,7 @@ def main(argv=None):
     a = ap.parse_args(argv)
     try:
         r = executar(Path(a.entrada), Path(a.saida))
-    except PermissionError as e:
+    except (PermissionError, FileNotFoundError, ValueError) as e:
         sys.exit(f"ERRO: {e}")
     try:
         sys.stdout.reconfigure(encoding="utf-8")

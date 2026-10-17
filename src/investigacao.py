@@ -24,7 +24,7 @@ ROTULO = {"DEBITO": "débito", "CREDITO A VISTA": "crédito à vista", "PARC_2_6
 CONTRAPARTE = {"CHECKOUT": "ORBE", "REMESSA": "PONTE"}
 NOME_CONTRAPARTE = {"ORBE": "Orbe", "PONTE": "Ponte"}
 ROTULO_NATUREZA = {config.NATUREZA_CONTRATO: "divergência de contrato",
-                   config.NATUREZA_ISENCAO: "isenção não informada ao parceiro"}
+                   config.NATUREZA_ISENCAO: "concessão comercial fora do contrato (devolução do bolso da Tarvo)"}   # S41
 ZERO = Decimal("0")
 CEM = Decimal("100")
 
@@ -144,8 +144,9 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
     ls = sorted(ls, key=chave)
     todas = sorted((l for l in fat if l["cnpj"] == cnpj), key=chave)
     linhas = _linhas_lojista(contratos, cnpj)
-    total = soma(l["diferenca"] for l in ls)
-    recuperar = total if natureza == config.NATUREZA_CONTRATO else ZERO
+    total = soma(l["diferenca"] for l in ls)                    # fórmula da lista de divergências (S11)
+    devolver = soma(l["bolso"] for l in ls)                     # S51: valor_taxa Orbe - comissão contratada
+    recuperar = devolver if natureza == config.NATUREZA_CONTRATO else ZERO
     d0, d1 = ref[ls[0]["id"]][0], ref[ls[-1]["id"]][0]
     janela = [l for l in todas if d0 <= ref[l["id"]][0] <= d1]
     fx_div = Counter(ref[l["id"]][1] for l in ls)
@@ -157,8 +158,9 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
     txt = f"{len(ls)} transações divergentes, líquido {fmt_br(total)}"
     if n_est:
         txt += f" (inclui {n_est} estorno(s) de vendas divergentes, com sinal negativo)"
-    txt += (f". A devolver ao lojista: {fmt_br(total)}; a recuperar da "
-            f"{NOME_CONTRAPARTE['ORBE']}: {fmt_br(recuperar)}.")
+    txt += (f". A devolver ao lojista (o que saiu do bolso dele: valor_taxa da Orbe menos a comissão contratada, S51): "
+            f"{fmt_br(devolver)}; a recuperar da {NOME_CONTRAPARTE['ORBE']}: {fmt_br(recuperar)}. "
+            f"A diferença para o líquido pela fórmula ({fmt_br(total - devolver)}) é truncamento da Orbe.")
     _fato(fatos, txt, _exemplos(ls))
     # F: datas
     dias = (d1 - d0).days + 1
@@ -236,7 +238,7 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
     return {
         "id_grupo": None, "contraparte": "ORBE", "linha_negocio": "CHECKOUT", "lojista": nomes[cnpj], "cnpj": cnpj,
         "ec_orbe": "|".join(ecs), "natureza": natureza, "qtd": len(ls),
-        "valor_divergencia_brl": fmt(total), "valor_devolver_lojista_brl": fmt(total),
+        "valor_divergencia_brl": fmt(total), "valor_devolver_lojista_brl": fmt(devolver),
         "valor_recuperar_parceiro_brl": fmt(recuperar),
         "condicao_contratual": _condicao_checkout(linhas, ecs),
         "fatos": fatos, "respostas_financeiro": _respostas("CHECKOUT", cnpj), "exemplos": _exemplos(ls),
@@ -357,11 +359,14 @@ def _grupos_remessa(r):
         ops = sorted(ops, key=lambda o: (o["data"], o["op"]))
         todas = sorted((o for o in validas if o["cnpj"] == cnpj), key=lambda o: (o["data"], o["op"]))
         linhas = _linhas_lojista(contratos, cnpj)
-        total = soma(o["diferenca"] for o in ops)
+        total = soma(o["diferenca"] for o in ops)                # fórmula da lista de divergências (S11)
+        a_mais = soma(o["dif_contrato"] for o in ops)            # S51: Spread R$ efetivamente cobrado a mais
         d0, d1 = ops[0]["data"], ops[-1]["data"]
         fatos = []
-        _fato(fatos, f"{len(ops)} operações com spread acima do contratado; valor cheio pago a mais pelo lojista "
-                     f"{fmt_br(total)}. A devolver ao lojista: {fmt_br(total)}; a recuperar da Ponte: {fmt_br(total)}.",
+        _fato(fatos, f"{len(ops)} operações com spread acima do contratado; Spread R$ efetivamente cobrado a mais "
+                     f"(realizado menos contratado x PTAX x Valor ME, S51) {fmt_br(a_mais)}; pela fórmula da lista de "
+                     f"divergências {fmt_br(total)}. A devolver ao lojista: {fmt_br(a_mais)}; a recuperar da Ponte: "
+                     f"{fmt_br(a_mais)}.",
               _exemplos_rem(ops))
         _fato(fatos, f"Primeira operação divergente contratada em {_d(d0)} e última em {_d(d1)} "
                      f"({(d1 - d0).days + 1} dia(s) corrido(s)).", [ops[0]["op"], ops[-1]["op"]])
@@ -401,8 +406,8 @@ def _grupos_remessa(r):
         out.append({
             "id_grupo": None, "contraparte": "PONTE", "linha_negocio": "REMESSA", "lojista": nomes.get(cnpj, ops[0]["cliente"]),
             "cnpj": cnpj, "ec_orbe": None, "natureza": config.NATUREZA_CONTRATO, "qtd": len(ops),
-            "valor_divergencia_brl": fmt(total), "valor_devolver_lojista_brl": fmt(total),
-            "valor_recuperar_parceiro_brl": fmt(total),
+            "valor_divergencia_brl": fmt(total), "valor_devolver_lojista_brl": fmt(a_mais),
+            "valor_recuperar_parceiro_brl": fmt(a_mais),
             "condicao_contratual": _condicao_remessa(linhas),
             "fatos": fatos, "respostas_financeiro": _respostas("REMESSA", cnpj), "exemplos": _exemplos_rem(ops),
             "_total": total,

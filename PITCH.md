@@ -17,17 +17,18 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 ## Slide 2: O que está quebrado, e por quê
 **Mensagem-chave:** O problema não é falta de braço. É condição comercial que não chega ao parceiro, regra sem lugar, planilha sem chave e ninguém comparando contratado com cobrado.
 - **Causa raiz: ninguém avisa os parceiros.** O Comercial fecha a condição e, "quando lembra", manda e-mail; ninguém tem essa função (S30). A Casa do Estudante (isenção) e a Mundo Aberto (spread 1,20%) não foram avisadas; a Bridge foi avisada dias depois de 15/09. Resultado: parceiro cobrando fora do contrato o mês inteiro, e o lojista recebendo a menos (S34).
-- **O caso que prova a causa raiz: Casa do Estudante.** O Comercial fechou isenção de tarifa no checkout de setembro a dezembro (S07). O acordo não chegou à Orbe nem à planilha de taxas (S18, S30). Em setembro, a Orbe cobrou a taxa cheia em **118 transações: R$ 15.397,42 a devolver ao lojista**. Não há nada a recuperar da Orbe, porque ela cobrou certo pelo que sabia; o custo é todo da Tarvo (`divergencias_taxa.csv`, natureza ISENCAO_NAO_INFORMADA; PEN-0001).
-- **Caso de apoio: Mundo Aberto.** Spread de 1,20% negociado em julho; a Ponte nunca foi avisada (S30) e aplicou o padrão de 1,50% em **23 operações: R$ 1.418,85** pagos a mais pelo lojista (`divergencias_taxa.csv`, REMESSA; PEN-0007).
+- **O contrato decide quem deve, não o aviso (S41).** Bridge (aditivo assinado, 2,19% desde 15/09) e Mundo Aberto (1,20% negociado e registrado desde julho) são divergência de contrato: a Helena contesta Orbe e Ponte e o lojista é ressarcido; o aviso atrasado é problema de processo e não muda quem deve.
+- **O caso que prova a causa raiz: Casa do Estudante.** O Comercial deu isenção de tarifa no checkout de setembro a dezembro (S07), uma **concessão comercial fora do contrato** (S41). O acordo não chegou à Orbe nem à planilha de taxas (S18, S30). Em setembro, a Orbe cobrou a taxa cheia em **118 transações: R$ 15.396,77 a devolver ao lojista** (o que a Orbe descontou de fato menos a comissão contratada, S51; a fórmula da lista de divergências dá R$ 15.397,42, diferença de truncamento da Orbe). Não há nada a recuperar da Orbe, porque ela cobrou o contratado; o custo é todo da Tarvo (`pendencias.csv` PEN-0001, natureza ISENCAO_NAO_INFORMADA em `divergencias_taxa.csv`).
+- **Caso de apoio: Mundo Aberto.** Spread de 1,20% negociado em julho; a Ponte nunca foi avisada (S30) e aplicou o padrão de 1,50% em **23 operações: R$ 1.418,88** pagos a mais pelo lojista (Spread R$ descontado menos o contratado, S51; a lista de divergências, pela fórmula, soma R$ 1.418,85; PEN-0007).
 - **Onde vão os ~8 dias hoje (S33):** checkout ~3 dias (metade casando nome com EC/CNPJ, metade refazendo conta por planilha desatualizada); remessa ~2 dias (esperando Ponte ou Comercial); extratos ~2 dias (linha a linha); último dia notas e revisão. Quase nada desse tempo é decisão.
-- **Regras só na cabeça de uma pessoa:** taxa zero da Casa do Estudante, spread de 1,20% da Mundo Aberto, "spread negativo não se aceita", "operação repetida conta uma vez". Nada disso estava escrito; tivemos de perguntar (39 respostas no Slack, S01–S39). Nas férias da Helena, ninguém fecha (S32).
+- **Regras só na cabeça de uma pessoa:** taxa zero da Casa do Estudante, spread de 1,20% da Mundo Aberto, "spread negativo não se aceita", "operação repetida conta uma vez". Nada disso estava escrito; tivemos de perguntar (54 respostas no Slack, S01–S54). Nas férias da Helena, ninguém fecha (S32).
 - **Planilha de taxas manual e sem chave confiável:** 3 lojistas sem código da Orbe (Horizonte Viagens, Kiwi, Novo Horizonte), CNPJ sem o zero inicial (Fluente, Campus Global), taxas digitadas como texto (Oxford Prep, Sol Nascente), Atlas Idiomas transacionando sem contrato vigente.
 - **Ninguém compara taxa contratada × taxa cobrada:** a conferência é manual, arquivo por arquivo; só se descobre quando o lojista reclama.
 - **Cobrança a mais sem ninguém notar:** Rota Global pagou +0,50 p.p. no crédito desde 12/09, contrato inalterado.
 - **Ponte sem critério:** operação duplicada e spread negativo eram aceitos ou não "no feeling".
-- **Número de destaque:** R$ 15.397,42 da Casa do Estudante: um acordo que não foi avisado vira 118 cobranças erradas em um mês (de 210 transações de checkout cobradas fora do contrato, `divergencias_taxa.csv`)
+- **Número de destaque:** R$ 15.396,77 da Casa do Estudante: um acordo que não foi avisado vira 118 cobranças erradas em um mês (de 210 transações de checkout cobradas fora do contrato, `divergencias_taxa.csv`)
 
-> Nota do apresentador: este é o slide da causa raiz. Automatizar o processo como ele é só faria o erro mais rápido. A correção foi tirar a regra da cabeça (REGRAS_DE_NEGOCIO.md, com quem aprovou e quando), a taxa da planilha solta e mostrar todo mês o que foi cobrado fora do contrato. O próximo passo é avisar o parceiro quando a condição muda (slide 8).
+> Nota do apresentador: este é o slide da causa raiz. Automatizar o processo como ele é só faria o erro mais rápido. O contrato decide quem deve (S41): por isso a Casa, que é concessão fora do contrato, é custo da Tarvo, e Bridge e Mundo Aberto são cobrança de parceiro. A correção foi tirar a regra da cabeça (REGRAS_DE_NEGOCIO.md, com quem aprovou e quando), a taxa da planilha solta e mostrar todo mês o que foi cobrado fora do contrato. O próximo passo é avisar o parceiro quando a condição muda (slide 8).
 
 ---
 
@@ -48,38 +49,42 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 ## Slide 4: Quanto dinheiro está em jogo
 **Mensagem-chave:** Quatro tipos de dinheiro diferentes, que não se somam: o que a Tarvo recupera dos parceiros, o que devolve aos lojistas, o que pode deixar de faturar e o caixa à espera de confirmação.
 
+**Como o valor é calculado (S51):** o que se devolve ao lojista é o que o parceiro **descontou de fato** menos a comissão contratada; a lista `divergencias_taxa.csv` segue a fórmula (bruto × diferença de taxa), e a diferença entre as duas é truncamento da Orbe (centavos).
+
 **(a) A recuperar dos parceiros (divergência de contrato, `natureza = CONTRATO`, `cobrar_parceiro = S`)**
 | De quem | O quê | Valor | Origem |
 |---|---|---|---|
-| Orbe | Rota Global (+0,50 p.p. no crédito desde 12/09, contrato inalterado) | R$ 1.546,28 em 87 transações | `divergencias_taxa.csv` CHECKOUT/CONTRATO; PEN-0003 |
-| Orbe | Escola Bridge (taxa nova de 15/09 aplicada só a partir de 23/09: 2,59% × 2,19%) | R$ 29,95 em 5 transações | idem; PEN-0002 |
-| **Orbe, total** | | **R$ 1.576,23 em 92 transações** (líquido de estornos, R51) | `divergencias_taxa.csv`, CHECKOUT, natureza CONTRATO |
-| Ponte | Mundo Aberto pagou spread ~1,50% com contrato de 1,20% (valor cheio, R22) | **R$ 1.418,85 em 23 operações** | `divergencias_taxa.csv` REMESSA/CONTRATO; PEN-0007 |
-| Ponte | Contestação dos 4 spreads negativos (prejuízo da Tarvo, outra natureza, R53) | realizado −R$ 1.834,05 em 4 operações | `pendencias.csv` PEN-0009 a PEN-0012 |
+| Orbe | Rota Global (+0,50 p.p. no crédito desde 12/09, contrato inalterado) | R$ 1.545,86 em 87 transações | `pendencias.csv` PEN-0003 |
+| Orbe | Escola Bridge (taxa nova de 15/09 aplicada só a partir de 23/09: 2,59% × 2,19%) | R$ 29,94 em 5 transações | PEN-0002 |
+| **Orbe, total** | | **R$ 1.575,80 em 92 transações** (R$ 1.545,86 + R$ 29,94; a fórmula da lista dá R$ 1.576,23, líquido de estornos) | `pendencias.csv`; `divergencias_taxa.csv` CHECKOUT/CONTRATO |
+| Ponte | Mundo Aberto pagou spread ~1,50% com contrato de 1,20% (valor cheio, R22) | **R$ 1.418,88 em 23 operações** (fórmula da lista: R$ 1.418,85) | `pendencias.csv` PEN-0007; `divergencias_taxa.csv` REMESSA/CONTRATO |
+| Ponte | **Contestação dos 4 spreads negativos**: diferença até o spread contratado, a pedir à Ponte porque a trava deveria ter sido honrada (S43). Prejuízo da Tarvo, outra natureza (R53) | **R$ 3.565,98** (o spread realizado nas mesmas 4 operações foi −R$ 1.834,05) | `pendencias.csv` PEN-0009 a PEN-0012 (`valor_brl`; ex.: PC-0926-0210 −R$ 687,52 realizado e −R$ 1.351,87 até o contratado) |
 
-**(b) A devolver aos lojistas: R$ 18.392,50** (a taxa sai descontada na liquidação, então o lojista já recebeu a menos, S34)
+**(b) A devolver aos lojistas: R$ 18.391,45** (a taxa sai descontada na liquidação, então o lojista já recebeu a menos, S34)
 | O quê | Valor | Origem |
 |---|---|---|
-| Casa do Estudante: isenção set–dez **não informada à Orbe** (`ISENCAO_NAO_INFORMADA`). A Orbe cobrou certo pelo que sabia; **não há o que recuperar**: a Tarvo devolve do próprio bolso (S18) | **R$ 15.397,42 em 118 transações** | `divergencias_taxa.csv` CHECKOUT/ISENCAO_NAO_INFORMADA; PEN-0001 |
-| Lojistas das divergências de contrato (Rota, Bridge, Mundo Aberto), compensado pelo que se recupera em (a) | R$ 2.995,08 | (a) |
+| Casa do Estudante: **concessão comercial fora do contrato**, não informada à Orbe (`ISENCAO_NAO_INFORMADA`). A Orbe cobrou o contratado; **não há o que recuperar**: a Tarvo devolve do próprio bolso (S18, S41) | **R$ 15.396,77 em 118 transações** (fórmula da lista: R$ 15.397,42) | `pendencias.csv` PEN-0001 |
+| Rota Global, Bridge e Mundo Aberto: divergências de contrato, **compensadas pelo que se recupera em (a)** (R$ 1.545,86 + R$ 29,94 da Orbe + R$ 1.418,88 da Ponte) | R$ 2.994,68 | PEN-0003, PEN-0002, PEN-0007 |
+| Líquido para a Tarvo depois de recuperar tudo de (a) (exceto os spreads negativos) | R$ 15.396,77 (só a Casa) | cálculo: 18.391,45 − 2.994,68 |
 
-**(c) Receita da Tarvo em risco: R$ 8.687,51**
+**(c) Receita da Tarvo em risco: R$ 9.659,06**
 | O quê | Valor | Origem |
 |---|---|---|
 | Atlas Idiomas não faturada (sem contrato; referência = taxa que a Orbe cobrou). Fatura retroativa quando o Comercial confirmar (S27) | R$ 7.876,05 em 57 transações | `pendencias.csv` PEN-0005 |
-| Participação não recebida nos 4 spreads negativos: 50% do spread estimado D-1 (R$ 1.622,90), por operação | R$ 811,46 | PEN-0009 a PEN-0012 (estimado D-1 no motivo) |
+| Participação da Tarvo nos 4 spreads negativos: **50% da diferença de R$ 3.565,98, calculado por operação** (R$ 500,65 + R$ 318,96 + R$ 287,46 + R$ 675,94), se a Ponte não honrar a trava | R$ 1.783,01 | PEN-0009 a PEN-0012 (50% de `valor_brl`, R20) |
+| Também no fechamento: excesso da Mundo Aberto dentro da nota de remessa (a metade da Tarvo, que sai da nota se a Ponte devolver) | R$ 709,50 | PEN-0008 |
 
 **(d) Caixa a confirmar (não é receita)**
 | O quê | Valor | Origem |
 |---|---|---|
 | PIX sem identificação (Aurora L50) | R$ 7.350,00 | `pendencias.csv` PEN-0015 |
 | Devolução de repasse Mundo Aberto (Aurora L65), motivo desconhecido | R$ 12.400,00 | PEN-0016 |
-| PIX da Ponte Aérea Estudantil (Meridiano): **identificado** (S22) como adiantamento de remessa de outubro; acompanhar | R$ 18.240,00 | PEN-0018 |
+| PIX da Ponte Aérea Estudantil (Meridiano): **identificado** (S22, S54) como adiantamento de remessa de outubro; acompanhar | R$ 18.240,00 | PEN-0018 |
 
 - Também evitado: duplicata da Ponte que inflaria a base da nota, R$ 821,88 (PEN-0013)
-- **Número de destaque:** R$ 15.397,42 a devolver à Casa do Estudante porque ninguém avisou a Orbe
+- **Número de destaque:** R$ 15.396,77 a devolver à Casa do Estudante porque ninguém avisou a Orbe
 
-> Nota do apresentador: não somar os grupos. (a) é o que se cobra de Orbe e Ponte; (b) é dinheiro do lojista, e a Casa sai do caixa da Tarvo porque o erro foi interno; (c) é o que a Tarvo deixa de faturar se ninguém agir (estimativas); (d) é dinheiro já no banco cuja origem ou destino só o financeiro confirma.
+> Nota do apresentador: não somar os grupos. (a) é o que se cobra de Orbe e Ponte; (b) é dinheiro do lojista, e a Casa sai do caixa da Tarvo porque a concessão foi fora do contrato e ninguém avisou a Orbe; (c) é o que a Tarvo deixa de faturar se ninguém agir; (d) é dinheiro já no banco cuja origem ou destino só o financeiro confirma. Os R$ 3.565,98 são o que se pede à Ponte; a receita da Tarvo nessa conta é metade, por operação.
 
 ---
 
@@ -93,6 +98,7 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 6. Mudou taxa ou entrou lojista: atualizar a planilha e rodar de novo
 7. A Orbe mandou um arquivo de ajuste no meio do mês (estornos, reversões, vendas)? Colocar o arquivo na mesma pasta (com `orbe` no nome) e rodar de novo; não precisa mexer em nada
 - Guia passo a passo: `COMO_USAR.md`
+- Falta uma fonte ou o layout mudou? Rodar assim mesmo: a solução fecha o que não depende dela, marca notas e comissões como `PROVISORIO` e abre uma pendência para a Helena dizendo o que está bloqueado (S53)
 - **Número de destaque:** 18 pendências em setembro (15 Helena, 1 Comercial, 2 Helena/Comercial) (`pendencias.csv`)
 
 > Nota do apresentador: o oito dias úteis vira conferir 18 itens. A solução já traz pendências preventivas para outubro (vigência que não entende, CNPJ sem contrato, operação fora do mês, saldo que não fecha).
@@ -126,11 +132,13 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 - Lançamento de extrato com descrição nova → conta provisória 1.1.09.002, pendência para a Helena
 - Nome parecido não serve de vínculo: "HORIZONTE INTERCAMBIO" (Orbe) é a Novo Horizonte, não a Horizonte Viagens. Vínculo só por EC/CNPJ, confirmado pelo financeiro
 - Ainda não concilia Orbe × banco parcela a parcela (falta a agenda de recebíveis)
-- Mudança de layout de arquivo → o programa para e diz o que não achou
+- **Fechamento parcial (S53):** arquivo atrasado ou layout mudado sem aviso → a solução não segura o mês nem quebra em silêncio. Fecha o que não depende da fonte, marca **todas** as notas e comissões do parcial com `status = PROVISORIO`, bloqueia só o que depende (por exemplo, sem a Ponte não há nota nem comissão de remessa e a conciliação de PIX/TED da Ponte vira trabalho humano) e abre uma pendência `FONTE_AUSENTE` ou `LAYOUT_INESPERADO` para a Helena com o efeito do bloqueio. Quem libera é a Helena; no fechamento completo os arquivos saem idênticos byte a byte
 - **Caso real (17/10, 13h): a Orbe mandou 14 ajustes tardios** (10 estornos, 3 reversões de antecipação e 1 venda, arquivo `06_orbe_ajustes_tardios_set2026.csv`) depois de a primeira versão estar pronta. A solução antiga quebrava com 2 arquivos da Orbe na pasta; agora ela lê todo arquivo `orbe` da pasta, soma as linhas e o `rastro.csv` diz de qual arquivo veio cada uma. Basta colocar o arquivo na pasta e rodar de novo. Impacto no mês: **−R$ 3.304,39** na comissão de checkout (R$ 207.039,73 → R$ 203.735,34), quase todo da Oxford (−R$ 2.232,19, por 2 reversões de antecipação) e da Maple (−R$ 845,01). Divergências e pendências não mudaram. Linha repetida ou estorno em dobro não conta duas vezes: vira pendência.
 - **Arquivo aberto no Excel na hora de rodar:** em vez de um erro técnico, o programa diz qual CSV de `saida/` está aberto e pede para fechá-lo no Excel (ou em outro programa) e rodar de novo
+- **Em outubro: ajuste da Ponte (S40).** Quando a Ponte lançar o ajuste de uma contestação (linha "AJUSTE REF PC-…", Spread R$ próprio, normalmente negativo), ele entra **no mês em que aparece** e abate a participação dentro da nota única da Ponte, com o rastro apontando a operação original; nota zerada ou negativa não emite e vira pendência. Não há ajuste em setembro. Premissa nossa, ainda sem resposta: o Spread R$ do ajuste é o spread inteiro, e a Tarvo entra com 50% (HIPOTESES, H30). Ajuste tardio da Orbe: antes da aprovação, mês do movimento; depois, mês seguinte (S52)
+- Alerta de antecipação só para **lojista novo** (S42/S50): em setembro acende só a Atlas (pico R$ 183.581,24 em 24/09, líquido de reversões); pela regra antiga acenderiam 6 lojistas (PEN-0006)
 - Relatório da Ponte de outro mês → as operações ficam fora e vira 1 pendência por mês de contratação; o resto do fechamento roda
-- **Como sabemos que funciona:** teste de outubro simulado (datas deslocadas para outubro, lojista novo fora da planilha, lançamento desconhecido no extrato: tudo vira pendência, a Casa continua a taxa zero, o rastro fecha); auditoria independente feita por outro agente sem acesso ao código, recalculando do arquivo bruto (amostra aleatória de 30 transações: 30/30 certas; soma do rastro conferida para todos os id_saida); 116 testes automáticos verdes (inclusive os da IA, com resposta simulada e sem rede)
+- **Como sabemos que funciona:** teste de outubro simulado (datas deslocadas para outubro, lojista novo fora da planilha, lançamento desconhecido no extrato: tudo vira pendência, a Casa continua a taxa zero, o rastro fecha); auditoria independente feita por outro agente sem acesso ao código, recalculando do arquivo bruto (amostra aleatória de 30 transações: 30/30 certas; soma do rastro conferida para todos os id_saida); 148 testes automáticos verdes (inclusive os da IA, com resposta simulada e sem rede)
 - **Número de destaque:** 46 lançamentos com confiança menor que 1 sinalizados para revisão (`lancamentos_classificados.csv`)
 
 > Nota do apresentador: dizer explicitamente quais premissas ainda esperam resposta (HIPOTESES.md) e que mudar uma resposta é mudar um parâmetro e rodar de novo.
@@ -157,7 +165,7 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 ## Slide 9: Fechamento
 **Mensagem-chave:** Regra escrita, número rastreável, exceção com dono.
 - R$ 243.284,29 em notas, cada centavo com origem
-- R$ 1.576,23 a recuperar da Orbe e R$ 1.418,85 da Ponte (mais a contestação dos spreads negativos); R$ 15.397,42 a devolver à Casa do Estudante; R$ 8.687,51 de receita em risco, agora visíveis
+- R$ 1.575,80 a recuperar da Orbe e R$ 1.418,88 da Ponte (mais R$ 3.565,98 de contestação dos spreads negativos a pedir à Ponte); R$ 15.396,77 a devolver à Casa do Estudante (concessão fora do contrato); R$ 9.659,06 de receita em risco, agora visíveis
 - 18 decisões para pessoas, em vez de 8 dias de conferência
 - Perguntas
 

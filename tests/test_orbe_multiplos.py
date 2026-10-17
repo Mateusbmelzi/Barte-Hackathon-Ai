@@ -62,9 +62,10 @@ def test_id_repetido_entre_arquivos_conta_uma_vez(tmp_path):
     a = _csv(tmp_path, "orbe_a.csv", VENDA)
     b = _csv(tmp_path, "orbe_b.csv", VENDA, VENDA.replace("1000,00", "999,00"))   # repete igual e repete diferente
     linhas, dup = leitores.ler_orbe_varios([a, b])
-    assert len(linhas) == 1 and linhas[0]["arquivo"] == "orbe_a.csv"
-    assert [(d["arquivo"], d["identica"]) for d in dup] == [("orbe_b.csv", True), ("orbe_b.csv", False)]
-    assert all(d["original"] is linhas[0] for d in dup)
+    # S52: a idêntica sai (conta uma vez); a de valor diferente do arquivo posterior (ajuste) SUBSTITUI a anterior
+    assert len(linhas) == 1 and linhas[0]["arquivo"] == "orbe_b.csv" and linhas[0]["bruto"] == D("999.00")
+    assert [(d["arquivo"], d["identica"]) for d in dup] == [("orbe_b.csv", True), ("orbe_a.csv", False)]
+    assert dup[1]["original"] is linhas[0] and dup[0]["original"]["arquivo"] == "orbe_a.csv"
 
 
 def test_id_repetido_no_mesmo_arquivo(tmp_path):

@@ -26,7 +26,7 @@ Testado do zero com Python 3.11 (pandas 2.2 e 3.0) e Python 3.14. Nenhuma chave 
    # .venv/bin/python -m src.fechamento                         # Linux/macOS
    ```
    Sem argumentos, lê os arquivos do case na raiz e **sobrescreve** os 6 CSVs de `saida/`. Para outro mês ou outra pasta: `--entrada <pasta com os arquivos do mês> --saida <pasta de saída>` (o nome de cada arquivo precisa conter a palavra-chave descrita em [Como rodar](#como-rodar)).
-4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (116 testes).
+4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (148 testes).
 
 Alternativa sem terminal: `.venv\Scripts\python -m app` abre a interface no navegador (enviar os arquivos do mês, rodar, baixar os CSVs), ou dois cliques em `fechar_mes.bat` no Windows. Ver [Interface visual](#interface-visual-sem-terminal).
 
@@ -40,7 +40,7 @@ Documentos relacionados:
 - [PERGUNTAS_SLACK.md](PERGUNTAS_SLACK.md): perguntas feitas ao financeiro (todas respondidas em 17/10)
 - [PITCH.md](PITCH.md): roteiro do pitch
 - [PROMPTS/MOMENTOS.md](PROMPTS/MOMENTOS.md): momentos de uso de IA
-- [docs/00_slack_respostas_financeiro.md](docs/00_slack_respostas_financeiro.md): respostas do financeiro (S01–S39)
+- [docs/00_slack_respostas_financeiro.md](docs/00_slack_respostas_financeiro.md): respostas do financeiro (S01–S54)
 - [docs/01_entendimento_dados.md](docs/01_entendimento_dados.md): entendimento dos dados (layout, anomalias, gabarito)
 - [docs/02_validacao.md](docs/02_validacao.md): validação independente (auditor)
 - [docs/PLANO_IA_01_investigacao.md](docs/PLANO_IA_01_investigacao.md), [docs/04_validacao_ia.md](docs/04_validacao_ia.md) e [docs/exemplo_investigacao_ia.md](docs/exemplo_investigacao_ia.md): plano, auditoria e execução real da investigação com IA
@@ -89,17 +89,28 @@ python -m app --sem-navegador  # só sobe o servidor
 - Cartão **Investigação de divergências**: fatos por grupo, botão **Gerar hipóteses com IA** (desabilitado sem chave, com o motivo), Aceitar/Recusar com comentário e **Baixar decisões (.csv)**.
 - Código em `app/servidor.py` (servidor) e `app/pagina.html` (tela). Teste em `tests/test_app.py`.
 
+## Quando falta um arquivo ou o layout muda
+
+Fonte ausente ou com colunas diferentes não derruba o fechamento (S53): roda o que não depende dela, gera os 6 CSVs
+com o possível, abre a pendência `FONTE_AUSENTE` ou `LAYOUT_INESPERADO` (valor 0, Helena decide) e mostra
+**FECHAMENTO PARCIAL — bloqueado: ...** no resumo e na tela. `notas_a_emitir.csv` e `comissoes_por_lojista.csv`
+ganham a coluna `status = PROVISORIO` só nesse caso; no fechamento completo os arquivos são idênticos aos de `saida/`.
+Dependências: checkout = Orbe + taxas; remessa = e-mail da Ponte (divergência também precisa das taxas); lançamentos =
+plano de contas + cada extrato (Aurora e Meridiano são independentes). Detalhes em `COMO_USAR.md`.
+
 ## Como testar
 ```bash
 python -m pytest -q
 ```
-116 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
+148 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
 - leitura dos arquivos, arredondamento, formato das saídas e soma do rastro;
 - `tests/test_gabarito.py` e `tests/test_gabarito_independente.py`: totais de setembro e valores fixos por lojista auditados de forma independente (`docs/02_validacao.md`), conferidos contra os CSVs gerados;
 - `tests/test_app.py`: sobe a interface numa porta livre, envia os arquivos, roda e confere os totais e que o CSV baixado é idêntico ao de `saida/`; também confere que um erro aparece sem stack trace.
 - `tests/test_outubro_simulado.py`: uma cópia dos dados com as datas da Orbe deslocadas para outubro, um lojista novo fora da planilha e um lançamento de extrato desconhecido. Confere que a competência vira 10/2026, que o lojista novo vira pendência e fica fora da nota, que o lançamento vai para HUMANO, que a Casa do Estudante continua com taxa zero, que as remessas de setembro ficam fora de outubro e que o rastro fecha.
 
-Resultado de setembro (para conferência): comissão checkout R$ 203.735,34 (21 lojistas, 1.900 transações, já com os 14 ajustes do arquivo `06_orbe_ajustes_tardios_set2026.csv`; MDR R$ 187.415,30 e antecipação R$ 16.320,04), remessa R$ 39.543,45 (228 operações), 21 notas (20 de checkout somando R$ 203.740,84, mais a da Ponte de R$ 39.543,45), divergências checkout R$ 16.973,65 em 210 transações (valor **líquido**: R$ 17.081,18 cobrados a mais menos R$ 107,53 de estornos dessas vendas, H02), divergência remessa R$ 1.418,85 em 23 operações, 184 lançamentos, 18 pendências.
+Resultado de setembro (para conferência): comissão checkout R$ 203.735,34 (21 lojistas, 1.900 transações, já com os 14 ajustes do arquivo `06_orbe_ajustes_tardios_set2026.csv`; MDR R$ 187.415,30 e antecipação R$ 16.320,04), remessa R$ 39.543,45 (228 operações), 21 notas (20 de checkout somando R$ 203.740,84, mais a da Ponte de R$ 39.543,45), divergências checkout R$ 16.973,65 em 210 transações (valor **líquido**: R$ 17.081,18 cobrados a mais menos R$ 107,53 de estornos dessas vendas, H02), divergência remessa R$ 1.418,85 em 23 operações (nas pendências, a devolução ao lojista usa o descontado de fato: Casa R$ 15.396,77, Rota R$ 1.545,86, Bridge R$ 29,94, Mundo Aberto R$ 1.418,88; spreads negativos: realizado −R$ 1.834,05 e diferença até o contratado −R$ 3.565,98), 184 lançamentos, 18 pendências.
+
+Critérios novos de 17/10 (S40–S54, `REGRAS_DE_NEGOCIO.md` R67–R76): devolver ao lojista = o que o parceiro descontou de fato menos a comissão contratada (Casa R$ 15.396,77; a lista `divergencias_taxa.csv` segue a fórmula e soma R$ 15.397,42); o contrato decide quem deve, não o aviso, e a Casa é concessão fora do contrato; alerta de antecipação só para lojista novo (em setembro, só a Atlas); com fonte ausente ou layout inesperado o fechamento sai **parcial**, com `status = PROVISORIO` e pendência `FONTE_AUSENTE`/`LAYOUT_INESPERADO`.
 
 ## Chave de API
 Nenhuma chave é necessária para o fechamento: ele roda offline. A chave só habilita a investigação com IA, que é opcional (seção abaixo).
@@ -166,8 +177,8 @@ Cada número de saída tem um `id_saida` (ex.: `COM-CHK-0005`, `DIV-0012`, `NF-0
 ## Limitações conhecidas
 - **Classificação dos extratos por regras de texto (regex).** Um lançamento com descrição que nenhuma regra conhece cai em `1.1.09.002` com método HUMANO e vira pendência. É preciso acrescentar a regra em `config.REGRAS_EXTRATO`.
 - **Sem conciliação Orbe × banco parcela a parcela** (S16): os créditos Orbe no Aurora são só classificados. Falta a agenda de recebíveis da Orbe.
-- **Depende do layout dos arquivos.** Mudança de colunas, de nome de aba ("vigentes") ou de formato do anexo da Ponte faz o programa parar com erro explicando o que não achou. Ele não tenta adivinhar.
+- **Depende do layout dos arquivos.** Mudança de colunas, de nome de aba ("vigentes") ou de formato do anexo da Ponte, ou um arquivo que não chegou, não derruba o mês: o fechamento sai **parcial** (S53, R76). Fecha o que não depende da fonte, marca notas e comissões como `PROVISORIO`, bloqueia o resto e abre `FONTE_AUSENTE` ou `LAYOUT_INESPERADO` para a Helena. Ele não tenta adivinhar.
 - **Planilha de taxas é manual.** O programa trata os defeitos atuais (CNPJ sem zero à esquerda, taxa em texto, "padrão", vigência em texto, linha riscada), mas um formato novo de vigência ou um EC sem código vira pendência, e o lojista fica fora da nota até alguém corrigir a planilha ou o de-para em `config.py`.
-- **Premissas nossas.** As perguntas ao financeiro foram respondidas em 17/10 (S18–S39; H01, H02, H04, H08, H10, H14 e H15 viraram regra; H03 foi substituída por R52). Seguem como decisão nossa, com o critério escrito, as premissas marcadas "Decidida" ou "Decisão do desenvolvedor" em `HIPOTESES.md` (ex.: H06 tolerância, H07 Spread %, H11–H13 contas). Mudando uma decisão, muda-se o parâmetro em `config.py` e roda de novo.
+- **Premissas nossas.** As perguntas ao financeiro foram respondidas em 17/10 (S18–S54; H01, H02, H04, H08, H10, H14 e H15 viraram regra; H03 foi substituída por R52; H28–H34 são premissas novas, com H30, H33 e H34 ainda sem resposta). Seguem como decisão nossa, com o critério escrito, as premissas marcadas "Decidida" ou "Decisão do desenvolvedor" em `HIPOTESES.md` (ex.: H06 tolerância, H07 Spread %, H11–H13 contas). Mudando uma decisão, muda-se o parâmetro em `config.py` e roda de novo.
 - **Competência** vem sempre da Orbe (mês mais frequente de `data_movimento`). Se o relatório da Ponte for de outro mês (ou trouxer operações de outro mês), essas operações ficam fora da comissão e da nota e viram **1 pendência por mês de contratação** (`REMESSA_FORA_COMPETENCIA`, H24); o resto do fechamento roda normalmente.
 - Não emite nota fiscal nem faz lançamento no ERP: gera os arquivos para a analista conferir e lançar.
