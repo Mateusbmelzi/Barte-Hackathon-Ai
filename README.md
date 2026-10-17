@@ -4,6 +4,32 @@ Programa de linha de comando (Python + pandas) que lê os 6 arquivos do fechamen
 
 Todo o cálculo é feito por regras fixas, escritas em `src/config.py`. Nenhum número sai de IA/LLM.
 
+## Como rodar (avaliadores)
+Testado do zero com Python 3.11 (pandas 2.2 e 3.0) e Python 3.14. Nenhuma chave de API é necessária.
+
+1. Clonar e entrar na pasta:
+   ```bash
+   git clone https://github.com/Mateusbmelzi/Barte-Hackathon-Ai.git
+   cd Barte-Hackathon-Ai
+   ```
+2. Criar o ambiente virtual e instalar as dependências:
+   ```bash
+   python -m venv .venv
+   .venv\Scripts\python -m pip install -r requirements.txt      # Windows
+   # .venv/bin/python -m pip install -r requirements.txt        # Linux/macOS
+   ```
+3. Rodar o fechamento (um comando, a partir da raiz do repositório):
+   ```bash
+   .venv\Scripts\python -m src.fechamento                       # Windows
+   # .venv/bin/python -m src.fechamento                         # Linux/macOS
+   ```
+   Sem argumentos, lê os 6 arquivos do case na raiz e **sobrescreve** os 6 CSVs de `saida/`. Para outro mês ou outra pasta: `--entrada <pasta com os 6 arquivos> --saida <pasta de saída>` (o nome de cada arquivo precisa conter a palavra-chave descrita em [Como rodar](#como-rodar)).
+4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (55 testes).
+
+Alternativa sem terminal: `.venv\Scripts\python -m app` abre a interface no navegador (enviar os 6 arquivos, rodar, baixar os CSVs), ou dois cliques em `fechar_mes.bat` no Windows. Ver [Interface visual](#interface-visual-sem-terminal).
+
+Se `.venv\Scripts\activate` for bloqueado pelo PowerShell (política de execução), não é preciso ativar: chamar `.venv\Scripts\python` direto, como acima, funciona.
+
 Documentos relacionados:
 - [COMO_USAR.md](COMO_USAR.md): passo a passo para a analista do financeiro
 - [REGRAS_DE_NEGOCIO.md](REGRAS_DE_NEGOCIO.md): regras confirmadas (R##), com a fonte
@@ -17,13 +43,13 @@ Documentos relacionados:
 - [PLANO.md](PLANO.md): plano de execução
 
 ## Pré-requisitos
-- Python 3.10 ou superior
-- Dependências em `requirements.txt`: pandas, openpyxl, pytest
+- Python 3.11 ou superior (testado em 3.11 e 3.14)
+- Dependências em `requirements.txt`: pandas (2.2 a 3.x, ambas geram os mesmos bytes), openpyxl, pytest
 
 ## Instalação do zero
 ```bash
-git clone <url-do-repositorio>
-cd <pasta-do-repositorio>
+git clone https://github.com/Mateusbmelzi/Barte-Hackathon-Ai.git
+cd Barte-Hackathon-Ai
 python -m venv .venv
 # Windows:      .venv\Scripts\activate
 # Linux/macOS:  source .venv/bin/activate
@@ -36,7 +62,9 @@ Nota sobre o interpretador: use o `python` do ambiente virtual (ou outro que ten
 python -m src.fechamento --entrada <pasta com os 6 arquivos> --saida <pasta de saída>
 ```
 - Sem argumentos: entrada = raiz do repositório (onde está o data pack de setembro), saída = `saida/`.
-- Os arquivos são achados por padrão de nome (`src/config.py`, `PADROES_ARQUIVOS`): o nome precisa conter `orbe` (.csv), `taxas` (.xlsx), `plano_de_contas` (.csv), `aurora` (.csv); o e-mail da Ponte é o único `.eml` e o extrato Meridiano o único `.ofx`. Deve haver exatamente 1 arquivo por padrão na pasta.
+- Os arquivos são achados por padrão de nome (`src/config.py`, `PADROES_ARQUIVOS`): o nome precisa conter `orbe` (.csv), `taxas` (.xlsx), `plano_de_contas` (.csv), `aurora` (.csv); o e-mail da Ponte é o único `.eml` e o extrato Meridiano o único `.ofx`. Deve haver exatamente 1 arquivo por padrão na pasta. Nada é fixo para setembro: a competência vem das datas da Orbe.
+- O comando precisa ser executado a partir da raiz do repositório (`-m src.fechamento`); as pastas de entrada e saída podem estar em qualquer lugar.
+- `rastro.csv` grava o nome do arquivo de origem de cada linha. Com os mesmos dados sob outros nomes, os outros 5 CSVs saem idênticos e o `rastro.csv` difere só nessa coluna.
 - Ao final, o programa imprime um resumo (totais por linha de negócio, notas, divergências, lançamentos e pendências por responsável).
 - Antes de gravar, o programa confere que a soma do rastro de cada número é igual ao número reportado, ao centavo. Se não for, ele para com erro.
 
@@ -67,8 +95,8 @@ python -m pytest -q
 
 Resultado de setembro (para conferência): comissão checkout R$ 207.039,73 (21 lojistas), remessa R$ 39.543,45 (228 operações), 21 notas, divergências checkout R$ 16.973,65 em 210 transações (valor **líquido**: R$ 17.081,18 cobrados a mais menos R$ 107,53 de estornos dessas vendas, H02), divergência remessa R$ 1.418,85 em 23 operações, 184 lançamentos, 18 pendências.
 
-## Chaves necessárias
-Nenhuma. Não há chamada a API externa nem a LLM. Roda offline.
+## Chave de API
+Nenhuma chave é necessária e não há nada a configurar (sem arquivo `.env`, sem variável de ambiente). O programa não chama API externa nem LLM e roda offline. A única conexão opcional é a das fontes do Google Fonts na interface visual, que cai para a fonte do sistema se estiver offline.
 
 ## Estrutura de pastas
 ```
