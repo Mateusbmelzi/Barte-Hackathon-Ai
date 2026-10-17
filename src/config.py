@@ -240,3 +240,129 @@ ROTULO_VERSAO = {"orbe": "Orbe", "taxas": "Tabela de taxas", "ponte": "Ponte", "
                  "aurora": "Aurora", "meridiano": "Meridiano"}
 UNIDADE_VERSAO = {"orbe": ("transação", "transações", "a"), "ponte": ("operação", "operações", "a"),   # (singular, plural, o/a)
                   "aurora": ("lançamento", "lançamentos", "o"), "meridiano": ("lançamento", "lançamentos", "o")}
+
+
+# ---------------------------------------------------------------- fila de trabalho (PLANO_03, src/fila.py)
+# Papéis de contato (cadastro/contatos.csv) e, por tipo de item, o objetivo da ação e quem pode ser contatado.
+# A IA de ação só pode sugerir destinos desta lista; tipo sem entrada -> FINANCEIRO_INTERNO.
+PAPEIS_CONTATO = ["LOJISTA", "ORBE", "PONTE", "COMERCIAL", "BANCO_AURORA", "BANCO_MERIDIANO", "CONTABILIDADE",
+                  "FINANCEIRO_INTERNO"]
+ROTULO_PAPEL = {"LOJISTA": "Lojista", "ORBE": "Orbe", "PONTE": "Ponte Câmbio", "COMERCIAL": "Comercial",
+                "BANCO_AURORA": "Banco Aurora", "BANCO_MERIDIANO": "Banco Meridiano", "CONTABILIDADE": "Contabilidade",
+                "FINANCEIRO_INTERNO": "Financeiro (interno)"}
+STATUS_FILA = ["ABERTA", "EM_ACOMPANHAMENTO", "BAIXADA", "DECLINADA"]
+STATUS_ENCERRADOS = ("BAIXADA", "DECLINADA")
+ACOES_FILA = ["SUGESTAO_IA", "EMAIL_PREPARADO", "EMAIL_ENVIADO", "BAIXA", "DECLINADA", "REABERTA", "COMENTARIO"]
+TIPOS_ITEM_FILA = ["PENDENCIA", "DIVERGENCIA"]
+DESTINO_PADRAO = ["FINANCEIRO_INTERNO"]
+
+
+def tipo_divergencia(natureza, linha_negocio):
+    """Chave de ACOES_POR_TIPO para um grupo de divergência (natureza x linha de negócio)."""
+    return f"DIVERGENCIA_{'ISENCAO' if natureza == NATUREZA_ISENCAO else 'CONTRATO'}_{linha_negocio}"
+
+
+def _acao(rotulo, objetivo, *destinos):
+    return {"rotulo": rotulo, "objetivo": objetivo, "destinos": list(destinos)}
+
+
+ACOES_POR_TIPO = {
+    # ---- divergências (grupo do dossiê: contraparte x lojista x natureza)
+    "DIVERGENCIA_CONTRATO_CHECKOUT": _acao(
+        "Divergência de taxa no checkout", "Contestar a Orbe pela taxa aplicada a mais e devolver a diferença ao lojista.",
+        "ORBE", "LOJISTA"),
+    "DIVERGENCIA_CONTRATO_REMESSA": _acao(
+        "Divergência de spread na remessa", "Contestar a Ponte pelo spread aplicado a mais e devolver a diferença ao lojista.",
+        "PONTE", "LOJISTA"),
+    "DIVERGENCIA_ISENCAO_CHECKOUT": _acao(
+        "Isenção não informada à Orbe", "Combinar com o Comercial a devolução ao lojista da taxa cobrada em isenção concedida.",
+        "COMERCIAL", "LOJISTA"),
+    # ---- pendências do checkout
+    "DEVOLUCAO_LOJISTA_ISENCAO": _acao(
+        "Devolução ao lojista por isenção", "Alinhar com o Comercial e devolver ao lojista o que foi cobrado apesar da isenção.",
+        "COMERCIAL", "LOJISTA"),
+    "DIVERGENCIA_TAXA_CHECKOUT": _acao(
+        "Divergência de taxa (checkout)", "Contestar a Orbe pela taxa diferente da contratada e ressarcir o lojista.",
+        "ORBE", "LOJISTA"),
+    "SALDO_CHECKOUT_NAO_POSITIVO": _acao(
+        "Saldo de checkout não positivo", "Conferir o saldo do lojista no mês e avisá-lo antes de qualquer repasse.",
+        "LOJISTA", "FINANCEIRO_INTERNO"),
+    "LOJISTA_SEM_CONTRATO": _acao(
+        "Lojista sem contrato", "Pedir ao Comercial o contrato ou as taxas do lojista para poder faturar.", "COMERCIAL"),
+    "TAXA_CONTRATADA_INDEFINIDA": _acao(
+        "Taxa contratada indefinida", "Pedir ao Comercial a taxa contratada da faixa que está em branco na planilha.",
+        "COMERCIAL"),
+    "ORBE_ESTORNO_DUPLICADO": _acao(
+        "Estorno duplicado na Orbe", "Decidir se o segundo estorno vale e, se não, pedir correção à Orbe.", "ORBE"),
+    "ORBE_LINHA_DUPLICADA": _acao(
+        "Linha repetida no relatório da Orbe",
+        "Confirmar com a Orbe se a linha repetida é duplicidade e pedir o relatório corrigido.", "ORBE"),
+    "ALERTA_ANTECIPACAO": _acao(
+        "Alerta de antecipação", "Avaliar o risco da antecipação de lojista novo acima das vendas e decidir o limite.",
+        "COMERCIAL", "FINANCEIRO_INTERNO"),
+    # ---- pendências da remessa
+    "DIVERGENCIA_SPREAD_REMESSA": _acao(
+        "Divergência de spread (remessa)", "Contestar a Ponte pelo spread diferente do contratado e ressarcir o lojista.",
+        "PONTE", "LOJISTA"),
+    "EXCESSO_NA_NOTA_REMESSA": _acao(
+        "Excesso na nota da Ponte",
+        "Registrar que o excesso contestado está na nota do mês e acompanhar a devolução da Ponte.",
+        "FINANCEIRO_INTERNO"),
+    "SPREAD_NEGATIVO": _acao(
+        "Spread negativo", "Pedir à Ponte a explicação da operação com spread negativo e a correção.", "PONTE"),
+    "AJUSTE_PONTE_APLICADO": _acao(
+        "Ajuste da Ponte aplicado", "Conferir o ajuste de contestação aplicado na nota da Ponte.", "FINANCEIRO_INTERNO"),
+    "SALDO_REMESSA_NAO_POSITIVO": _acao(
+        "Saldo de remessa não positivo", "Conferir o resultado de remessa do mês antes de emitir a nota da Ponte.",
+        "FINANCEIRO_INTERNO"),
+    "OPERACAO_DUPLICADA": _acao(
+        "Operação duplicada na Ponte", "Confirmar com a Ponte se a operação repetida é duplicidade e pedir correção.",
+        "PONTE"),
+    "REMESSA_FORA_COMPETENCIA": _acao(
+        "Remessa fora da competência", "Decidir em que mês a operação fora da competência deve ser faturada.",
+        "FINANCEIRO_INTERNO"),
+    "REMESSA_SEM_CONTRATO": _acao(
+        "Remessa sem contrato", "Pedir ao Comercial o spread contratado do lojista que operou sem contrato.", "COMERCIAL"),
+    "CONFERIR_REPASSE_PONTE": _acao(
+        "Conferir repasse da Ponte", "Conferir o valor do repasse da Ponte contra a nota emitida.", "FINANCEIRO_INTERNO"),
+    # ---- pendências dos extratos
+    "CREDITO_NAO_IDENTIFICADO": _acao(
+        "Crédito não identificado", "Pedir ao banco o pagador do PIX recebido sem identificação.", "BANCO_AURORA"),
+    "DEVOLUCAO_REPASSE": _acao(
+        "Repasse devolvido", "Descobrir o motivo da devolução do repasse (banco e lojista) e decidir se repaga.",
+        "LOJISTA", "BANCO_AURORA"),
+    "TRANSFERENCIA_EM_TRANSITO": _acao(
+        "Transferência em trânsito", "Confirmar com o banco de destino que a transferência entre contas foi creditada.",
+        "BANCO_MERIDIANO"),
+    "ACOMPANHAR_REMESSA_FUTURA": _acao(
+        "Recurso para remessa futura", "Acompanhar com o lojista a remessa que usará o PIX recebido.", "LOJISTA"),
+    "TED_PONTE_NAO_CONCILIADO": _acao(
+        "TED para a Ponte não conciliada", "Conferir com a Ponte a liquidação da TED que não fecha com as operações.",
+        "PONTE"),
+    "LANCAMENTO_NAO_CLASSIFICADO": _acao(
+        "Lançamento sem classificação", "Definir a conta contábil do lançamento sem regra.", "CONTABILIDADE"),
+    "EXTRATO_NAO_FECHA": _acao(
+        "Extrato não fecha", "Conferir o extrato (saldo inicial, final e movimentos) e pedir novo arquivo se preciso.",
+        "FINANCEIRO_INTERNO"),
+    # ---- fontes, cadastro e versões
+    "FONTE_AUSENTE": _acao("Fonte ausente", "Enviar o arquivo que falta e fechar de novo, ou liberar o mês assim.",
+                           "FINANCEIRO_INTERNO"),
+    "LAYOUT_INESPERADO": _acao("Layout inesperado", "Conferir com quem gerou o arquivo ou ajustar o leitor.",
+                               "FINANCEIRO_INTERNO"),
+    "CADASTRO_AUSENTE": _acao("Cadastro ausente", "Restaurar o cadastro de condições comerciais e fechar de novo.",
+                              "FINANCEIRO_INTERNO"),
+    "VERSAO_CONFLITANTE": _acao("Versões conflitantes", "Conferir qual versão do arquivo vale.", "FINANCEIRO_INTERNO"),
+    "VERSAO_SOBREPOSTA": _acao("Versões sobrepostas", "Conferir a união das versões do extrato.", "FINANCEIRO_INTERNO"),
+    "VERSAO_SUBSTITUIDA": _acao("Versão substituída", "Conferir que a versão antiga ignorada não era a correta.",
+                                "FINANCEIRO_INTERNO"),
+    "LANCAMENTO_SUMIU_NA_NOVA_VERSAO": _acao(
+        "Lançamento sumiu na nova versão", "Conferir por que o lançamento não está na versão nova (foi mantido).",
+        "FINANCEIRO_INTERNO"),
+}
+
+
+def acao_do_tipo(tipo):
+    """Entrada de ACOES_POR_TIPO; tipo sem entrada -> padrão (FINANCEIRO_INTERNO)."""
+    return ACOES_POR_TIPO.get(tipo) or {"rotulo": tipo.replace("_", " ").capitalize(),
+                                        "objetivo": "Verificar a pendência e decidir o encaminhamento.",
+                                        "destinos": list(DESTINO_PADRAO)}

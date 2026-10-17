@@ -12,6 +12,7 @@ decisoes_investigacao.csv), nunca em saida/.
 """
 import csv
 import hashlib
+import inspect
 import io
 import json
 import os
@@ -27,9 +28,11 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from src import config, fechamento, ia, leitores
+from src import contatos as contatos_mod
+from src import fila as fila_mod
 from src.dinheiro import fmt_br, soma
 from src.leitores import _glob_para_regex
 
@@ -37,6 +40,15 @@ try:                                  # cadastro de condições comerciais (Dev 
     from src import cadastro
 except ImportError:                   # pragma: no cover - até o módulo existir
     cadastro = None
+
+try:                                  # IA de ação (sugestões da fila) e assistente de cadastro: opcionais, com guarda-corpos próprios
+    from src import ia_acoes
+except Exception:                     # noqa: BLE001 - módulo ausente ou biblioteca faltando: a fila segue só com o objetivo do playbook
+    ia_acoes = None
+try:
+    from src import ia_cadastro
+except Exception:                     # noqa: BLE001
+    ia_cadastro = None
 
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_CADASTRO = RAIZ / "cadastro"
@@ -172,12 +184,20 @@ def _data_br_hora(iso):
         return iso
 
 
+def _chamar(fn, *args, **kw):
+    """Chama fn passando só os parâmetros nomeados que ela aceita (os módulos de IA evoluem separados da tela)."""
+    params = inspect.signature(fn).parameters
+    if not any(p.kind is p.VAR_KEYWORD for p in params.values()):
+        kw = {k: v for k, v in kw.items() if k in params}
+    return fn(*args, **kw)
+
+
 class Estado:
     """Uma execução em andamento por vez (uso local, uma analista).
     cliente_ia: cliente da API injetável (testes); None = ia.investigar cria o cliente real com a chave."""
 
     def __init__(self, pasta_meses=PASTA_MESES, cliente_ia=None, raiz_ia=None, pasta_cadastro=PASTA_CADASTRO,
-                 raiz_planilha=RAIZ, hoje=None):
+                 raiz_planilha=RAIZ, hoje=None, ia_auto=False):
         self.pasta_meses = Path(pasta_meses)
         self.pasta_cadastro = Path(pasta_cadastro)   # cadastro/condicoes_comerciais.csv (nunca a planilha do cliente)
         self.raiz_planilha = Path(raiz_planilha)     # onde procurar a planilha de taxas se ainda não foi enviada
@@ -186,6 +206,10 @@ class Estado:
         self.raiz_ia = raiz_ia
         self.lock = threading.Lock()
         self.clientes = Clientes(self)
+        self.fila = Fila(self)
+        self.contatos = Contatos(self)
+        self.assistente = Assistente(self)
+        self.ia_auto = ia_auto    # True (tela real): após o fechamento, a IA investiga e sugere ações sozinha
         self.geracao = 0          # muda a cada execução: resposta da IA de execução antiga é descartada
         self.mes = mes_anterior(self.hoje or date.today())   # competência escolhida (AAAA-MM)
         self.recomecar()
@@ -272,6 +296,9 @@ class Estado:
         self.ia_estado = "parado"     # parado | analisando | pronto
         self.ia_resultado = None
         self.decisoes = {}            # (id_grupo, hipotese_n) -> linha do CSV
+        self.sug_estado = "parado"    # sugestões de ação da fila (ia_acoes): parado | analisando | pronto
+        self.sugestoes = {}           # chave do item -> sugestão
+        self.sug_erro = None
 
     # ------------------------------------------------ investigação
     def ia_disponivel(self):
@@ -445,14 +472,65 @@ class Estado:
         try:
             # as condições do cadastro (isenções, taxas especiais, bloqueios) entram no cálculo
             extra = {"cadastro": self.pasta_cadastro} if cadastro is not None else {}
+            if "fila" in inspect.signature(fechamento.executar).parameters:
+                (self.pasta_meses / self.mes).mkdir(parents=True, exist_ok=True)
+                extra["fila"] = self.pasta_meses / self.mes      # memória da fila (fila_log.csv) deste mês
             r = fechamento.executar(self.entrada(), pasta / "saida", **extra)
             self.r = r
             self.resultado = resumo_dict(r)
             self.erro = None
             self.dossie = r.get("investigacao")
+            self.fila.reescrever_csvs()                          # as planilhas refletem o status da fila
+            if self.ia_auto:
+                self.iniciar_ia_auto()
         except Exception as e:  # noqa: BLE001 - mostrado à analista de forma legível
             traceback.print_exc()
             self.resultado, self.r, self.erro = None, None, _mensagem_erro(e)
+
+    # ------------------------------------------------ IA automática (investigação + sugestões da fila)
+    def acoes_disponivel(self):
+        if ia_acoes is None:
+            return False
+        try:
+            ok = _chamar(ia_acoes.disponivel, raiz=self.raiz_ia)
+        except Exception:  # noqa: BLE001
+            return False
+        return bool(ok[0] if isinstance(ok, tuple) else ok)
+
+    def iniciar_ia_auto(self):
+        """Chamado com o lock, logo depois do fechamento. Nunca levanta: sem IA, a fila funciona só com o objetivo do playbook."""
+        if self.dossie and self.ia_disponivel()[0]:
+            self.gerar_hipoteses()
+        itens = self.fila.itens_para_ia()
+        if itens and self.acoes_disponivel():
+            self.sug_estado = "analisando"
+            contexto = {"competencia": (self.r or {}).get("competencia"),
+                        "contatos": {c["papel"]: {"nome": c["nome"], "email": c["email"]}
+                                     for c in reversed(contatos_mod.ler(self.pasta_cadastro)) if c["papel"] != "LOJISTA"}}
+            threading.Thread(target=self._rodar_sugestoes, args=(self.geracao, itens, self.pasta, contexto), daemon=True).start()
+
+    def _rodar_sugestoes(self, geracao, itens, pasta, contexto):
+        erro, sugs = None, {}
+        try:
+            # ia_acoes guarda o cache em <pasta da execução>/sugestoes_ia.json
+            res = _chamar(ia_acoes.sugerir_todos, itens, contexto, cliente=self.cliente_ia, raiz=self.raiz_ia, pasta=pasta)
+            for sug in (res or []):
+                if isinstance(sug, dict) and sug.get("chave"):
+                    sugs[sug["chave"]] = sug
+        except Exception as e:  # noqa: BLE001 - a IA não pode derrubar a tela
+            traceback.print_exc()
+            erro = f"{type(e).__name__}: {e}"
+        with self.lock:
+            if geracao != self.geracao:
+                return
+            self.sugestoes, self.sug_erro, self.sug_estado = sugs, erro, "pronto"
+            tipos = {i["chave"]: i["tipo_item"] for i in self.fila.itens_base()}
+            for chave, sug in sugs.items():                        # só registra: o status do item não muda
+                if chave in tipos and not sug.get("erro"):
+                    try:
+                        self.fila.registrar("IA", chave, tipos[chave], "SUGESTAO_IA", "", str(sug.get("acao_resumo") or ""))
+                    except ErroPedido:
+                        pass
 
     def saidas(self):
         if not self.resultado:
@@ -487,6 +565,7 @@ class Estado:
             "erro": self.erro,
             "saidas": self.saidas(),
             "investigacao": self.json_investigacao(),
+            "fila": self.fila.resumo() if self.resultado else None,
         }
         if self.resultado and (self.pasta / "saida" / "pendencias.csv").exists():
             d["previa_pendencias"] = _previa(self.pasta / "saida" / "pendencias.csv")
@@ -964,6 +1043,279 @@ class Clientes:
                 "ficha": self.ficha(chave)}
 
 
+# ------------------------------------------------ fila de trabalho (PLANO_03): memória do mês em fila_log.csv (src/fila.py)
+EXTRAS_PENDENCIAS = ["status", "ultima_acao", "data_ultima_acao", "responsavel", "comentario"]
+ABAS_FILA = ("pendencias", "divergencias", "acompanhamento", "encerradas")
+ACAO_DE_ROTA = {"email": "EMAIL_PREPARADO", "enviado": "EMAIL_ENVIADO", "baixa": "BAIXA", "declinar": "DECLINADA",
+                "reabrir": "REABERTA", "comentario": "COMENTARIO"}
+
+
+def _emails(texto):
+    """'a@x.com; b@y.com' -> ['a@x.com', 'b@y.com']; ErroPedido se algum não for um e-mail legível."""
+    itens = [e.strip() for e in re.split(r"[;,]", str(texto or "")) if e.strip()]
+    ruins = [e for e in itens if not re.fullmatch(r"[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+", e)]
+    if ruins:
+        raise ErroPedido(f"E-mail inválido: {', '.join(ruins)}. Use o formato nome@empresa.com.br.")
+    return itens
+
+
+class Fila:
+    """Itens de trabalho (pendências e grupos de divergência) do último fechamento + o log de ações do mês
+    (src/fila.py guarda as regras: chaves, status, transições). A tela só apresenta e registra."""
+
+    def __init__(self, estado):
+        self.e = estado
+
+    def pasta_mes(self):
+        return self.e.pasta_meses / self.e.mes
+
+    def registrar(self, usuario, chave, tipo_item, acao, status_novo="", detalhe=""):
+        try:
+            return fila_mod.registrar(self.pasta_mes(), usuario, chave, tipo_item, acao, status_novo, detalhe)
+        except fila_mod.FilaInvalida as ex:
+            raise ErroPedido(str(ex)) from None
+
+    def itens_base(self):
+        """Todas as pendências do fechamento (nunca filtradas por tipo) + um item por grupo de divergência."""
+        r = self.e.r
+        if not r:
+            return []
+        grupos = {fila_mod.chave_divergencia(g): g for g in (self.e.dossie or {}).get("grupos", [])}
+        itens = fila_mod.itens(r, fila_mod.ler_log(self.pasta_mes()))
+        cnpj_ec = {str(c.get("ec")): c["cnpj"] for c in (r.get("dados") or {}).get("contratos", []) if c.get("ec")}
+        for i in itens:
+            g = grupos.get(i["chave"])
+            i["id_grupo"] = g["id_grupo"] if g else None
+            i["id_saida"] = i["ids"][0] if i["tipo_item"] == "PENDENCIA" else (i["id_grupo"] or "")
+            i["valor_num"] = str(i["valor"]) if i["valor"] is not None else None
+            i["valor"] = fmt_br(i["valor"]) if i["valor"] is not None else None
+            if i["tipo_item"] == "PENDENCIA":
+                m = re.search(r"(?<!\d)\d{14}(?!\d)", i["ref_origem"]) or re.search(r"(?<!\d)\d{14}(?!\d)", i["motivo"])
+                ec = re.fullmatch(r"EC\s*(\d+)", i["ref_origem"].strip())
+                i["cnpj"] = m.group() if m else (cnpj_ec.get(ec.group(1), "") if ec else "")
+        return itens
+
+    def itens(self):
+        sugs, contatos = self.e.sugestoes, contatos_mod.ler(self.e.pasta_cadastro)
+        base = self.itens_base()
+        titulos = {i["chave"]: i["titulo"] for i in base}
+        out = []
+        for i in base:
+            vinc = i.get("vinculado_a") or None
+            sug = sugs.get(i["chave"]) or (sugs.get(vinc) if vinc else None)     # mesma sugestão do caso vinculado
+            permitidos = list(i["destinos"])
+            destinos = [d for d in ((sug or {}).get("destinos") or permitidos) if d in permitidos] or permitidos
+            aba = ("encerradas" if i["status"] in config.STATUS_ENCERRADOS else "acompanhamento" if i["status"] == "EM_ACOMPANHAMENTO"
+                   else "divergencias" if i["tipo_item"] == "DIVERGENCIA" else "pendencias")
+            out.append({**i, "aba": aba, "destinos_permitidos": permitidos, "sugestao": sug,
+                        "mesmo_caso": {"chave": vinc, "titulo": titulos.get(vinc, "")} if vinc and vinc in titulos else None,
+                        "contatos": [{"papel": d, "rotulo": config.ROTULO_PAPEL.get(d, d), **self._contato(contatos, d, i["cnpj"])}
+                                     for d in destinos]})
+        out.sort(key=lambda i: (-abs(Decimal(i["valor_num"] or 0)), i["chave"]))
+        return out
+
+    @staticmethod
+    def _contato(contatos, papel, cnpj):
+        cnpj = so_digitos(cnpj)
+        achados = [c for c in contatos if c["papel"] == papel and c["email"] and (papel != "LOJISTA" or (cnpj and c["cnpj"] == cnpj))]
+        return {"email": "; ".join(c["email"] for c in achados), "nome": ", ".join(c["nome"] for c in achados if c["nome"])}
+
+    def itens_para_ia(self):
+        """Entrada da IA de ação: dados do item (a IA não calcula nem inventa valores)."""
+        grupos = {g["id_grupo"]: g for g in (self.e.dossie or {}).get("grupos", [])}
+        itens = []
+        for i in self.itens_base():
+            if i["tipo_item"] == "PENDENCIA" and i.get("vinculado_a"):
+                continue                                    # a sugestão é gerada uma vez, no grupo DIV do mesmo caso
+            item = {k: i[k] for k in ("chave", "tipo_item", "tipo", "ref_origem", "titulo", "valor", "valor_num", "quem_decide",
+                                      "motivo", "cnpj", "lojista", "objetivo")}
+            item["destinos_permitidos"] = list(i["destinos"])
+            item["valor"] = i["valor_num"]
+            if i["id_grupo"] in grupos:
+                item["grupo"] = grupos[i["id_grupo"]]
+            itens.append(item)
+        return itens
+
+    def resumo(self, itens=None):
+        itens = self.itens() if itens is None else itens
+        cont = {a: sum(1 for i in itens if i["aba"] == a) for a in ABAS_FILA}
+        analisando = self.e.ia_estado == "analisando" or self.e.sug_estado == "analisando"
+        return {"contadores": cont, "abertas": cont["pendencias"] + cont["divergencias"],
+                "ia": {"analisando": analisando, "sugestoes": self.e.sug_estado, "erro": self.e.sug_erro,
+                       "disponivel": self.e.acoes_disponivel()}}
+
+    def json(self):
+        itens = self.itens()
+        return {"mes": self.e.mes, "itens": itens, **self.resumo(itens), "gerado": bool(self.e.r)}
+
+    # ---------------------------------------------------------------- ações
+    def historico(self, chave):
+        return fila_mod.historico(fila_mod.ler_log(self.pasta_mes()), chave)
+
+    def agir(self, acao, d):
+        """acao: EMAIL_PREPARADO | EMAIL_ENVIADO | BAIXA | DECLINADA | REABERTA | COMENTARIO."""
+        usuario = str(d.get("usuario") or "").strip()
+        if not usuario:
+            raise ErroPedido('Informe seu nome (campo "Seu nome") antes de agir na fila.')
+        chave = str(d.get("chave") or "")
+        item = next((i for i in self.itens_base() if i["chave"] == chave), None)
+        if item is None:
+            raise ErroPedido("Item não encontrado na fila deste fechamento.")
+        comentario, extra = str(d.get("comentario") or "").strip(), {}
+        if acao in ("BAIXA", "DECLINADA", "COMENTARIO") and not comentario:
+            raise ErroPedido("Escreva um comentário: ele é obrigatório.")
+        if acao == "DECLINADA" and item["tipo_item"] != "DIVERGENCIA":
+            raise ErroPedido("Só divergência pode ser declinada; pendência se encerra com “Dar baixa”.")
+        if acao in ("EMAIL_PREPARADO", "EMAIL_ENVIADO"):
+            if item["status"] in config.STATUS_ENCERRADOS:
+                raise ErroPedido("Este item já está encerrado. Reabra antes de agir.")
+            para = _emails(d.get("para"))
+            assunto, corpo = str(d.get("assunto") or "").strip(), str(d.get("corpo") or "").strip()
+            if not para:
+                raise ErroPedido("Informe o destinatário (Para).")
+            if not assunto:
+                raise ErroPedido("Informe o assunto do e-mail.")
+            detalhe = f"Para: {', '.join(para)}\nAssunto: {assunto}\n\n{corpo}"
+            if acao == "EMAIL_PREPARADO":
+                corpo_crlf = corpo.replace("\r\n", "\n").replace("\n", "\r\n")     # clientes de e-mail pedem %0D%0A
+                extra["mailto"] = (f"mailto:{quote(','.join(para), safe='@,')}"
+                                   f"?subject={quote(assunto, safe='')}&body={quote(corpo_crlf, safe='')}")
+        else:
+            detalhe = comentario
+        todos = self.itens_base()
+        linha = self.registrar(usuario, chave, item["tipo_item"], acao, "", detalhe)
+        for outro in self._vinculados(chave, todos):
+            acao_o = "BAIXA" if (acao == "DECLINADA" and outro["tipo_item"] == "PENDENCIA") else acao
+            if acao_o == "DECLINADA" and outro["tipo_item"] != "DIVERGENCIA":
+                continue
+            try:                                            # o item vinculado pode já estar no status de destino
+                self.registrar(usuario, outro["chave"], outro["tipo_item"], acao_o, "", detalhe)
+            except ErroPedido:
+                pass
+        self.reescrever_csvs()
+        return {**extra, "ok": True, "chave": chave, "status": linha["status_novo"] or item["status"]}
+
+    @staticmethod
+    def _vinculados(chave, itens):
+        """Itens do mesmo caso (pendência de divergência <-> grupo DIV), sem o próprio."""
+        fn = getattr(fila_mod, "chaves_vinculadas", None)
+        if fn:
+            chaves = set(fn(chave, itens) or []) - {chave}
+        else:
+            chaves = {i["chave"] for i in itens if i.get("vinculado_a") == chave} |                      {i["vinculado_a"] for i in itens if i["chave"] == chave and i.get("vinculado_a")}
+        return [i for i in itens if i["chave"] in chaves]
+
+    # ---------------------------------------------------------------- as planilhas da execução refletem o status
+    def reescrever_csvs(self):
+        """Regrava só as colunas de status de pendencias.csv e divergencias_taxa.csv da execução atual."""
+        e = self.e
+        if not e.resultado or e.pasta is None:
+            return
+        st = fila_mod.status_atual(fila_mod.ler_log(self.pasta_mes()))
+        saida = e.pasta / "saida"
+
+        def extras_pen(l):
+            s = fila_mod.estado(st, fila_mod.chave_pendencia(l))
+            return {c: s[c] for c in EXTRAS_PENDENCIAS}
+
+        def extras_div(l):
+            return {"status": fila_mod.estado(st, fila_mod.chave_divergencia(l))["status"]}
+
+        self._regravar(saida / "pendencias.csv", EXTRAS_PENDENCIAS, extras_pen)
+        self._regravar(saida / "divergencias_taxa.csv", ["status"], extras_div)
+
+    @staticmethod
+    def _regravar(caminho, extras, valores):
+        if not caminho.exists():
+            return
+        with open(caminho, encoding="utf-8", newline="") as h:
+            leitor = csv.DictReader(h, delimiter=";")
+            base = [c for c in (leitor.fieldnames or []) if c not in extras]
+            linhas = list(leitor)
+        with open(caminho, "w", encoding="utf-8", newline="") as h:
+            w = csv.writer(h, delimiter=";", lineterminator="\n")
+            w.writerow(base + extras)
+            for l in linhas:
+                v = valores(l)
+                w.writerow([l.get(c, "") for c in base] + [v[c] for c in extras])
+
+
+# ------------------------------------------------ aba Contatos (cadastro/contatos.csv, via src/contatos.py)
+class Contatos:
+    def __init__(self, estado):
+        self.e = estado
+
+    def listar(self):
+        return contatos_mod.ler(self.e.pasta_cadastro)
+
+    def salvar(self, d):
+        campos = {k: str(d.get(k) or "") for k in ("papel", "cnpj", "nome", "email", "observacao")}
+        id_, usuario = str(d.get("id_contato") or "").strip(), str(d.get("usuario") or "")
+        try:
+            if id_:
+                return contatos_mod.atualizar(self.e.pasta_cadastro, id_, campos, usuario)
+            return contatos_mod.adicionar(self.e.pasta_cadastro, campos, usuario)
+        except contatos_mod.ContatoInvalido as ex:
+            raise ErroPedido(str(ex)) from None
+
+    def remover(self, id_, usuario=""):
+        try:
+            contatos_mod.remover(self.e.pasta_cadastro, id_, usuario)
+        except contatos_mod.ContatoInvalido as ex:
+            raise ErroPedido(str(ex)) from None
+
+
+# ------------------------------------------------ assistente de cadastro (a IA propõe; só grava com "Confirmar")
+class Assistente:
+    def __init__(self, estado):
+        self.e = estado
+        self.propostas = {}      # token -> condições propostas (a tela só carrega o token)
+
+    def propor(self, texto):
+        """Nunca grava. Devolve o que a IA propôs (condições, antes/depois, dúvidas, erros) + um token para confirmar."""
+        if ia_cadastro is None:
+            raise ErroPedido("O assistente de cadastro ainda não está disponível neste programa.")
+        texto = str(texto or "").strip()
+        if not texto:
+            raise ErroPedido("Escreva o que deve mudar no cadastro (ex.: “Escola Bridge: Pix a 0,75% desde 01/10, aprovado pelo Comercial”).")
+        c = self.e.clientes
+        lojistas = []
+        for ch, L in c._indice().items():          # cada lojista com o contrato vigente da planilha (para o antes/depois)
+            v = L["vigente"] or {}
+            lojistas.append({**v, "lojista": L["nome"], "nome": L["nome"], "cnpj": "" if ch.startswith("EC") else ch,
+                             "ec": next(iter(sorted(L["ecs"])), ""), "ecs": sorted(L["ecs"])})
+        hoje = c._hoje()
+        vigentes = [x for x in c._condicoes() if c._status(x, hoje) != "encerrada"]
+        try:
+            prop = _chamar(ia_cadastro.propor, texto, lojistas, vigentes, self.e.pasta_cadastro,
+                           cliente=self.e.cliente_ia, hoje=hoje, raiz=self.e.raiz_ia)
+        except Exception as ex:  # noqa: BLE001
+            raise ErroPedido(f"O assistente não conseguiu responder: {ex}") from None
+        prop = dict(prop or {})
+        if prop.get("erro"):
+            raise ErroPedido(str(prop["erro"]))
+        token = hashlib.sha256(f"{datetime.now().isoformat()}{texto}".encode()).hexdigest()[:16]
+        if not prop.get("erros"):                    # proposta com erro de validação nunca pode ser gravada
+            self.propostas[token] = list(prop.get("condicoes") or [])
+        prop["token"] = token
+        return prop
+
+    def confirmar(self, d):
+        c = self.e.clientes
+        usuario = c._usuario(d, "gravar")
+        condicoes = self.propostas.get(str(d.get("token") or ""))
+        if not condicoes:
+            raise ErroPedido("Não há proposta para gravar (peça uma nova proposta). Nada foi gravado.")
+        c._exigir_cadastro()
+        try:
+            gravadas = cadastro.adicionar_varias(self.e.pasta_cadastro, condicoes, usuario, hoje=c._hoje())
+        except ValueError as ex:
+            raise ErroPedido(str(ex)) from None
+        self.propostas.pop(str(d["token"]), None)
+        ids = [g["id_condicao"] for g in gravadas]
+        return {"ids": ids, "aviso": f"Condições {', '.join(ids)} gravadas no cadastro. {AVISO_RODAR}"}
+
+
 def criar_handler(estado):
     class Handler(BaseHTTPRequestHandler):
         server_version = "FechamentoTarvo/1.0"
@@ -1011,6 +1363,17 @@ def criar_handler(estado):
                 except ErroPedido as e:
                     return self._json({"erro": str(e)}, 400)
                 self._json(f if f else {"erro": "Lojista não encontrado."}, 200 if f else 404)
+            elif caminho == "/api/fila":
+                with estado.lock:
+                    self._json(estado.fila.json())
+            elif caminho == "/api/fila/historico":
+                chave = parse_qs(urlsplit(self.path).query).get("chave", [""])[0]
+                with estado.lock:
+                    self._json({"chave": chave, "linhas": estado.fila.historico(chave)})
+            elif caminho == "/api/contatos":
+                with estado.lock:
+                    self._json({"contatos": estado.contatos.listar(), "papeis": [
+                        {"codigo": p, "rotulo": config.ROTULO_PAPEL.get(p, p)} for p in config.PAPEIS_CONTATO]})
             elif caminho == "/api/baixar-decisoes":
                 with estado.lock:
                     if not estado.dossie:
@@ -1102,6 +1465,33 @@ def criar_handler(estado):
                 except ErroPedido as e:
                     return self._json({"erro": str(e)}, 400)
                 self._json(res)
+            elif caminho.startswith(("/api/fila/", "/api/contatos", "/api/cadastro/")):
+                try:
+                    pedido = json.loads(corpo.decode("utf-8") or "{}")
+                    if not isinstance(pedido, dict):
+                        raise ValueError
+                except ValueError:
+                    return self._json({"erro": "Pedido inválido."}, 400)
+                acao_fila = ACAO_DE_ROTA.get(caminho[len("/api/fila/"):]) if caminho.startswith("/api/fila/") else None
+                try:
+                    with estado.lock:
+                        if acao_fila:
+                            res = estado.fila.agir(acao_fila, pedido)
+                            res["fila"] = estado.fila.json()
+                        elif caminho == "/api/contatos":
+                            res = {"contato": estado.contatos.salvar(pedido)}
+                        elif caminho == "/api/contatos/remover":
+                            estado.contatos.remover(str(pedido.get("id_contato") or ""), str(pedido.get("usuario") or ""))
+                            res = {"ok": True}
+                        elif caminho == "/api/cadastro/propor":
+                            res = estado.assistente.propor(pedido.get("texto"))
+                        elif caminho == "/api/cadastro/confirmar":
+                            res = estado.assistente.confirmar(pedido)
+                        else:
+                            return self._json({"erro": "não encontrado"}, 404)
+                except ErroPedido as e:
+                    return self._json({"erro": str(e)}, 400)
+                self._json(res)
             elif caminho == "/api/limpar":
                 with estado.lock:
                     estado.recomecar()
@@ -1169,7 +1559,7 @@ def criar_servidor(porta=PORTA_PADRAO, pasta_meses=PASTA_MESES, tentativas=20, c
 
 def main(abrir_navegador=True):
     havia_tela = tela_existente(PORTA_PADRAO)
-    srv = criar_servidor(PORTA_PADRAO)
+    srv = criar_servidor(PORTA_PADRAO, ia_auto=True)
     url, linhas = mensagens_inicio(srv.server_address[1], PORTA_PADRAO, havia_tela)
     print("\n".join(linhas))
     if abrir_navegador:

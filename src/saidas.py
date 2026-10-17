@@ -3,7 +3,7 @@ CNPJ 14 dígitos, colunas obrigatórias primeiro (extras ao final), UTF-8."""
 import csv
 from pathlib import Path
 
-from . import config
+from . import config, fila
 from .dinheiro import fmt, fmt_pct
 
 COLUNAS = {
@@ -18,6 +18,11 @@ COLUNAS = {
                                       "conta_codigo", "metodo", "confianca", "conta_descricao", "regra", "observacao"],
     "pendencias.csv": ["id_saida", "tipo", "ref_origem", "valor_brl", "motivo", "quem_decide"],
     "rastro.csv": ["id_saida", "arquivo_origem", "ref_origem", "valor", "detalhe"],
+}
+# Colunas extras da fila de trabalho (PLANO_03), sempre no FIM, depois das do edital. Sem fila: status=ABERTA e o resto vazio.
+COLUNAS_FILA = {
+    "pendencias.csv": ["status", "ultima_acao", "data_ultima_acao", "responsavel", "comentario"],
+    "divergencias_taxa.csv": ["status"],
 }
 
 
@@ -34,11 +39,14 @@ def linhas_comissoes(itens):
              _m(c.get("comissao_mdr")), _m(c.get("comissao_antecipacao")), c["regra"]] for c in itens]
 
 
-def linhas_divergencias(itens):
+def linhas_divergencias(itens, status=None):
+    """status = mapa de fila.status_atual (None = tudo ABERTA). O status é o do GRUPO da linha (contraparte|cnpj|natureza)."""
+    status = status or {}
     return [[d["id"], d["cnpj"], d["linha_negocio"], d["ref_origem"], fmt_pct(d["contratada_pct"]),
              fmt_pct(d["aplicada_pct"]), fmt(d["diferenca"]), d["lojista"], d["ec_orbe"], d["tipo_lancamento"],
              _data(d["data"]), str(d["valor_base"]), d["regra"], d["natureza"],
-             config.COBRAR_PARCEIRO[d["natureza"]]] for d in itens]
+             config.COBRAR_PARCEIRO[d["natureza"]], fila.estado(status, fila.chave_divergencia(d))["status"]]
+            for d in itens]
 
 
 def linhas_notas(itens):
@@ -51,8 +59,15 @@ def linhas_lancamentos(itens):
              l["metodo"], f"{l['confianca']:.2f}", l["conta_descricao"], l["regra"], l["observacao"]] for l in itens]
 
 
-def linhas_pendencias(itens):
-    return [[p["id"], p["tipo"], p["ref_origem"], _m(p["valor"]), p["motivo"], p["quem_decide"]] for p in itens]
+def linhas_pendencias(itens, status=None):
+    """status = mapa de fila.status_atual (None = tudo ABERTA e sem ação registrada)."""
+    status = status or {}
+    out = []
+    for p in itens:
+        e = fila.estado(status, fila.chave_pendencia(p))
+        out.append([p["id"], p["tipo"], p["ref_origem"], _m(p["valor"]), p["motivo"], p["quem_decide"],
+                    e["status"], e["ultima_acao"], e["data_ultima_acao"], e["responsavel"], e["comentario"]])
+    return out
 
 
 def linhas_rastro(itens_com_rastro, arquivos, origem_orbe=None):
@@ -79,11 +94,12 @@ def escrever(pasta, nome, linhas, status=None):
     try:
         with open(pasta / nome, "w", encoding="utf-8", newline="") as f:
             w = csv.writer(f, delimiter=";", lineterminator="\n")
+            cols = COLUNAS[nome] + COLUNAS_FILA.get(nome, [])
             if status is None:
-                w.writerow(COLUNAS[nome])
+                w.writerow(cols)
                 w.writerows(linhas)
             else:
-                w.writerow(COLUNAS[nome] + ["status"])
+                w.writerow(cols + ["status"])
                 w.writerows(l + [status] for l in linhas)
     except PermissionError as e:
         raise PermissionError(f"Feche o arquivo {nome} no Excel (ou em outro programa) e rode de novo.") from e

@@ -55,6 +55,25 @@ No topo da tela há duas abas: **Fechamento** (o de sempre) e **Clientes**.
 3. **+ Nova condição**: escolha o tipo, a linha, as faixas, o valor em %, a vigência, **quem aprovou** (obrigatório para taxa e isenção: Comercial ou Helena) e **seu nome**. **Encerrar** (nas condições ativas) pede a data de fim; só dá para antecipar o fim, não adiar.
 4. Nada disso altera a planilha de taxas do cliente: as mudanças ficam em `cadastro/condicoes_comerciais.csv`, com o histórico em `cadastro/historico_alteracoes.csv`. **Depois de salvar, rode o fechamento de novo para aplicar.**
 
+## Aba "Fila de trabalho": o que fazer com cada pendência e divergência
+
+Depois de **Rodar fechamento**, a aba **Fila de trabalho** reúne tudo o que precisa de uma pessoa: **todas** as pendências e um item por grupo de divergência, com valor, quem decide, status e a ação sugerida. O número vermelho na aba é o que está aberto.
+
+1. Escreva **seu nome** no campo do topo da fila (é o mesmo "Seu nome" das outras abas): sem nome o programa não deixa agir.
+2. As subabas são **Pendências** (abertas), **Divergências** (abertas, cada uma com o cartão de investigação de sempre), **Em acompanhamento** (e-mail já enviado) e **Encerradas** (baixadas ou declinadas).
+3. A tela mostra o **objetivo do playbook** (o que fazer, vem da regra) e, quando há IA, a **sugestão da IA** e os **contatos sugeridos**. Depois do fechamento a IA analisa sozinha, e a fila mostra "IA analisando…" enquanto ela trabalha. Sem IA (sem chave), a fila funciona só com o objetivo do playbook. A IA nunca muda valor nem envia nada.
+4. **Preparar e-mail**: escolha o destino entre os sugeridos, confira o Para (vem da aba Contatos), o assunto e o corpo (editáveis) e clique **Abrir no e-mail**. O e-mail abre pronto no seu programa de e-mail (`mailto:`); **quem envia é você**, lá. Ao voltar, o programa pergunta **"Você enviou o e-mail?"**: **Sim** passa o item para "Em acompanhamento" e guarda o texto no histórico; **Ainda não** deixa o item como está (o e-mail preparado fica registrado).
+5. **Dar baixa** (comentário obrigatório) encerra o item. **Declinar** (só divergência, comentário obrigatório) tira a divergência da fila. **Reabrir** devolve para "Aberta". **Histórico** mostra tudo o que foi feito no item, com quem e quando.
+6. A memória fica em `meses/<AAAA-MM>/fila_log.csv` (só acrescenta) e vale para o mês inteiro: ao rodar o fechamento de novo, o status continua. As colunas `status`, `ultima_acao`, `data_ultima_acao`, `responsavel` e `comentario` de `pendencias.csv` (e `status` de `divergencias_taxa.csv`) da execução atual são atualizadas a cada ação.
+
+## Aba "Contatos": quem recebe os e-mails
+
+Tabela com papel, nome, CNPJ, e-mail e observação (arquivo `cadastro/contatos.csv`). Há busca, **+ Novo contato**, **Editar** e **Remover** (o removido vai para `cadastro/contatos_removidos.csv`, não se perde). Lojista é achado pelo CNPJ; Orbe, Ponte Câmbio, Comercial, bancos e Contabilidade, pelo papel. Os e-mails de exemplo são fictícios: troque pelos reais. E-mail em formato errado é recusado com mensagem.
+
+## Assistente (IA) na aba Clientes
+
+No topo da aba **Clientes**, escreva em texto a mudança combinada (ex.: "Escola Bridge: Pix a 0,75% desde 01/10, aprovado pelo Comercial") e clique **Propor**. A tela mostra as condições propostas, o **antes e depois** das taxas e as dúvidas ou erros da IA. **Nada é gravado até você clicar em "Confirmar e gravar"** (com seu nome); **Descartar** joga a proposta fora. Se a IA tiver dúvida (falta aprovador, data ou lojista), ela pergunta em vez de propor. Depois de gravar, rode o fechamento de novo para aplicar.
+
 ## 1. Juntar os arquivos do mês
 Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **arquivos do mês** (1 de cada tipo, exceto a Orbe, que pode mandar mais de um), sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
 

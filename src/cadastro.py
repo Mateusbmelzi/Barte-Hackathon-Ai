@@ -411,6 +411,35 @@ def _conflito(c, existentes, contratos=None):
     return None
 
 
+def validar(condicao, pasta, contratos=None, hoje=None):
+    """Dry-run de `adicionar_varias`: mesma validação (campos, aprovação, sobreposição com o cadastro e com as outras
+    condições da lista, EC x CNPJ), SEM gravar nada. `condicao` = um dict ou uma lista de dicts. Devolve a lista de
+    mensagens de erro em português (vazia = pode gravar). Não exige usuario nem que a pasta exista."""
+    condicoes = [condicao] if isinstance(condicao, dict) else list(condicao)
+    pasta, arq, _ = _caminhos(pasta)
+    try:
+        atuais = ler(pasta) if arq.exists() else []
+    except CadastroInvalido as e:
+        return [f"O cadastro atual está malformado: {e}"]
+    erros, novas = [], []
+    for n, cond in enumerate(condicoes, start=1):
+        onde = "Condição nova" if len(condicoes) == 1 else f"Condição nova {n} de {len(condicoes)}"
+        c = {k: str(v).strip() if v is not None else "" for k, v in dict(cond).items() if k in COLUNAS}
+        c["id_condicao"] = _proximo_id(atuais + novas)
+        c["data_registro"] = (hoje or date.today()).isoformat()
+        try:
+            c = _validar(c, onde)
+            erro = _conflito(c, atuais + novas, contratos)
+        except CadastroInvalido as e:
+            erros.append(str(e))
+            continue
+        if erro:
+            erros.append(f"{onde}: {erro}")
+            continue
+        novas.append(c)
+    return erros
+
+
 def adicionar_varias(pasta, condicoes, usuario, hoje=None, contratos=None):
     """Valida TODAS as condições (também entre si e contra o cadastro) antes de gravar qualquer uma: ou entram todas, ou
     nenhuma (CadastroInvalido diz qual falhou). Gera ids sequenciais, grava uma vez e anota um CRIAR por condição.

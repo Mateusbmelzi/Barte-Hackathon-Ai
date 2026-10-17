@@ -242,6 +242,43 @@
   .versoes-fech li { padding: 6px 10px; border-radius: 8px; }
   .versoes-fech li.aviso { background: #fff7e6; border: 1px solid #f5d38a; color: #6b4e00; margin: 4px 0; }
   .envio-msg { margin-top: 8px; }
+  nav.abas { flex-wrap: wrap; }
+  .contador { display: inline-block; min-width: 20px; padding: 0 6px; border-radius: 20px; background: var(--destaque); color: #fff; font-size: 12px; font-weight: 600; text-align: center; margin-left: 4px; }
+  .subabas { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .subabas button { font: inherit; font-weight: 500; border: 1px solid var(--borda); background: #fff; color: var(--texto); border-radius: 20px; padding: 6px 16px; cursor: pointer; }
+  .subabas button.ativa { background: var(--destaque); border-color: var(--destaque); color: #fff; }
+  .subabas .n { font-size: 12px; margin-left: 6px; opacity: .85; }
+  .ia-ind { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; background: var(--destaque-10); border: 1px solid #df285d55; color: var(--destaque-escuro); font-size: 13px; font-weight: 600; }
+  .ia-ind .giro { display: inline-block; border-color: #df285d55; border-top-color: var(--destaque); }
+  .item { border: 1px solid var(--borda); border-radius: 12px; margin-top: 14px; overflow: hidden; background: #fff; }
+  .item.status-EM_ACOMPANHAMENTO { border-color: #b6d4f3; } .item.status-BAIXADA, .item.status-DECLINADA { background: #fafafa; }
+  .item-cab { padding: 12px 16px; background: #f5f6f7; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  .item-cab .nome { font-family: var(--titulo); font-weight: 600; font-size: 16px; flex: 1 1 280px; word-break: break-word; }
+  .item-corpo { padding: 10px 16px 14px; font-size: 14px; }
+  .item-corpo .linha { margin: 6px 0; }
+  .item-corpo .rot { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); display: block; }
+  .item .sug-ia { background: #fafdfc; border: 1px solid #00b18655; border-radius: 10px; padding: 8px 12px; }
+  .item .motivo-txt { color: var(--texto-suave); font-size: 13px; }
+  .item .acoes { margin-top: 10px; gap: 8px; }
+  .item .acoes .botao { padding: 6px 16px; font-size: 14px; }
+  .selo.st-ABERTA { border-color: #f5d38a; background: #fff7e6; color: #6b4e00; }
+  .selo.st-EM_ACOMPANHAMENTO { border-color: #b6d4f3; background: #ecf4fd; color: #123f7a; }
+  .selo.st-BAIXADA { border-color: #00b18688; background: var(--ok-10); color: #00785b; }
+  .selo.st-DECLINADA { background: #f2f2f2; color: #555; }
+  .item .cartao-div { border-top: 1px solid var(--borda); }
+  .item .cartao-div .grupo { margin: 0; border: 0; border-radius: 0; }
+  .modal { position: fixed; inset: 0; background: #161426aa; display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; }
+  .modal-caixa { background: #fff; border-radius: 16px; padding: 22px; width: 100%; max-width: 640px; box-shadow: 0 16px 48px #0005; }
+  .modal-caixa h3 { margin: 0 0 6px; font-size: 18px; }
+  .modal-caixa label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--texto-suave); margin-top: 12px; }
+  .modal-caixa input.campo, .modal-caixa select.campo, .modal-caixa textarea.campo { width: 100%; min-width: 0; }
+  .modal-caixa textarea.campo { min-height: 130px; font-size: 14px; }
+  .modal-caixa .acoes { margin-top: 16px; }
+  .hist td { font-size: 13px; white-space: pre-wrap; }
+  .as-cond { border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; margin-top: 8px; font-size: 14px; }
+  #asRes { margin-top: 14px; }
+  #asRes .caixa { border: 2px solid var(--destaque); border-radius: 12px; padding: 14px 16px; background: #fffafc; }
+  td .botao.mini { margin-right: 4px; }
   @media (max-width: 560px) {
     .cartao { padding: 18px; }
     .arquivos li { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -254,7 +291,7 @@
     <span class="etiqueta">Ferramenta interna do financeiro</span>
     <h1>Fechamento mensal — Tarvo</h1>
     <p>Escolha o mês, envie os arquivos (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos ficam guardados na pasta do mês: dá para voltar outro dia e enviar só o que mudou. Nada é sobrescrito nem apagado.</p>
-    <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabCli">Clientes</button></nav>
+    <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabFila">Fila de trabalho <span class="contador oculto" id="filaBadge"></span></button><button type="button" id="tabCli">Clientes</button><button type="button" id="tabCont">Contatos</button></nav>
   </div>
 </header>
 
@@ -315,7 +352,41 @@
       <div id="grupos"></div>
     </section>
     </div>
+    <div id="abaFila" class="oculto">
+      <section class="cartao">
+        <h2>Fila de trabalho</h2>
+        <p class="sub">Tudo o que precisa de uma pessoa neste fechamento, com a ação sugerida. Nada é enviado sozinho: o e-mail abre pronto no seu programa de e-mail e você decide se envia. A memória fica na pasta do mês (fila_log.csv) e as planilhas pendencias.csv e divergencias_taxa.csv da execução refletem o status.</p>
+        <div class="inv-topo">
+          <label>Seu nome (obrigatório para agir)<input class="campo nome-usuario" id="filaUsr" autocomplete="name" placeholder="ex.: Helena"></label>
+          <span class="ia-ind oculto" id="filaIA"><span class="giro"></span> IA analisando…</span>
+          <span class="dica" id="filaIAmsg"></span>
+        </div>
+        <nav class="subabas" id="subabas"></nav>
+        <div class="erro oculto" id="filaErro"></div>
+        <div class="sucesso oculto" id="filaOk"></div>
+        <div id="filaItens"></div>
+      </section>
+    </div>
+    <div id="abaContatos" class="oculto">
+      <section class="cartao">
+        <div class="ficha-topo"><h2>Contatos</h2><button class="botao" type="button" id="novoContato">+ Novo contato</button></div>
+        <p class="sub">Quem recebe cada e-mail da fila. O lojista é achado pelo CNPJ; os demais pelo papel. Os e-mails de exemplo são fictícios: troque pelos reais.</p>
+        <input class="campo busca" id="contBusca" type="search" placeholder="Buscar por nome, e-mail, CNPJ ou papel" autocomplete="off">
+        <div class="erro oculto" id="contErro"></div>
+        <div class="tabela"><table><thead><tr><th>Papel</th><th>Nome</th><th>CNPJ</th><th>E-mail</th><th>Observação</th><th></th></tr></thead><tbody id="contItens"></tbody></table></div>
+        <p class="nada oculto" id="contVazio">Nenhum contato encontrado.</p>
+      </section>
+    </div>
     <div id="abaClientes" class="oculto">
+      <section class="cartao" id="cliAssistente">
+        <h2>Assistente (IA)</h2>
+        <p class="sub">Escreva em texto a mudança de condição combinada (ex.: “Escola Bridge: Pix a 0,75% desde 01/10, aprovado pelo Comercial”). A IA só propõe: você confere o antes e depois e só então confirma. Nada é gravado sem o botão “Confirmar e gravar”.</p>
+        <textarea class="campo" id="asTexto" placeholder="Descreva a mudança de taxa, isenção, bloqueio, de-para de EC ou nota…" style="min-height:70px"></textarea>
+        <div class="acoes" style="margin-top:10px"><label class="enc" style="margin:0"><span class="dica">Seu nome</span><input class="campo nome-usuario" id="asUsr" autocomplete="name" placeholder="ex.: Helena"></label>
+          <button class="botao ia" type="button" id="asPropor"><span class="giro"></span><span id="asProporTxt">Propor</span></button></div>
+        <div class="erro oculto" id="asErro"></div>
+        <div id="asRes"></div>
+      </section>
       <section class="cartao" id="cliLista">
         <h2>Clientes</h2>
         <p class="sub">Tudo de um lojista num lugar só: taxas que valem hoje, condições combinadas, como é faturado e o resumo do último fechamento. Aqui você registra mudanças de taxa ou condição; a planilha de taxas do cliente nunca é alterada.</p>
@@ -327,6 +398,7 @@
     </div>
   </div>
 </main>
+<div class="modal oculto" id="modal"><div class="modal-caixa" id="modalCaixa"></div></div>
 <footer id="rodape"></footer>
 
 <script>
@@ -401,6 +473,8 @@ function desenhar(e) {
   }
   $("rodape").textContent = e.pasta ? "Pasta desta execução: " + e.pasta + (e.execucoes.length > 1 ? ` (${e.execucoes.length} execuções guardadas neste mês; a mais recente é a mostrada)` : "") : "";
   desenharInvestigacao(r ? e.investigacao : null);
+  invAtual = r && e.investigacao ? e.investigacao : null;
+  atualizarFilaTopo(e.fila);
 }
 
 // Bloco "Versões" do resultado: o que o fechamento consolidou de cada fonte (r.versoes; escondido se não vier).
@@ -496,7 +570,7 @@ const reais = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFraction
 const dataBR = (iso) => (iso ? String(iso).split("-").reverse().join("/") : "");
 const pct = (t) => (t === undefined || t === null || t === "" ? "—" : String(t).replace(".", ",") + "%");
 const humanizar = (c) => { const t = String(c || "").toLowerCase().replace(/_/g, " "); return t.charAt(0).toUpperCase() + t.slice(1); };
-let ultimaInv = "", espera = null, rotulos = {};
+let ultimaInv = "", espera = null, rotulos = {}, invAtual = null, esperaFila = null;
 try { $("analista").value = localStorage.getItem("tarvo.analista") || ""; } catch (_) {}
 const nomeAnalista = () => $("analista").value.trim();
 
@@ -515,6 +589,7 @@ function desenharInvestigacao(inv) {
   if (assinatura === ultimaInv) return;          // não redesenha à toa (preserva comentários em digitação)
   ultimaInv = assinatura;
   rotulos = inv.rotulos_categoria || {};
+  invAtual = inv;
   const iaPor = Object.fromEntries(((inv.ia && inv.ia.grupos) || []).map((g) => [g.id_grupo, g]));
   const dec = Object.fromEntries(inv.decisoes.map((d) => [d.id_grupo + "#" + d.hipotese_n, d]));
   $("grupos").innerHTML = inv.dossie.grupos.map((g) => cartaoHTML(g, iaPor[g.id_grupo], dec[g.id_grupo + "#1"], analisando, inv.ia_disponivel)).join("");
@@ -628,7 +703,7 @@ async function gerarIA() {
 }
 $("gerarIA").addEventListener("click", gerarIA);
 
-$("grupos").addEventListener("click", async (ev) => {
+async function cliqueCartao(ev) {
   if (ev.target.closest("[data-gerar]")) return gerarIA();
   const ir = ev.target.closest("[data-ref-ir]");
   if (ir) return irParaRef(ir);
@@ -648,7 +723,8 @@ $("grupos").addEventListener("click", async (ev) => {
   $("erroIA").classList.toggle("oculto", !e.aviso_ia);
   if (e.aviso_ia) $("erroIA").textContent = e.aviso_ia;
   desenhar(e);
-});
+}
+$("grupos").addEventListener("click", cliqueCartao);
 
 // clicar numa referência (V2, F3, C001…) destaca o item correspondente no próprio cartão
 function irParaRef(btn) {
@@ -680,17 +756,21 @@ const hojeISO = () => { const d = new Date(); return new Date(d.getTime() - d.ge
 const nomeUsuarioSalvo = () => { try { return localStorage.getItem("tarvo.analista") || ""; } catch (_) { return ""; } };
 const selosHTML = (ss) => `<span class="selos">${ss.map((s) => `<span class="selo ${esc(s.codigo)}">${esc(s.texto)}</span>`).join("")}</span>`;
 
+const ABAS = { fechamento: ["abaFechamento", "tabFech"], fila: ["abaFila", "tabFila"], clientes: ["abaClientes", "tabCli"], contatos: ["abaContatos", "tabCont"] };
+let abaAtual = "fechamento";
 function mostrarAba(nome) {
-  const cli = nome === "clientes";
-  $("abaFechamento").classList.toggle("oculto", cli);
-  $("abaClientes").classList.toggle("oculto", !cli);
-  $("tabFech").classList.toggle("ativa", !cli);
-  $("tabCli").classList.toggle("ativa", cli);
-  try { history.replaceState(null, "", cli ? "#clientes" : "#"); } catch (_) {}
-  if (cli) { fichaAtual ? abrirFicha(fichaAtual.chave, "") : carregarClientes(); }
+  if (!ABAS[nome]) nome = "fechamento";
+  abaAtual = nome;
+  for (const [k, [aba, tab]] of Object.entries(ABAS)) { $(aba).classList.toggle("oculto", k !== nome); $(tab).classList.toggle("ativa", k === nome); }
+  try { history.replaceState(null, "", nome === "fechamento" ? "#" : "#" + nome); } catch (_) {}
+  if (nome === "clientes") { fichaAtual ? abrirFicha(fichaAtual.chave, "") : carregarClientes(); }
+  if (nome === "fila") carregarFila();
+  if (nome === "contatos") carregarContatos();
 }
 $("tabFech").addEventListener("click", () => mostrarAba("fechamento"));
+$("tabFila").addEventListener("click", () => mostrarAba("fila"));
 $("tabCli").addEventListener("click", () => mostrarAba("clientes"));
+$("tabCont").addEventListener("click", () => mostrarAba("contatos"));
 
 async function carregarClientes() {
   try { clientes = (await api("/api/clientes")).clientes; } catch (_) { clientes = []; }
@@ -798,11 +878,18 @@ document.addEventListener("input", (ev) => {
   if (!ev.target.classList.contains("nome-usuario")) return;
   try { localStorage.setItem("tarvo.analista", ev.target.value.trim()); } catch (_) {}
   document.querySelectorAll(".nome-usuario").forEach((x) => { if (x !== ev.target) x.value = ev.target.value; });
-  $("analista").value = ev.target.value;
+  $("analista").value = ev.target.value; $("usuario").value = ev.target.value;
 });
 $("analista").addEventListener("input", () => {
   document.querySelectorAll(".nome-usuario").forEach((x) => { x.value = $("analista").value; });
+  $("usuario").value = $("analista").value;
 });
+$("usuario").addEventListener("input", () => {
+  document.querySelectorAll(".nome-usuario").forEach((x) => { x.value = $("usuario").value; });
+  $("analista").value = $("usuario").value;
+  try { localStorage.setItem("tarvo.analista", usuarioNome()); } catch (_) {}
+});
+document.querySelectorAll(".nome-usuario").forEach((x) => { if (!x.value) x.value = nomeUsuarioSalvo(); });
 
 function abrirFormulario() {
   $("formCond").innerHTML = `<div class="form-cond">
@@ -855,7 +942,294 @@ async function salvarCondicao() {
   if (!r.ok) { erro.textContent = e.erro; erro.classList.remove("oculto"); return; }
   await abrirFicha(fichaAtual.chave, e.aviso);
 }
-if (location.hash === "#clientes") mostrarAba("clientes");
+
+// ------------------------------------------------ utilitários de pedido e modal
+async function chamar(url, obj) {
+  const r = await fetch(url, obj === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(obj) });
+  let d = {};
+  try { d = await r.json(); } catch (_) {}
+  return { ok: r.ok, dados: d, erro: d.erro || d.aviso_ia || (r.ok ? "" : "O servidor respondeu " + r.status) };
+}
+const nomeAgora = () => (document.activeElement && document.activeElement.classList.contains("nome-usuario") ? document.activeElement.value : $("filaUsr").value).trim() || usuarioNome();
+function abrirModal(html) { $("modalCaixa").innerHTML = html; $("modal").classList.remove("oculto"); }
+function fecharModal() { $("modal").classList.add("oculto"); $("modalCaixa").innerHTML = ""; }
+$("modal").addEventListener("mousedown", (ev) => { if (ev.target.id === "modal") fecharModal(); });
+document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("modal").classList.contains("oculto")) fecharModal(); });
+const erroBox = (id, msg) => { const b = $(id); b.textContent = msg || ""; b.classList.toggle("oculto", !msg); };
+
+// ------------------------------------------------ aba Fila de trabalho
+const SUBABAS = [["pendencias", "Pendências"], ["divergencias", "Divergências"], ["acompanhamento", "Em acompanhamento"], ["encerradas", "Encerradas"]];
+const STATUS_TXT = { ABERTA: "Aberta", EM_ACOMPANHAMENTO: "Em acompanhamento", BAIXADA: "Baixada", DECLINADA: "Declinada" };
+const ACAO_TXT = { SUGESTAO_IA: "Sugestão da IA", EMAIL_PREPARADO: "E-mail preparado", EMAIL_ENVIADO: "E-mail enviado", BAIXA: "Baixa", DECLINADA: "Declinada", REABERTA: "Reaberta", COMENTARIO: "Comentário" };
+let filaDados = null, subAtual = "pendencias", filaAssin = "";
+
+function atualizarFilaTopo(f) {
+  const b = $("filaBadge"), n = f ? f.abertas : 0;
+  b.textContent = n; b.classList.toggle("oculto", !f || !n);
+  const analisando = !!(f && f.ia && f.ia.analisando);
+  clearTimeout(esperaFila);
+  if (analisando) esperaFila = setTimeout(async () => {
+    try { const e = await api("/api/estado"); desenhar(e); } catch (_) {}
+    if (abaAtual === "fila") carregarFila();
+  }, 2000);
+  if (abaAtual === "fila" && f) $("filaIA").classList.toggle("oculto", !analisando);
+}
+
+async function carregarFila(forcar) {
+  const r = await chamar("/api/fila");
+  if (!r.ok) { erroBox("filaErro", r.erro); return; }
+  filaDados = r.dados;
+  if (!invAtual) { try { const e = await api("/api/estado"); invAtual = e.investigacao; if (invAtual) rotulos = invAtual.rotulos_categoria || {}; } catch (_) {} }
+  desenharFila(forcar);
+}
+
+function filaIAtexto(f) {
+  if (f.ia.analisando) return "";
+  if (!f.gerado) return "";
+  if (!f.ia.disponivel) return "IA de ação indisponível neste computador: a fila mostra o objetivo do playbook de cada item.";
+  if (f.ia.erro) return "A IA de ação falhou (" + f.ia.erro + "). A fila segue com o objetivo do playbook.";
+  return "";
+}
+
+function desenharFila(forcar) {
+  const f = filaDados;
+  atualizarFilaTopo(f);
+  $("filaIA").classList.toggle("oculto", !f.ia.analisando);
+  $("filaIAmsg").textContent = filaIAtexto(f);
+  $("subabas").innerHTML = SUBABAS.map(([k, t]) => `<button type="button" data-sub="${k}" class="${k === subAtual ? "ativa" : ""}">${t}<span class="n">${f.contadores[k]}</span></button>`).join("");
+  const assin = JSON.stringify([f.itens, subAtual, f.ia, invAtual && [invAtual.ia, invAtual.decisoes, invAtual.ia_estado], nomeAnalista() !== ""]);
+  if (!forcar && assin === filaAssin) return;
+  filaAssin = assin;
+  if (!f.gerado) { $("filaItens").innerHTML = `<p class="nada">Rode o fechamento na aba “Fechamento” para montar a fila de trabalho.</p>`; return; }
+  const itens = f.itens.filter((i) => i.aba === subAtual);
+  $("filaItens").innerHTML = itens.length ? itens.map((i) => itemHTML(i, f)).join("") : `<p class="nada">Nada por aqui.</p>`;
+}
+
+function itemHTML(i, f) {
+  const sug = i.sugestao && !i.sugestao.erro ? i.sugestao : null;
+  const contatos = i.contatos.map((c) => `<span class="chip" title="${esc(c.nome || "")}">${esc(c.rotulo)}: ${esc(c.email || "sem e-mail cadastrado")}</span>`).join(" ");
+  const botoes = [];
+  const aberto = i.status === "ABERTA" || i.status === "EM_ACOMPANHAMENTO";
+  const soInterno = !!(sug && sug.nota_interna && !(sug.emails || []).length) || (i.contatos.length > 0 && i.contatos.every((c) => c.papel === "FINANCEIRO_INTERNO"));
+  if (aberto && !soInterno) botoes.push(`<button class="botao" type="button" data-act="email">Preparar e-mail</button>`);
+  if (aberto) botoes.push(`<button class="botao secundario" type="button" data-act="baixa">Dar baixa</button>`, `<button class="botao leve" type="button" data-act="comentar">Comentar</button>`);
+  if (aberto && i.tipo_item === "DIVERGENCIA") botoes.push(`<button class="botao leve" type="button" data-act="declinar">Declinar</button>`);
+  if (i.status !== "ABERTA") botoes.push(`<button class="botao leve" type="button" data-act="reabrir">Reabrir</button>`);
+  botoes.push(`<button class="botao leve" type="button" data-act="hist">Histórico</button>`);
+  let cartao = "";
+  if (i.tipo_item === "DIVERGENCIA" && i.status === "ABERTA" && invAtual) {
+    const g = invAtual.dossie.grupos.find((x) => x.id_grupo === i.id_grupo);
+    if (g) {
+      const iaPor = Object.fromEntries(((invAtual.ia && invAtual.ia.grupos) || []).map((x) => [x.id_grupo, x]));
+      const dec = Object.fromEntries(invAtual.decisoes.map((d) => [d.id_grupo + "#" + d.hipotese_n, d]));
+      cartao = `<div class="cartao-div">${cartaoHTML(g, iaPor[g.id_grupo], dec[g.id_grupo + "#1"], invAtual.ia_estado === "analisando", invAtual.ia_disponivel)}</div>`;
+    }
+  }
+  const cabDiv = i.tipo_item === "DIVERGENCIA";
+  return `<div class="item status-${esc(i.status)}" data-chave="${esc(i.chave)}">
+    <div class="item-cab"><span class="nome">${esc(i.titulo)}</span><span class="selo st-${esc(i.status)}">${esc(STATUS_TXT[i.status] || i.status)}</span>
+      <span class="valor-cab">${i.valor ? esc(i.valor) : ""}<small>${cabDiv ? "grupo de divergência" : esc(i.id_saida)}</small></span></div>
+    <div class="item-corpo">
+      <div class="linha"><span class="rot">Quem decide</span>${esc(i.quem_decide)}</div>
+      ${cabDiv ? "" : `<div class="linha motivo-txt"><details><summary>${esc((i.motivo || "").slice(0, 150))}${(i.motivo || "").length > 150 ? "…" : ""}</summary>${esc(i.motivo)}</details></div>`}
+      <div class="linha"><span class="rot">O que fazer (playbook)</span>${esc(i.objetivo)}</div>
+      ${i.mesmo_caso ? `<div class="linha"><span class="selo st-EM_ACOMPANHAMENTO">mesmo caso que a divergência ${esc(i.mesmo_caso.titulo)}</span></div>` : ""}
+      ${sug && sug.nota_interna ? `<div class="linha sug-ia"><span class="rot">Próximo passo interno</span>${esc(sug.nota_interna)}</div>` : ""}
+      ${sug ? `<div class="linha sug-ia"><span class="rot">Sugestão da IA</span>${esc(sug.acao_resumo || "")}${sug.prazo_sugerido ? ` <span class="dica">Prazo sugerido: ${esc(sug.prazo_sugerido)}</span>` : ""}</div>` : (f.ia.analisando ? `<div class="linha dica">IA analisando…</div>` : "")}
+      <div class="linha"><span class="rot">Contatos sugeridos</span>${contatos}</div>
+      <div class="acoes">${botoes.join("")}</div>
+    </div>${cartao}</div>`;
+}
+
+$("subabas").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-sub]");
+  if (b) { subAtual = b.dataset.sub; filaAssin = ""; desenharFila(true); }
+});
+$("filaItens").addEventListener("click", (ev) => {
+  const b = ev.target.closest("[data-act]");
+  if (!b) return cliqueCartao(ev);
+  const i = filaDados.itens.find((x) => x.chave === b.closest(".item").dataset.chave);
+  if (!i) return;
+  erroBox("filaErro", ""); $("filaOk").classList.add("oculto");
+  if (b.dataset.act === "hist") return abrirHistorico(i);
+  if (!nomeAgora()) return erroBox("filaErro", "Informe seu nome (campo “Seu nome”) antes de agir na fila.");
+  if (b.dataset.act === "email") return abrirEmail(i);
+  abrirComentario(i, b.dataset.act);
+});
+
+async function aplicarResultado(r, msg) {
+  if (!r.ok) return false;
+  if (r.dados.fila) filaDados = r.dados.fila;
+  filaAssin = ""; desenharFila(true);
+  $("filaOk").textContent = msg; $("filaOk").classList.remove("oculto");
+  try { desenhar(await api("/api/estado")); } catch (_) {}
+  return true;
+}
+
+const COMENT = {
+  baixa: { acao: "baixa", titulo: "Dar baixa", ajuda: "Diga o que foi resolvido. O comentário é obrigatório e fica no histórico e na planilha.", obrig: true, ok: "Baixa registrada." },
+  declinar: { acao: "declinar", titulo: "Declinar divergência", ajuda: "Diga por que esta divergência não será tratada. O comentário é obrigatório.", obrig: true, ok: "Divergência declinada." },
+  comentar: { acao: "comentario", titulo: "Comentar", ajuda: "O comentário fica no histórico; o status do item não muda.", obrig: true, ok: "Comentário registrado." },
+  reabrir: { acao: "reabrir", titulo: "Reabrir", ajuda: "Opcional: diga por que está reabrindo.", obrig: false, ok: "Item reaberto." },
+};
+function abrirComentario(i, tipo) {
+  const c = COMENT[tipo];
+  abrirModal(`<h3>${c.titulo}</h3><p class="dica">${esc(i.titulo)}</p><p class="dica">${c.ajuda}</p>
+    <label>Comentário<textarea class="campo" id="mComent"></textarea></label><div class="erro oculto" id="mErro" style="margin-top:10px"></div>
+    <div class="acoes"><button class="botao" type="button" id="mOk">${c.titulo}</button><button class="botao leve" type="button" id="mCancela">Cancelar</button></div>`);
+  $("mComent").focus();
+  $("mCancela").onclick = fecharModal;
+  $("mOk").onclick = async () => {
+    const comentario = $("mComent").value.trim();
+    if (c.obrig && !comentario) return erroBox("mErro", "Escreva um comentário: ele é obrigatório.");
+    const r = await chamar("/api/fila/" + c.acao, { chave: i.chave, usuario: nomeAgora(), comentario });
+    if (!r.ok) return erroBox("mErro", r.erro);
+    fecharModal(); aplicarResultado(r, c.ok);
+  };
+}
+
+async function abrirHistorico(i) {
+  const r = await chamar("/api/fila/historico?chave=" + encodeURIComponent(i.chave));
+  const linhas = (r.dados.linhas || []);
+  abrirModal(`<h3>Histórico</h3><p class="dica">${esc(i.titulo)}</p>
+    ${linhas.length ? `<div class="tabela"><table class="hist"><thead><tr><th>Quando</th><th>Quem</th><th>Ação</th><th>Status</th><th>Detalhe</th></tr></thead><tbody>${linhas.map((l) =>
+      `<tr><td>${esc(String(l.data_hora).replace("T", " "))}</td><td>${esc(l.usuario)}</td><td>${esc(ACAO_TXT[l.acao] || l.acao)}</td><td>${esc(STATUS_TXT[l.status_novo] || l.status_novo)}</td><td>${esc(l.detalhe)}</td></tr>`).join("")}</tbody></table></div>`
+      : `<p class="nada">Ainda não há registros para este item.</p>`}
+    <div class="acoes"><button class="botao leve" type="button" id="mCancela">Fechar</button></div>`);
+  $("mCancela").onclick = fecharModal;
+}
+
+function abrirEmail(i) {
+  const sug = i.sugestao && !i.sugestao.erro ? i.sugestao : null;
+  const textos = Object.fromEntries(((sug && sug.emails) || []).map((e) => [e.papel, e]));
+  abrirModal(`<h3>Preparar e-mail</h3><p class="dica">${esc(i.titulo)}${i.valor ? " · " + esc(i.valor) : ""}</p>
+    <label>Destino (contatos sugeridos)<select class="campo" id="mDestino">${i.contatos.map((c) => `<option value="${esc(c.papel)}">${esc(c.rotulo)}${c.nome ? " — " + esc(c.nome) : ""}</option>`).join("")}</select></label>
+    <label>Para<input class="campo" id="mPara" placeholder="nome@empresa.com.br (separe vários por ;)"></label>
+    <p class="dica oculto" id="mSemEmail"><strong>Sem e-mail cadastrado</strong> — adicione na <a href="#contatos" id="mIrContatos">aba Contatos</a>, ou digite o endereço acima.</p>
+    <label>Assunto<input class="campo" id="mAssunto"></label>
+    <label>Corpo<textarea class="campo" id="mCorpo"></textarea></label>
+    <p class="dica">${sug && Object.keys(textos).length ? "Texto sugerido pela IA: confira e edite antes de abrir. A IA não envia nada." : "Sem texto sugerido pela IA: escreva o e-mail. Nada é enviado por este programa."}</p>
+    <div class="erro oculto" id="mErro" style="margin-top:10px"></div>
+    <div class="acoes"><button class="botao" type="button" id="mAbrir">Abrir no e-mail</button><button class="botao leve" type="button" id="mCancela">Cancelar</button></div>`);
+  const preencher = () => {
+    const papel = $("mDestino").value, c = i.contatos.find((x) => x.papel === papel), t = textos[papel];
+    $("mPara").value = c ? c.email : "";
+    $("mSemEmail").classList.toggle("oculto", !!(c && c.email));
+    $("mAssunto").value = t ? t.assunto : i.titulo;
+    $("mCorpo").value = t ? t.corpo : "";
+  };
+  $("mDestino").onchange = preencher; preencher();
+  $("mIrContatos").onclick = (ev) => { ev.preventDefault(); fecharModal(); mostrarAba("contatos"); };
+  $("mCancela").onclick = fecharModal;
+  $("mAbrir").onclick = async () => {
+    const corpo = { chave: i.chave, usuario: nomeAgora(), para: $("mPara").value, assunto: $("mAssunto").value, corpo: $("mCorpo").value };
+    const r = await chamar("/api/fila/email", corpo);
+    if (!r.ok) return erroBox("mErro", r.erro);
+    if (r.dados.fila) { filaDados = r.dados.fila; }
+    const a = document.createElement("a"); a.href = r.dados.mailto; document.body.appendChild(a); a.click(); a.remove();
+    $("modalCaixa").innerHTML = `<h3>Você enviou o e-mail?</h3><p>O e-mail abriu no seu programa de e-mail. Depois de enviar lá, confirme aqui para o item ir para “Em acompanhamento”.</p>
+      <p class="dica">Para: ${esc(corpo.para)}<br>Assunto: ${esc(corpo.assunto)}</p><div class="erro oculto" id="mErro"></div>
+      <div class="acoes"><button class="botao" type="button" id="mSim">Sim, enviei</button><button class="botao leve" type="button" id="mNao">Ainda não</button></div>`;
+    $("mNao").onclick = () => { fecharModal(); aplicarResultado({ ok: true, dados: {} }, "E-mail preparado e registrado no histórico. O item continua como está até você confirmar o envio."); };
+    $("mSim").onclick = async () => {
+      const r2 = await chamar("/api/fila/enviado", corpo);
+      if (!r2.ok) return erroBox("mErro", r2.erro);
+      fecharModal(); aplicarResultado(r2, "Envio registrado: o item foi para “Em acompanhamento”.");
+    };
+  };
+}
+
+// ------------------------------------------------ aba Contatos
+let contatos = [], papeis = [];
+const rotuloPapel = (c) => (papeis.find((p) => p.codigo === c) || {}).rotulo || c;
+async function carregarContatos() {
+  const r = await chamar("/api/contatos");
+  contatos = r.dados.contatos || []; papeis = r.dados.papeis || [];
+  desenharContatos();
+}
+function desenharContatos() {
+  const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const q = norm($("contBusca").value), qd = q.replace(/\D/g, "");
+  const vis = contatos.filter((c) => !q || [c.nome, c.email, c.observacao, c.papel, rotuloPapel(c.papel)].some((t) => norm(t).includes(q)) || (qd && c.cnpj.includes(qd)));
+  $("contItens").innerHTML = vis.map((c) => `<tr data-id="${esc(c.id_contato)}"><td>${esc(rotuloPapel(c.papel))}</td><td>${esc(c.nome)}</td><td>${esc(c.cnpj ? fmtCnpj(c.cnpj) : "—")}</td>
+    <td>${esc(c.email)}</td><td>${esc(c.observacao)}</td><td style="white-space:nowrap"><button class="botao leve mini" type="button" data-editar>Editar</button><button class="botao leve mini" type="button" data-remover-c>Remover</button></td></tr>`).join("");
+  $("contVazio").classList.toggle("oculto", vis.length > 0);
+}
+const fmtCnpj = (c) => (c.length === 14 ? `${c.slice(0, 2)}.${c.slice(2, 5)}.${c.slice(5, 8)}/${c.slice(8, 12)}-${c.slice(12)}` : c);
+$("contBusca").addEventListener("input", desenharContatos);
+$("novoContato").addEventListener("click", () => formContato(null));
+$("contItens").addEventListener("click", async (ev) => {
+  const tr = ev.target.closest("tr[data-id]"); if (!tr) return;
+  const c = contatos.find((x) => x.id_contato === tr.dataset.id);
+  if (ev.target.closest("[data-editar]")) return formContato(c);
+  if (ev.target.closest("[data-remover-c]")) {
+    if (!confirm(`Remover o contato ${c.nome} (${c.email})?`)) return;
+    const r = await chamar("/api/contatos/remover", { id_contato: c.id_contato });
+    erroBox("contErro", r.ok ? "" : r.erro); carregarContatos();
+  }
+});
+function formContato(c) {
+  abrirModal(`<h3>${c ? "Editar contato" : "Novo contato"}</h3>
+    <label>Papel<select class="campo" id="cPapel">${papeis.map((p) => `<option value="${esc(p.codigo)}" ${c && c.papel === p.codigo ? "selected" : ""}>${esc(p.rotulo)}</option>`).join("")}</select></label>
+    <label>Nome<input class="campo" id="cNome" value="${esc(c ? c.nome : "")}"></label>
+    <label id="cCnpjBox">CNPJ (só para lojista)<input class="campo" id="cCnpj" inputmode="numeric" value="${esc(c ? c.cnpj : "")}"></label>
+    <label>E-mail<input class="campo" id="cEmail" type="email" value="${esc(c ? c.email : "")}" placeholder="nome@empresa.com.br"></label>
+    <label>Observação<input class="campo" id="cObs" value="${esc(c ? c.observacao : "")}"></label>
+    <div class="erro oculto" id="mErro" style="margin-top:10px"></div>
+    <div class="acoes"><button class="botao" type="button" id="cSalvar">Salvar</button><button class="botao leve" type="button" id="mCancela">Cancelar</button></div>`);
+  const ajustar = () => $("cCnpjBox").classList.toggle("oculto", $("cPapel").value !== "LOJISTA");
+  $("cPapel").onchange = ajustar; ajustar();
+  $("mCancela").onclick = fecharModal;
+  $("cSalvar").onclick = async () => {
+    const r = await chamar("/api/contatos", { id_contato: c ? c.id_contato : "", papel: $("cPapel").value, nome: $("cNome").value, cnpj: $("cCnpj").value, email: $("cEmail").value, observacao: $("cObs").value });
+    if (!r.ok) return erroBox("mErro", r.erro);
+    fecharModal(); erroBox("contErro", ""); carregarContatos();
+  };
+}
+
+// ------------------------------------------------ assistente de cadastro (Clientes)
+let propostaAtual = null;
+const faixaTxt = (f) => FAIXA_TXT[String(f).trim().toUpperCase()] || humanizar(f);
+function condicaoTxt(c) {
+  const tipos = { ISENCAO: "Isenção (taxa zero)", TAXA_ESPECIAL: "Taxa especial", BLOQUEIO_FATURAMENTO: "Bloqueio de faturamento", DE_PARA_EC: "De-para de EC Orbe", NOTA_PENDENCIA: "Nota / pendência" };
+  const campo = c.campo ? (String(c.campo).toLowerCase() === "todas" ? "todas as faixas" : String(c.campo).split(",").map(faixaTxt).join(", ")) : "";
+  const vig = `${c.vigencia_inicio ? dataBR(c.vigencia_inicio) : "?"} ${c.vigencia_fim ? "até " + dataBR(c.vigencia_fim) : "sem data de fim"}`;
+  return `<strong>${esc(tipos[c.tipo] || c.tipo)}</strong> · ${esc(c.lojista || c.cnpj || (c.ec_orbe ? "EC " + c.ec_orbe : ""))}${campo ? " · " + esc(campo) : ""}${c.valor && c.tipo === "TAXA_ESPECIAL" ? " · " + esc(String(c.valor).replace(".", ",")) + "%" : ""}
+    <div class="taxa-origem">Vigência: ${esc(vig)} · Aprovado por: ${esc(c.aprovado_por || "não se aplica")}${c.fonte ? " · Fonte: " + esc(c.fonte) : ""}${c.observacao ? "<br>" + esc(c.observacao) : ""}</div>`;
+}
+const listaTxt = (x) => (Array.isArray(x) ? x : x ? [x] : []).filter(Boolean);
+function propostaHTML(p) {
+  const erros = listaTxt(p.erros), duvidas = listaTxt(p.duvidas), conds = p.condicoes || [], ad = p.antes_depois || [];
+  return `<div class="caixa">
+    ${p.resumo ? `<p class="resumo">${esc(p.resumo)}</p>` : ""}
+    ${conds.length ? `<h3 style="margin-top:6px">Condições que seriam gravadas (${conds.length})</h3>${conds.map((c) => `<div class="as-cond">${condicaoTxt(c)}</div>`).join("")}` : `<p class="nada">A IA não propôs nenhuma condição.</p>`}
+    ${ad.length ? `<h3>Antes e depois</h3><div class="tabela"><table><thead><tr><th>Faixa</th><th>Antes</th><th>Depois</th><th>Origem</th></tr></thead><tbody>${ad.map((a) =>
+      `<tr><td>${esc(a.faixa)}</td><td>${esc(a.antes)}</td><td><strong>${esc(a.depois)}</strong></td><td class="taxa-origem">${esc(a.origem || "")}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    ${duvidas.length ? `<div class="aviso"><strong>Dúvidas da IA:</strong> ${duvidas.map(esc).join("; ")}</div>` : ""}
+    ${erros.length ? `<div class="erro"><strong>Erros de validação (corrija o texto e proponha de novo):</strong><ul>${erros.map((e) => `<li>${esc(typeof e === "object" ? JSON.stringify(e) : e)}</li>`).join("")}</ul></div>` : ""}
+    <div class="acoes"><button class="botao" type="button" id="asConfirmar" ${conds.length && !erros.length ? "" : "disabled"}>Confirmar e gravar</button><button class="botao leve" type="button" id="asDescartar">Descartar</button></div>
+    <p class="dica">Confirmar grava no cadastro (arquivo nosso), com o seu nome no histórico. Depois, rode o fechamento de novo para aplicar.</p></div>`;
+}
+$("asPropor").addEventListener("click", async () => {
+  erroBox("asErro", ""); $("asRes").innerHTML = ""; propostaAtual = null;
+  $("asPropor").classList.add("rodando"); $("asPropor").disabled = true; $("asProporTxt").textContent = "Pensando…";
+  const r = await chamar("/api/cadastro/propor", { texto: $("asTexto").value });
+  $("asPropor").classList.remove("rodando"); $("asPropor").disabled = false; $("asProporTxt").textContent = "Propor";
+  if (!r.ok) return erroBox("asErro", r.erro);
+  propostaAtual = r.dados; $("asRes").innerHTML = propostaHTML(propostaAtual);
+});
+$("asRes").addEventListener("click", async (ev) => {
+  if (ev.target.id === "asDescartar") { propostaAtual = null; $("asRes").innerHTML = ""; return; }
+  if (ev.target.id !== "asConfirmar" || !propostaAtual) return;
+  erroBox("asErro", "");
+  const r = await chamar("/api/cadastro/confirmar", { token: propostaAtual.token, usuario: $("asUsr").value.trim() || usuarioNome() });
+  if (!r.ok) return erroBox("asErro", r.erro);
+  propostaAtual = null; $("asTexto").value = "";
+  $("asRes").innerHTML = `<div class="sucesso"><strong>${esc(r.dados.aviso)}</strong></div>`;
+  fichaAtual = null; carregarClientes();
+});
+
+mostrarAba((location.hash || "").slice(1));
 </script>
 </body>
 </html>

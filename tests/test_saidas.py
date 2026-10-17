@@ -9,7 +9,7 @@ import pytest
 
 from src import fechamento
 from src.leitores import achatar, descobrir_arquivos
-from src.saidas import COLUNAS
+from src.saidas import COLUNAS, COLUNAS_FILA
 
 OBRIGATORIAS = {
     "comissoes_por_lojista.csv": ["id_saida", "cnpj", "lojista", "linha_negocio", "comissao_brl"],
@@ -33,7 +33,7 @@ def _ler(pasta, nome):
 def test_colunas_obrigatorias_na_ordem(resultado, nome):
     df = _ler(resultado["saida"], nome)
     assert list(df.columns[: len(OBRIGATORIAS[nome])]) == OBRIGATORIAS[nome]
-    assert list(df.columns) == COLUNAS[nome]
+    assert list(df.columns) == COLUNAS[nome] + COLUNAS_FILA.get(nome, [])   # extras da fila no FIM, depois das do edital
     if nome != "rastro.csv":
         assert df["id_saida"].is_unique
 

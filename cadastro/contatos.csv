@@ -1,0 +1,32 @@
+id_contato;papel;cnpj;nome;email;observacao
+K001;LOJISTA;22224579000109;Financeiro — Escola Bridge de Idiomas Ltda;financeiro@escolabridgedeidiomas.exemplo.com.br;fictício — substituir pelo real
+K002;LOJISTA;78576234000179;Financeiro — Horizonte Viagens;financeiro@horizonteviagens.exemplo.com.br;fictício — substituir pelo real
+K003;LOJISTA;07752116000126;Financeiro — Kiwi Experience;financeiro@kiwiexperience.exemplo.com.br;fictício — substituir pelo real
+K004;LOJISTA;95927868000148;Financeiro — Rota Global Intercâmbio Ltda;financeiro@rotaglobalintercambio.exemplo.com.br;fictício — substituir pelo real
+K005;LOJISTA;20987545000140;Financeiro — Vela;financeiro@vela.exemplo.com.br;fictício — substituir pelo real
+K006;LOJISTA;85694108000184;Financeiro — Andes Expedições Ltda;financeiro@andesexpedicoes.exemplo.com.br;fictício — substituir pelo real
+K007;LOJISTA;00520815000100;Financeiro — Casa do Estudante Viagens Ltda;financeiro@casadoestudanteviagens.exemplo.com.br;fictício — substituir pelo real
+K008;LOJISTA;03229837000103;Financeiro — Fluente Idiomas Online Ltda;financeiro@fluenteidiomasonline.exemplo.com.br;fictício — substituir pelo real
+K009;LOJISTA;17217888000111;Financeiro — Mundo Aberto;financeiro@mundoaberto.exemplo.com.br;fictício — substituir pelo real
+K010;LOJISTA;95739378000118;Financeiro — Ponte Aérea Estudantil Ltda;financeiro@ponteaereaestudantil.exemplo.com.br;fictício — substituir pelo real
+K011;LOJISTA;16181276000153;Financeiro — EduAbroad;financeiro@eduabroad.exemplo.com.br;fictício — substituir pelo real
+K012;LOJISTA;68567965000102;Financeiro — Dublin Hub Intercâmbio Ltda;financeiro@dublinhubintercambio.exemplo.com.br;fictício — substituir pelo real
+K013;LOJISTA;34671260000100;Financeiro — Maple Study Assessoria Educacional Ltda;financeiro@maplestudyassessoriaeducacional.exemplo.com.br;fictício — substituir pelo real
+K014;LOJISTA;23109187000161;Financeiro — Oxford Prep Cursos Ltda;financeiro@oxfordprepcursos.exemplo.com.br;fictício — substituir pelo real
+K015;LOJISTA;89779285000114;Financeiro — Sol Nascente Viagens Ltda;financeiro@solnascenteviagens.exemplo.com.br;fictício — substituir pelo real
+K016;LOJISTA;21394880000106;Financeiro — Trilha Jovem Turismo Ltda;financeiro@trilhajovemturismo.exemplo.com.br;fictício — substituir pelo real
+K017;LOJISTA;14760206000124;Financeiro — Nórdica Educação Internacional Ltda;financeiro@nordicaeducacaointernacional.exemplo.com.br;fictício — substituir pelo real
+K018;LOJISTA;50900987000179;Financeiro — Bagagem Livre Turismo Ltda;financeiro@bagagemlivreturismo.exemplo.com.br;fictício — substituir pelo real
+K019;LOJISTA;08780784000120;Financeiro — Campus Global Ltda;financeiro@campusglobal.exemplo.com.br;fictício — substituir pelo real
+K020;LOJISTA;61720397000180;Financeiro — Lisboa Cursos e Viagens Ltda;financeiro@lisboacursoseviagens.exemplo.com.br;fictício — substituir pelo real
+K021;LOJISTA;67869675000142;Financeiro — Bem-Vindo Exchange Ltda;financeiro@bemvindoexchange.exemplo.com.br;fictício — substituir pelo real
+K022;LOJISTA;66564512000199;Financeiro — Novo Horizonte Intercambio;financeiro@novohorizonteintercambio.exemplo.com.br;fictício — substituir pelo real
+K023;LOJISTA;53857560000123;Financeiro — Canguru;financeiro@canguru.exemplo.com.br;fictício — substituir pelo real
+K024;LOJISTA;39566044000119;Financeiro — Atlas Idiomas;financeiro@atlasidiomas.exemplo.com.br;"fictício — substituir pelo real; lojista fora da planilha vigente (EC Orbe 1076801732)"
+K025;ORBE;;Orbe — suporte a parceiros;parceiros@orbe.exemplo.com.br;fictício — substituir pelo real
+K026;PONTE;;Ponte Câmbio — operações;operacoes@pontecambio.exemplo.com.br;fictício — substituir pelo real
+K027;COMERCIAL;;Comercial Tarvo;comercial@tarvo.exemplo.com.br;fictício — substituir pelo real
+K028;BANCO_AURORA;;Banco Aurora — gerente de conta;gerente@bancoaurora.exemplo.com.br;fictício — substituir pelo real
+K029;BANCO_MERIDIANO;;Banco Meridiano — gerente de conta;gerente@bancomeridiano.exemplo.com.br;fictício — substituir pelo real
+K030;CONTABILIDADE;;Contabilidade;contabilidade@contabilidade.exemplo.com.br;fictício — substituir pelo real
+K031;FINANCEIRO_INTERNO;;Helena (Financeiro);helena@tarvo.exemplo.com.br;fictício — substituir pelo real

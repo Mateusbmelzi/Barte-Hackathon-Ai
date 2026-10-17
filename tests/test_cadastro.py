@@ -317,3 +317,31 @@ def test_adicionar_varias_e_atomico(cad):
     assert [c["id_condicao"] for c in gravadas] == ["C007", "C008"]
     assert len(cadastro.ler(cad)) == 8 and [h["id_condicao"] for h in cadastro.ler_historico(cad)][-2:] == ["C007", "C008"]
     assert cadastro.adicionar_varias(cad, [], "ana") == []
+
+
+# ---------------------------------------------------------------- validar (dry-run)
+def test_validar_dry_run_nao_grava(cad):
+    antes = (cad / "condicoes_comerciais.csv").read_bytes(), cadastro.ler_historico(cad)
+    assert cadastro.validar(_especial(), cad) == []
+    assert cadastro.validar([_especial(), _especial(campo="PIX")], cad) == []
+    assert (cad / "condicoes_comerciais.csv").read_bytes() == antes[0] and cadastro.ler_historico(cad) == antes[1]
+
+
+def test_validar_devolve_os_mesmos_erros_de_adicionar(cad):
+    for ruim, trecho in [(_especial(aprovado_por=""), "aprovado_por"), (_especial(campo="XYZ"), "faixa"),
+                         (_especial(valor="abc"), "inválido"), (_especial(cnpj="123"), "14 dígitos")]:
+        erros = cadastro.validar(ruim, cad)
+        assert len(erros) == 1 and trecho in erros[0]
+        with pytest.raises(CadastroInvalido) as e:
+            cadastro.adicionar(cad, ruim, "ana")
+        assert str(e.value) == erros[0]
+
+
+def test_validar_conflito_com_cadastro_e_entre_condicoes_da_lista(cad):
+    n = len(cadastro.ler(cad))
+    cadastro.adicionar(cad, _especial(), "ana")
+    erros = cadastro.validar(_especial(valor="2.00"), cad)
+    assert len(erros) == 1 and "Já existe a condição" in erros[0]
+    lista = cadastro.validar([_especial(campo="PIX"), _especial(campo="PIX", valor="3.00"), _especial(aprovado_por="")], cad)
+    assert len(lista) == 2 and "Condição nova 2 de 3" in lista[0] and "Condição nova 3 de 3" in lista[1]
+    assert len(cadastro.ler(cad)) == n + 1

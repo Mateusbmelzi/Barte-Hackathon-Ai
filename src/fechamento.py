@@ -1,6 +1,6 @@
 """CLI do fechamento mensal.
 
-Uso:  python -m src.fechamento --entrada <pasta com os arquivos do mês> --saida <pasta> [--cadastro <pasta>] [--ia]
+Uso:  python -m src.fechamento --entrada <pasta com os arquivos do mês> --saida <pasta> [--cadastro <pasta>] [--fila <pasta do mês>] [--ia]
 Defaults: entrada = raiz do projeto; saida = <raiz>/saida; cadastro = <raiz>/cadastro (condições comerciais por cliente).
 --ia: além do dossiê, pede hipóteses à IA (src/ia.py) e grava em execucoes/cli_<data_hora>/investigacao_ia.json
       (fora de saida/, que fica determinística). Sem chave/biblioteca: avisa e segue.
@@ -13,7 +13,7 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from . import cadastro as cad, checkout, config, extratos, investigacao, remessa, saidas
+from . import cadastro as cad, checkout, config, extratos, fila as fila_mod, investigacao, remessa, saidas
 from .dinheiro import soma, fmt_br
 from .leitores import ler_taxas_antigas, ler_tudo_parcial
 
@@ -125,8 +125,11 @@ def _neutralizar_conciliacoes(lancs, pend, sem_ponte, bancos_ausentes):
     return [p for p in pend if p["tipo"] not in tipos]
 
 
-def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None):
-    """`cadastro` = pasta do cadastro de condições comerciais (padrão: cadastro/ na raiz do projeto)."""
+def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None, fila=None):
+    """`cadastro` = pasta do cadastro de condições comerciais (padrão: cadastro/ na raiz do projeto).
+    `fila` = pasta do mês (meses/<AAAA-MM>) cujo fila_log.csv preenche as colunas de status em pendencias.csv e
+    divergencias_taxa.csv. Sem fila (CLI/banca): tudo ABERTA e o resto vazio, determinístico."""
+    status_fila = fila_mod.status_atual(fila_mod.ler_log(fila))
     condicoes, bloq_cadastro = _carregar_cadastro(CADASTRO_PADRAO if cadastro is None else cadastro)
     d = ler_tudo_parcial(entrada)
     ok, bloqueios = d["ok"], list(d["bloqueios"])
@@ -203,10 +206,10 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None)
     arquivos.update(d["rastro_arquivos"])
     status = config.STATUS_PROVISORIO if parcial else None   # completo: os CSVs ficam idênticos aos de sempre
     saidas.escrever(saida, "comissoes_por_lojista.csv", saidas.linhas_comissoes(comissoes), status)
-    saidas.escrever(saida, "divergencias_taxa.csv", saidas.linhas_divergencias(divs))
+    saidas.escrever(saida, "divergencias_taxa.csv", saidas.linhas_divergencias(divs, status_fila))
     saidas.escrever(saida, "notas_a_emitir.csv", saidas.linhas_notas(notas), status)
     saidas.escrever(saida, "lancamentos_classificados.csv", saidas.linhas_lancamentos(lancs))
-    saidas.escrever(saida, "pendencias.csv", saidas.linhas_pendencias(pends))
+    saidas.escrever(saida, "pendencias.csv", saidas.linhas_pendencias(pends, status_fila))
     com_valor = [p for p in pends if p["valor"] is not None]
     origem_orbe = {l["id"]: l["arquivo"] for l in d["orbe"]}
     saidas.escrever(saida, "rastro.csv", saidas.linhas_rastro(comissoes + divs + notas + com_valor + lancs, arquivos, origem_orbe))
@@ -299,10 +302,13 @@ def main(argv=None):
     ap.add_argument("--saida", default=str(RAIZ / "saida"), help="pasta de saída (default: saida/)")
     ap.add_argument("--cadastro", default=str(CADASTRO_PADRAO),
                     help="pasta do cadastro de condições comerciais (default: cadastro/ na raiz do projeto)")
+    ap.add_argument("--fila", default=None,
+                    help="pasta do mês (meses/<AAAA-MM>) com o fila_log.csv; preenche o status das pendências e divergências")
     ap.add_argument("--ia", action="store_true", help="gera hipóteses com IA em execucoes/cli_<data_hora>/")
     a = ap.parse_args(argv)
     try:
-        r = executar(Path(a.entrada), Path(a.saida), cadastro=Path(a.cadastro))
+        r = executar(Path(a.entrada), Path(a.saida), cadastro=Path(a.cadastro),
+                     fila=Path(a.fila) if a.fila else None)
     except (PermissionError, FileNotFoundError, ValueError) as e:
         sys.exit(f"ERRO: {e}")
     try:
