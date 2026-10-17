@@ -25,8 +25,8 @@ def calcular(ops, contratos, competencia_mes):
         r["contrato_erro"] = erro
         if contrato is not None:
             padrao = contrato["spread"] is None
-            r["contratado"] = config.SPREAD_PADRAO if padrao else contrato["spread"]   # R21
-            r["regra_spread"] = ("R21 spread padrão 1,5% (célula em branco/'padrão')" if padrao
+            r["contratado"] = config.SPREAD_PADRAO if padrao else contrato["spread"]   # CC03 (padrão); negociado = linha da planilha (ex.: CC02)
+            r["regra_spread"] = ("CC03 spread padrão 1,5% (célula em branco/'padrão')" if padrao
                                  else f"spread contratado linha {contrato['linha']}")
         else:
             r["contratado"], r["regra_spread"] = None, None
@@ -92,6 +92,7 @@ def divergencias(resultado, contratos):
                 "data": o["data"], "valor_base": o["valor_me"],
                 "regra": ("R22/H07 (spread% - contratado) x PTAX x Valor ME; tolerância 0,01 p.p. (H06); "
                           + (o["regra_spread"] or "")),
+                "natureza": config.NATUREZA_CONTRATO,
                 "rastro": [("ponte", o["op"], o["diferenca"], f"{o['moeda']} {o['valor_me']} x PTAX {o['ptax']}")],
             })
     return out
@@ -109,7 +110,10 @@ def pendencias(resultado, contratos, meta_ponte, total_nota):
         out.append({"tipo": "DIVERGENCIA_SPREAD_REMESSA", "ref_origem": f"CNPJ {cnpj}", "valor": total,
                     "motivo": (f"Ponte aplicou spread diferente do contratado ({fmt_pct(ls[0]['contratado'] * 100)}%) "
                                f"em {len(ls)} operações de {nomes.get(cnpj, cnpj)} (aplicado de {ap[0]}% a {ap[-1]}%). "
-                               f"Valor cheio pago a mais pelo lojista (R22/S10). Contestar com a Ponte (S15)."),
+                               f"Valor cheio pago a mais pelo lojista (R22/S10). Devolver ao lojista {fmt_br(total)}; "
+                               f"recuperar do parceiro (Ponte) {fmt_br(total)} (R60/S34). Contestar com a Ponte (S15)."
+                               + (" " + config.CONTEXTO_PENDENCIA[("REMESSA", cnpj)]
+                                  if ("REMESSA", cnpj) in config.CONTEXTO_PENDENCIA else "")),
                     "quem_decide": config.QUEM_HELENA,
                     "rastro": [("ponte", o["op"], o["diferenca"], "pago a mais") for o in ls]})
         metade = [(o, arred(o["diferenca"] * config.PARTICIPACAO_REMESSA)) for o in ls]
@@ -119,15 +123,18 @@ def pendencias(resultado, contratos, meta_ponte, total_nota):
                                f"{nomes.get(cnpj, cnpj)} (S13/R20). Se a Ponte devolver, a metade da Tarvo sai no mês do ajuste."),
                     "quem_decide": config.QUEM_HELENA,
                     "rastro": [("ponte", o["op"], v, "50% do excesso") for o, v in metade]})
-    # spread negativo (R23, H08)
-    for o in resultado:
-        if o["status"] == "NEGATIVA":
-            out.append({"tipo": "SPREAD_NEGATIVO", "ref_origem": o["op"], "valor": o["spread_brl"],
-                        "motivo": (f"Spread realizado negativo ({fmt_br(o['spread_brl'])}, {fmt_pct(o['spread_pct'] * 100)}%) "
-                                   f"de {nomes.get(o['cnpj'], o['cliente'])}; obs Ponte: '{o['obs']}'. Estimado D-1 era "
-                                   f"{fmt_br(o['spread_estimado'])}. Fora da comissão e da nota (R23); contestar com a Ponte (S15)."),
-                        "quem_decide": config.QUEM_HELENA,
-                        "rastro": [("ponte", o["op"], o["spread_brl"], "Spread R$ realizado")]})
+    # spread negativo (R23, R53): 1 pendência por lojista (R64/S38), rastro por operação
+    neg = [o for o in resultado if o["status"] == "NEGATIVA"]
+    for cnpj, ls in sorted(_agrupar(neg).items()):
+        total = soma(o["spread_brl"] for o in ls)
+        det = "; ".join(f"{o['op']} {fmt_br(o['spread_brl'])} ({fmt_pct(o['spread_pct'] * 100)}%, estimado D-1 "
+                        f"{fmt_br(o['spread_estimado'])}, obs Ponte '{o['obs']}')" for o in ls)
+        out.append({"tipo": "SPREAD_NEGATIVO", "ref_origem": f"CNPJ {cnpj}", "valor": total,
+                    "motivo": (f"Spread realizado negativo em {len(ls)} operação(ões) de {nomes.get(cnpj, ls[0]['cliente'])}, "
+                               f"total {fmt_br(total)}: {det}. Fora da comissão e da nota (R23); prejuízo da Tarvo com a "
+                               "Ponte, não divergência do lojista (R53/S25); contestar com a Ponte (S15)."),
+                    "quem_decide": config.QUEM_HELENA,
+                    "rastro": [("ponte", o["op"], o["spread_brl"], "Spread R$ realizado") for o in ls]})
     # duplicata (R24, H09)
     for o in resultado:
         if o["status"] == "DUPLICATA":
@@ -153,7 +160,8 @@ def pendencias(resultado, contratos, meta_ponte, total_nota):
     for o in resultado:
         if o["contrato_erro"] and o["status"] not in ("DUPLICATA", "FORA_COMPETENCIA"):
             out.append({"tipo": "REMESSA_SEM_CONTRATO", "ref_origem": o["op"], "valor": None,
-                        "motivo": f"CNPJ {o['cnpj']}: {o['contrato_erro']}. Comissão contada; divergência não verificada.",
+                        "motivo": (f"CNPJ {o['cnpj']}: {o['contrato_erro']}. Comissão contada; divergência não verificada. "
+                                   "Abrir cadastro com o Comercial (R58/R63)."),
                         "quem_decide": config.QUEM_COMERCIAL, "rastro": []})
     # conferir o TED de repasse (R26/S14)
     validas = [o for o in resultado if o["status"] == "VALIDA"]

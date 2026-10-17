@@ -2,6 +2,7 @@
 Só regras determinísticas (regex da descrição) + conciliações por VALOR e DATA.
 O que nenhuma regra resolve vai para 1.1.09.002, metodo=HUMANO, e vira pendência."""
 import re
+import unicodedata
 from collections import defaultdict
 from datetime import timedelta
 
@@ -54,7 +55,7 @@ def _conciliar_ted_ponte(lancs, ops):
                                   f"contratadas no dia ({fmt_br(esperado)}). Conferir com a Ponte.", config.QUEM_HELENA)
 
 
-def _conciliar_pix_lojista(lancs, ops):
+def _conciliar_pix_lojista(lancs, ops, nomes_lojistas=()):
     """PIX de lojista no dia d = soma (Valor R$ + IOF) das ops de UM CNPJ contratadas em [d, d+7).
     Casamento só por valor e janela de datas; o nome no extrato não é usado."""
     janela = timedelta(days=config.JANELA_PIX_REMESSA_DIAS)
@@ -75,14 +76,33 @@ def _conciliar_pix_lojista(lancs, ops):
             usados.add((achou[0], l["data"]))
             l["observacao"] = f"conciliado: CNPJ {achou[0]}, {len(achou[1])} operações Ponte de {l['data']:%d/%m} a +6 dias"
         else:
-            l["metodo"] = "HUMANO"                       # M4: sem lastro, quem decide é uma pessoa
-            l["confianca"] = config.CONF_PIX_SEM_OPERACAO
-            l["regra"] += "; H10 sem operação Ponte correspondente (conta provisória)"
-            l["pendencia"] = ("PIX_LOJISTA_SEM_OPERACAO",
-                              f"PIX recebido de {fmt_br(l['valor'])} ('{l['descricao']}') sem operação Ponte que o explique "
-                              "(nenhum CNPJ tem operações na semana somando esse valor). Classificado em 2.1.02.001 (H10); "
-                              "se não for recurso de lojista para remessa, reclassificar para 1.1.09.002. Confirmar com o lojista.",
+            # S22 (regra confirmada pelo financeiro): PIX de lojista sem operação Ponte no mês = adiantamento
+            # para remessa futura. Conta 2.1.02.001 mantida; acompanhar no relatório do mês seguinte.
+            quem = _pagador(l["descricao"], nomes_lojistas)
+            l["metodo"] = "HUMANO"
+            l["confianca"] = config.CONF_PIX_REMESSA_FUTURA
+            l["regra"] += "; S22 PIX de lojista sem operação no mês = recurso para remessa futura"
+            l["observacao"] = ("S22: adiantamento de lojista para remessa prevista no mês seguinte (confirmado pelo "
+                               "financeiro); acompanhar no relatório da Ponte do mês seguinte")
+            l["pendencia"] = ("ACOMPANHAR_REMESSA_FUTURA",
+                              f"Adiantamento da {quem} para remessa prevista no mês seguinte (S22): PIX de "
+                              f"{fmt_br(l['valor'])} ('{l['descricao']}') sem operação Ponte no mês que o explique. "
+                              "Mantido em 2.1.02.001 (recurso de lojista para remessa). Acompanhar: a operação deve "
+                              "aparecer no relatório da Ponte do mês seguinte; se não aparecer, confirmar com o lojista "
+                              "(devolver ou reclassificar).",
                               config.QUEM_HELENA)
+
+
+def _sem_acento(s):
+    return "".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c)).lower().strip()
+
+
+def _pagador(descricao, nomes_lojistas):
+    """Só para o TEXTO da pendência (o casamento contábil nunca usa nome): o resto da descrição após
+    'PIX RECEB' é o começo do nome do pagador; se for prefixo de exatamente um lojista, usa o nome dele."""
+    resto = re.sub(r"^PIX RECEB\s+", "", descricao, flags=re.IGNORECASE).strip()
+    achados = sorted({n for n in nomes_lojistas if resto and _sem_acento(n).startswith(_sem_acento(resto))})
+    return achados[0] if len(achados) == 1 else f"pagador '{resto}'"
 
 
 def _conciliar_transferencias(lancs):
@@ -107,11 +127,11 @@ def _conciliar_transferencias(lancs):
                               "conferir no extrato do mês seguinte.", config.QUEM_HELENA)
 
 
-def classificar(aurora, meridiano, ponte_resultado, plano, meta_aurora):
+def classificar(aurora, meridiano, ponte_resultado, plano, meta_aurora, nomes_lojistas=()):
     lancs = [_lancamento("AURORA", m) for m in aurora] + [_lancamento("MERIDIANO", m) for m in meridiano]
     ops = _ops_unicas(ponte_resultado)
     _conciliar_ted_ponte(lancs, ops)
-    _conciliar_pix_lojista(lancs, ops)
+    _conciliar_pix_lojista(lancs, ops, nomes_lojistas)
     _conciliar_transferencias(lancs)
     for l in lancs:  # toda conta tem que existir e aceitar lançamento
         c = plano.get(l["conta"])

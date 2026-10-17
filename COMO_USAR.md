@@ -6,11 +6,12 @@ Este guia é para quem fecha o mês no financeiro. Não precisa saber programar.
 Não precisa abrir terminal nem digitar comando.
 
 1. Na pasta do programa, dê **dois cliques em `fechar_mes.bat`**. Abre uma janela preta e, em seguida, o navegador com a tela **"Fechamento mensal — Tarvo"**. **Deixe a janela preta aberta** enquanto usa a tela (fechá-la encerra o programa).
-2. **Passo 1 da tela, Arquivos de entrada**: arraste os 6 arquivos do mês para a área tracejada, todos de uma vez se quiser (ou clique nela para escolher). A lista mostra um ✓ verde, o nome e o tamanho de cada arquivo reconhecido, e "faltando" no que ainda não chegou. Os nomes precisam seguir a tabela da seção 1 abaixo. Um arquivo que não for reconhecido aparece num aviso amarelo e não é usado. Mandou o arquivo errado? Envie o certo por cima (ele substitui o anterior) ou clique em **Limpar e recomeçar**.
-3. **Passo 2, Rodar o fechamento**: o botão só acende com os 6 arquivos reconhecidos. Clique e espere alguns segundos. Aparece o resumo: competência, comissão de checkout e de remessa, notas a emitir, divergências, lançamentos e pendências por responsável. Se algo der errado, aparece uma caixa vermelha explicando o que o programa não conseguiu ler.
+2. **Passo 1 da tela, Arquivos de entrada**: arraste os arquivos do mês para a área tracejada, todos de uma vez se quiser (ou clique nela para escolher). A lista mostra um ✓ verde, o nome e o tamanho de cada arquivo reconhecido, e "faltando" no que ainda não chegou. Os nomes precisam seguir a tabela da seção 1 abaixo. Um arquivo que não for reconhecido aparece num aviso amarelo e não é usado. Mandou o arquivo errado? Envie o certo por cima (ele substitui o anterior) ou clique em **Limpar e recomeçar**.
+3. **Passo 2, Rodar o fechamento**: o botão só acende quando os arquivos do mês estão reconhecidos (pelo menos 1 da Orbe mais os outros 5). Clique e espere alguns segundos. Aparece o resumo: competência, comissão de checkout e de remessa, notas a emitir, divergências, lançamentos e pendências por responsável. Se algo der errado, aparece uma caixa vermelha explicando o que o programa não conseguiu ler.
 4. **Passo 3, Arquivos para baixar**: os 6 CSVs, cada um com o número de linhas e uma frase do que contém, e um botão **Baixar**. **Baixar tudo (.zip)** traz os 6 de uma vez. Logo abaixo aparecem as primeiras pendências, que são o primeiro arquivo a olhar (seção 4).
-5. Para abrir os CSVs no Excel, siga a seção 3 abaixo.
-6. Terminou: feche a janela preta.
+5. **Passo 4, Investigação de divergências**: fatos de cada divergência e, se a IA estiver configurada, hipóteses de causa para você aceitar ou recusar (seção "Investigação de divergências" abaixo).
+6. Para abrir os CSVs no Excel, siga a seção 3 abaixo.
+7. Terminou: feche a janela preta.
 
 Onde ficam os arquivos: cada vez que você usa a tela, o programa guarda uma cópia do que você enviou e o que ele gerou em `execucoes\<data_hora>\entrada` e `execucoes\<data_hora>\saida`, dentro da pasta do programa (o caminho aparece no rodapé da tela). Os arquivos originais que você enviou não são alterados.
 
@@ -18,19 +19,29 @@ Se a janela preta disser **"Não encontrei um Python com as bibliotecas necessá
 
 As seções abaixo explicam o mesmo processo pela linha de comando e como ler cada arquivo.
 
+## Investigação de divergências: como ler e decidir
+Aparece na tela como **Passo 4**, depois que o fechamento roda. Serve para descobrir **por que** cada divergência aconteceu antes de falar com a Orbe, a Ponte ou o Comercial. Nada aqui muda os arquivos do fechamento.
+
+- **Um bloco por grupo** (parceiro × lojista × natureza). No cabeçalho: lojista, parceiro, natureza (*divergência de contrato* = cobrar o parceiro e devolver ao lojista; *isenção não informada ao parceiro* = só devolver ao lojista), quantidade e os valores **devolver ao lojista** e **recuperar do parceiro**.
+- **Fatos (esquerda)**: calculados pelo programa a partir dos arquivos (datas, faixas afetadas e não afetadas, diferença em p.p., se a taxa cobrada bate com outra vigência, com a aba antiga ou com o spread padrão…) e as respostas do financeiro (S##) que tocam o caso. São os mesmos de `saida/investigacao/dossie.md`, que funciona sem IA.
+- **Hipóteses (direita)**: clique em **Gerar hipóteses com IA**. Leva alguns segundos por grupo ("Analisando…"). Cada hipótese mostra a causa provável, os fatos que ela cita (passe o mouse para destacá-los à esquerda) e a confiança. O grupo mostra também o que conferir, com quem falar, que dado falta, o modelo que respondeu e o aviso "Sugestão da IA, não verificada". Hipótese que não cita fato do grupo é descartada pelo programa. Se a IA falhar num grupo, o erro aparece só nele.
+- **Botão desabilitado?** A IA não está configurada neste computador (o motivo aparece em amarelo). Os fatos continuam na tela. Para habilitar, veja "Investigação com IA (opcional)" no `README.md`.
+- **Decidir**: escreva **seu nome** no topo (fica lembrado neste navegador). Em cada hipótese, se quiser, um comentário, e **Aceitar** ou **Recusar**. Pode mudar de ideia: vale a última decisão. A decisão fica gravada com nome, data e hora em `execucoes\<data_hora>\decisoes_investigacao.csv`, e as hipóteses em `investigacao_ia.json` na mesma pasta. **Baixar decisões (.csv)** traz o arquivo. Gerar as hipóteses de novo apaga as decisões daquela execução.
+- A IA **não decide, não altera valores, não fecha pendência e não envia nada**. Quem confere e fala com o parceiro é você.
+
 ## 1. Juntar os arquivos do mês
-Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **6 arquivos**, sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
+Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **arquivos do mês** (1 de cada tipo, exceto a Orbe, que pode mandar mais de um), sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
 
 | Arquivo | De onde vem | O nome precisa conter |
 |---|---|---|
-| Relatório de comissões da Orbe (.csv) | Portal da Orbe | `orbe` |
+| Relatório de comissões da Orbe (.csv), mais os arquivos de ajuste que ela mandar no mês (.csv) | Portal da Orbe | `orbe` |
 | Planilha de taxas contratadas (.xlsx) | Planilha do financeiro | `taxas` |
 | E-mail da Ponte Câmbio com o relatório anexo (.eml) | Caixa de entrada: salvar o e-mail inteiro ("Salvar como" .eml) | qualquer nome terminando em `.eml` |
 | Plano de contas (.csv) | ERP Fênix | `plano_de_contas` |
 | Extrato Aurora (.csv) | Internet banking Aurora | `aurora` |
 | Extrato Meridiano (.ofx) | Internet banking Meridiano | qualquer nome terminando em `.ofx` |
 
-Os nomes que os sistemas já usam servem (ex.: `01_orbe_relatorio_comissoes_out2026.csv`). Só pode haver **um** arquivo de cada tipo na pasta.
+Os nomes que os sistemas já usam servem (ex.: `01_orbe_relatorio_comissoes_out2026.csv`). Só pode haver **um** arquivo de cada tipo na pasta, **exceto a Orbe**: ela às vezes manda um segundo arquivo no mês com ajustes tardios (estornos, reversões de antecipação, vendas). Basta incluí-lo na pasta (ou arrastá-lo na tela) com `orbe` no nome; o programa lê todos os arquivos `orbe` em ordem de nome, soma as linhas e o `rastro.csv` aponta o arquivo certo de cada transação. Se o mesmo `id_transacao` aparecer duas vezes, conta uma só e abre a pendência `ORBE_LINHA_DUPLICADA`; se uma venda ou antecipação for estornada/revertida duas vezes, a segunda não é aplicada e abre a pendência `ORBE_ESTORNO_DUPLICADO`.
 
 ## 2. Rodar um comando
 Abra o terminal na pasta do programa e rode:
@@ -95,31 +106,34 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 | CNPJ/nome da Ponte Câmbio na nota | `CNPJ_PONTE`, `NOME_PONTE` |
 | Conta contábil de um tipo de lançamento, ou ensinar um lançamento novo | `REGRAS_EXTRATO` (descrição → conta; a primeira regra que casar vence) |
 | Janela para casar PIX de lojista com remessas (hoje 7 dias) | `JANELA_PIX_REMESSA_DIAS` |
-| Nome de quem decide nas pendências | `QUEM_HELENA`, `QUEM_COMERCIAL`, `QUEM_RISCO` |
+| Nome de quem decide nas pendências | `QUEM_HELENA`, `QUEM_COMERCIAL`, `QUEM_RISCO`, `QUEM_HELENA_COMERCIAL` |
+| Respostas do financeiro (S##) mostradas no dossiê de investigação, por lojista | `RESPOSTAS_FINANCEIRO`, `TEXTOS_FINANCEIRO` |
 | Nome dos arquivos de entrada | `PADROES_ARQUIVOS` |
 
-Depois de mudar: rodar `python -m pytest -q` (55 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
+Depois de mudar: rodar `python -m pytest -q` (116 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
 
 ## 8. Quando a solução não resolve sozinha
 Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem decide. Tipos de pendência em `pendencias.csv`:
 
 | Tipo | O que significa | Quem decide | O que fazer |
 |---|---|---|---|
-| `DIVERGENCIA_TAXA_CHECKOUT` | A Orbe cobrou de um lojista taxa diferente da contratada. Valor = total líquido do lojista. | Helena | Decidir devolução ao lojista e cobrança da Orbe. Lista em `divergencias_taxa.csv`. |
+| `DIVERGENCIA_TAXA_CHECKOUT` | A Orbe cobrou de um lojista taxa diferente da contratada (natureza CONTRATO). Valor = total líquido do lojista. | Helena | Devolver ao lojista e recuperar da Orbe o valor indicado (R60). Lista em `divergencias_taxa.csv` (`cobrar_parceiro` = S). |
+| `DEVOLUCAO_LOJISTA_ISENCAO` | Isenção que ninguém avisou à Orbe (ex.: Casa do Estudante): a Orbe cobrou certo pelo que sabia. **Não entra na cobrança da Orbe.** | Helena / Comercial | Devolver ao lojista (R52). Detalhe em `divergencias_taxa.csv` (`natureza` = ISENCAO_NAO_INFORMADA, `cobrar_parceiro` = N). |
 | `SALDO_CHECKOUT_NAO_POSITIVO` | Lojista fechou o mês com comissão zero ou negativa: não sai nota, saldo não transporta. | Helena | Decidir o tratamento. |
 | `LOJISTA_SEM_CONTRATO` | Lojista sem contrato vigente (Atlas). Fora das comissões e das notas. Valor = taxa que a Orbe cobrou, só referência. | Comercial | Confirmar a taxa; depois liberar em `ECS_BLOQUEADOS`. |
 | `TAXA_CONTRATADA_INDEFINIDA` | A planilha não permite achar a taxa (EC sem linha, vigência não reconhecida, faixa sem taxa). | Comercial | Corrigir a planilha e rodar de novo. |
-| `RISCO_ANTECIPACAO` | Lojista antecipou mais do que vendeu até a data (ex.: Atlas). | Helena / Comercial | Avaliar o risco. |
-| `DIVERGENCIA_SPREAD_REMESSA` | A Ponte aplicou spread acima do contratado. Valor cheio pago a mais pelo lojista. | Helena | Contestar com a Ponte. |
+| `ALERTA_ANTECIPACAO` | Lojista antecipou mais do que vendeu até a data (ex.: Atlas). | Helena / Comercial | Avaliar o risco (R54). |
+| `PARCELAMENTO_ACIMA_12X` | Venda parcelada em mais de 12x (a Tarvo não vende acima de 12x). Fora das comissões e das notas. | Helena / Comercial | Esclarecer com o lojista/Orbe (R57). |
+| `DIVERGENCIA_SPREAD_REMESSA` | A Ponte aplicou spread acima do contratado. Valor cheio pago a mais pelo lojista. | Helena | Devolver ao lojista e recuperar da Ponte (R60); contestar com a Ponte. |
 | `EXCESSO_NA_NOTA_REMESSA` | A nota da Ponte inclui a metade da Tarvo sobre esse excesso. | Helena | Se a Ponte devolver, ajustar no mês da devolução. |
-| `SPREAD_NEGATIVO` | Operação com spread negativo (trava vencida). Fora da comissão e da nota. | Helena | Contestar com a Ponte. |
+| `SPREAD_NEGATIVO` | Operações com spread negativo (trava vencida), uma pendência por lojista com as operações no motivo e no rastro. Fora da comissão e da nota. | Helena | Contestar com a Ponte (R53). |
 | `OPERACAO_DUPLICADA` | Nº de operação repetido no relatório da Ponte. Contado uma vez. | Helena | Pedir correção do relatório à Ponte. |
 | `REMESSA_FORA_COMPETENCIA` | Operações do relatório da Ponte contratadas em outro mês (o mês do fechamento vem sempre da Orbe). Ficam fora da comissão e da nota; sai 1 pendência por mês de contratação, e o resto do fechamento roda. | Helena | Verificar se o relatório da Ponte recebido é o do mês certo. |
 | `REMESSA_SEM_CONTRATO` | CNPJ de remessa sem linha válida na planilha: comissão contada, divergência não verificada. | Comercial | Cadastrar o lojista. |
 | `CONFERIR_REPASSE_PONTE` | O TED da Ponte deve vir pelo valor da nota. O motivo mostra quanto daria 50% do total bruto do relatório da Ponte (que inclui duplicata e spreads negativos) e a diferença para a nota (em setembro, R$ 506,65). | Helena | Conferir o TED quando cair, sem presumir desconto. |
 | `CREDITO_NAO_IDENTIFICADO` | Crédito sem pagador identificado. Não é receita. | Helena | Identificar e reclassificar. |
 | `DEVOLUCAO_REPASSE` | Repasse a lojista que voltou. | Helena | Confirmar motivo e repagar. |
-| `PIX_LOJISTA_SEM_OPERACAO` | PIX de lojista na conta de remessas sem operação Ponte correspondente. O lançamento sai com método HUMANO. | Helena | Confirmar com o lojista e definir a conta. |
+| `ACOMPANHAR_REMESSA_FUTURA` | PIX de lojista na conta de remessas sem operação Ponte no mês: adiantamento para remessa do mês seguinte (S22). Conta 2.1.02.001, lançamento HUMANO com confiança 1,00. | Helena | Conferir se a operação aparece no relatório da Ponte do mês seguinte; se não aparecer, falar com o lojista. |
 | `TRANSFERENCIA_EM_TRANSITO` | Transferência entre contas sem par no outro banco dentro do mês. | Helena | Conferir no extrato do mês seguinte. |
 | `TED_PONTE_NAO_CONCILIADO` | TED à Ponte não bate com as operações do dia. | Helena | Conferir com a Ponte. |
 | `LANCAMENTO_NAO_CLASSIFICADO` | Descrição de extrato que nenhuma regra conhece. Lançado provisoriamente em 1.1.09.002. | Helena | Definir a conta; pedir a inclusão da regra em `REGRAS_EXTRATO`. |

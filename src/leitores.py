@@ -45,20 +45,32 @@ def _decodificar(raw, preferidos):
 
 
 def descobrir_arquivos(pasta):
-    """Acha cada fonte por padrão de nome (config.PADROES_ARQUIVOS). Exige exatamente 1 por padrão."""
+    """Acha cada fonte por padrão de nome (config.PADROES_ARQUIVOS).
+    Fontes comuns: exatamente 1 arquivo (Path). Fontes em config.FONTES_MULTIPLAS (Orbe): 1 ou mais,
+    devolvidas como lista de Path em ordem de nome (a Orbe pode mandar arquivos de ajuste no mês)."""
     pasta = Path(pasta)
     achados, erros = {}, []
     todos = [p for p in pasta.iterdir() if p.is_file()]
     for chave, padrao in config.PADROES_ARQUIVOS.items():
         rx = re.compile(_glob_para_regex(padrao), re.IGNORECASE)
-        m = [p for p in todos if rx.fullmatch(p.name)]
-        if len(m) != 1:
+        m = sorted((p for p in todos if rx.fullmatch(p.name)), key=lambda p: p.name.lower())
+        if chave in config.FONTES_MULTIPLAS:
+            if not m:
+                erros.append(f"{chave}: esperado 1 ou mais arquivos '{padrao}' em {pasta}, achei nenhum")
+            else:
+                achados[chave] = m
+        elif len(m) != 1:
             erros.append(f"{chave}: esperado 1 arquivo '{padrao}' em {pasta}, achei {[p.name for p in m]}")
         else:
             achados[chave] = m[0]
     if erros:
         raise FileNotFoundError("\n".join(erros))
     return achados
+
+
+def achatar(arquivos):
+    """Resultado de descobrir_arquivos -> lista simples de Path (as fontes múltiplas viram vários itens)."""
+    return [p for v in arquivos.values() for p in (v if isinstance(v, list) else [v])]
 
 
 def _glob_para_regex(padrao):
@@ -77,6 +89,7 @@ def ler_orbe(caminho):
         linhas.append({
             "id": r["id_transacao"].strip(),
             "linha": n,
+            "arquivo": Path(caminho).name,
             "data": _data_br(r["data_movimento"]),
             "ec": r["cod_estabelecimento"].strip(),
             "nome": r["nome_estabelecimento"].strip(),
@@ -92,6 +105,29 @@ def ler_orbe(caminho):
             "data_orig": _data_br(r["data_venda_original"]),
         })
     return linhas
+
+
+_CAMPOS_DUP = ("data", "ec", "tipo", "modalidade", "parcelas", "bruto", "taxa_aplicada", "valor_taxa", "liquido", "id_ref")
+
+
+def ler_orbe_varios(caminhos):
+    """Lê 1 ou N arquivos Orbe (em ordem de nome), concatena e remove repetições de id_transacao.
+    Cada linha leva 'arquivo' (nome) e 'linha' (linha física nele). Devolve (linhas, duplicadas):
+    a 1ª ocorrência do id vale; as demais (entre arquivos ou no mesmo) vão para 'duplicadas' com
+    'original' (a linha mantida) e 'identica' (mesmos valores?). Nunca contam em dobro."""
+    if isinstance(caminhos, (str, Path)):
+        caminhos = [caminhos]
+    vistos, linhas, duplicadas = {}, [], []
+    for c in sorted(map(Path, caminhos), key=lambda p: p.name.lower()):
+        for l in ler_orbe(c):
+            o = vistos.get(l["id"])
+            if o is None:
+                vistos[l["id"]] = l
+                linhas.append(l)
+            else:
+                duplicadas.append({**l, "original": o,
+                                   "identica": all(l[k] == o[k] for k in _CAMPOS_DUP)})
+    return linhas, duplicadas
 
 
 # ---------------------------------------------------------------- 02 planilha de taxas
@@ -118,7 +154,7 @@ def _pct(v):
 
 
 def _spread(v):
-    """Spread contratado como fração. Branco/'padrão' -> None (= padrão, R21)."""
+    """Spread contratado como fração. Branco/'padrão' -> None (= padrão, CC03)."""
     if v is None or (isinstance(v, str) and _sem_acento(v) in ("", "padrao")):
         return None
     return _pct(v) / 100
@@ -177,6 +213,40 @@ def ler_taxas(caminho):
             "riscado": bool(ws.cell(r, mapa["lojista"]).font.strike),  # linha riscada = inativa
         })
     return contratos
+
+
+_COLS_ANTIGAS = {"lojista": "lojista", "cnpj": "cnpj", "debito": ["DEBITO"], "credito a vista": ["CREDITO A VISTA"],
+                 "cred. parcelado": ["PARC_2_6", "PARC_7_12"], "pix": ["PIX"]}
+
+
+def ler_taxas_antigas(caminho):
+    """Abas que NÃO são a vigente (ex.: 'ANTIGO 2025 - nao usar'). Usadas só como FATO no dossiê de
+    investigação (taxa aplicada coincide com tabela antiga?), nunca para calcular comissão.
+    'Créd. parcelado' vale para as duas faixas de parcelas."""
+    wb = openpyxl.load_workbook(caminho, data_only=True)
+    out = []
+    for nome in wb.sheetnames:
+        if "vigente" in _sem_acento(nome):
+            continue
+        ws = wb[nome]
+        mapa = None
+        for row in ws.iter_rows():
+            if mapa is None:
+                if row[0].value and _sem_acento(row[0].value) == "lojista":
+                    mapa = {_sem_acento(c.value): c.column for c in row
+                            if c.value is not None and _sem_acento(c.value) in _COLS_ANTIGAS}
+                continue
+            val = {k: ws.cell(row[0].row, c).value for k, c in mapa.items()}
+            if not val.get("lojista") or val.get("cnpj") is None:
+                continue
+            taxas = {}
+            for k, faixas in _COLS_ANTIGAS.items():
+                if isinstance(faixas, list) and k in val:
+                    for f in faixas:
+                        taxas[f] = _pct(val[k])
+            out.append({"aba": nome, "linha": row[0].row, "lojista": str(val["lojista"]).strip(),
+                        "cnpj": _so_digitos(val["cnpj"]), "taxas": taxas})
+    return out
 
 
 # ---------------------------------------------------------------- 03 e-mail Ponte (anexo em memória)
@@ -302,9 +372,13 @@ def ler_tudo(pasta):
     ponte, meta_ponte = ler_ponte(arq["ponte"])
     aurora, meta_aurora = ler_aurora(arq["aurora"])
     meridiano, meta_mer = ler_meridiano(arq["meridiano"])
+    orbe, orbe_dup = ler_orbe_varios(arq["orbe"])
+    arquivos = {k: v.name for k, v in arq.items() if k != "orbe"}
+    arquivos["orbe"] = ", ".join(p.name for p in arq["orbe"])
     return {
-        "arquivos": {k: v.name for k, v in arq.items()},
-        "orbe": ler_orbe(arq["orbe"]),
+        "arquivos": arquivos,
+        "arquivos_orbe": [p.name for p in arq["orbe"]],
+        "orbe": orbe, "orbe_duplicadas": orbe_dup,
         "contratos": ler_taxas(arq["taxas"]),
         "ponte": ponte, "meta_ponte": meta_ponte,
         "plano": ler_plano(arq["plano"]),

@@ -1,0 +1,4 @@
+# Opcional: só para a investigação com IA via API da Anthropic (src/ia.py).
+# Via OpenRouter não é preciso instalar nada (usa a biblioteca padrão).
+# O fechamento base não depende disto.
+anthropic>=1.15,<2

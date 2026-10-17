@@ -3,7 +3,7 @@ from src import leitores
 
 def test_contagens(raiz):
     d = leitores.ler_tudo(raiz)
-    assert len(d["orbe"]) == 1943
+    assert len(d["orbe"]) == 1957  # 1943 do 01 + 14 do 06_orbe_ajustes_tardios
     assert len(d["ponte"]) == 233                      # inclui a duplicata; rodapé fora
     assert len({o["op"] for o in d["ponte"]}) == 232
     assert len(d["aurora"]) == 84

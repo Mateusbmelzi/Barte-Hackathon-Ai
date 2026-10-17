@@ -15,6 +15,8 @@ Legenda usada no documento:
 
 ## 0. Resumo executivo (números-chave sob as regras confirmadas)
 
+> **Atualização 17/10, 13h:** os números abaixo são do relatório Orbe original (arquivo 01). Com os ajustes tardios do arquivo 06, os valores vigentes são checkout R$ 203.735,34 (1.900 linhas) e notas checkout R$ 203.740,84 — ver `docs/05_ajustes_tardios.md` e `saida/`.
+
 | Item | Valor | Base |
 |---|---|---|
 | Comissão CHECKOUT (21 lojistas faturáveis, taxa contratada, half-up) | **R$ 207.039,73** (soma algébrica) | S01, S02, S03, S07, S11, S17 |
@@ -359,6 +361,8 @@ Armadilhas de nome (FATO): "HORIZONTE INTERCAMBIO" (Orbe), "Horizonte Viagens" (
 ---
 
 ## 9. Gabarito CHECKOUT por lojista (regras confirmadas)
+
+> **Valores com o arquivo 06 (`06_orbe_ajustes_tardios_set2026.csv`): ver `docs/05_ajustes_tardios.md`.** A tabela abaixo é a análise original, só com o arquivo 01 (checkout 207.039,73; 1.886 linhas). Com o 06 o checkout fecha em 203.735,34 (1.900 linhas) e muda a comissão de 7 lojistas (Dublin, Maple, Mundo Aberto, Bridge, EduAbroad, Oxford, Kiwi).
 
 Regra aplicada: `comissão_linha = round_half_up(valor_bruto × taxa contratada vigente na data da venda original, 2)`. Para VENDA e ANTECIPACAO a data é `data_movimento`; para ESTORNO, `data_venda_original`; a REVERSÃO usa a taxa da antecipação revertida (2,10). Bridge troca a vigência em 15/09. Casa do Estudante tem taxa 0 em linhas com data de referência ≥ 01/09. Atlas fica de fora. Não há empate de meio centavo no checkout, então half-up e half-even dão o mesmo resultado aqui. No remessa não é assim (§3.5).
 

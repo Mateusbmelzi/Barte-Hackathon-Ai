@@ -88,6 +88,46 @@
   td.valor { white-space: nowrap; text-align: right; }
   h3 { font-family: var(--titulo); font-weight: 600; font-size: 16px; margin: 24px 0 0; }
   .oculto { display: none !important; }
+  .inv-topo { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 8px; }
+  .inv-topo label { font-size: 13px; color: var(--texto-suave); display: flex; flex-direction: column; gap: 4px; }
+  input.campo, textarea.campo { font: inherit; border: 1px solid var(--borda); border-radius: 8px; padding: 8px 10px; background: #fff; color: var(--texto); }
+  input.campo { min-width: 240px; }
+  textarea.campo { width: 100%; min-height: 38px; resize: vertical; font-size: 13px; }
+  .motivo-ia { font-size: 13px; color: #6b4e00; background: #fff7e6; border: 1px solid #f5d38a; border-radius: 8px; padding: 8px 12px; flex: 1 1 280px; }
+  .botao.ia .giro { border-color: #df285d55; border-top-color: var(--destaque); }
+  .grupo { border: 1px solid var(--borda); border-radius: 12px; margin-top: 16px; overflow: hidden; }
+  .grupo-cab { padding: 12px 16px; background: #f5f6f7; display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; }
+  .grupo-cab .nome { font-family: var(--titulo); font-weight: 600; font-size: 16px; }
+  .grupo-cab .meta { font-size: 13px; color: var(--texto-suave); }
+  .selo { display: inline-block; border-radius: 20px; padding: 1px 10px; font-size: 12px; font-weight: 600; border: 1px solid var(--borda); background: #fff; }
+  .selo.isencao { border-color: #f5d38a; background: #fff7e6; color: #6b4e00; }
+  .selo.contrato { border-color: #f3b6c8; background: #fdecf1; color: #7a1233; }
+  .grupo-corpo { display: grid; grid-template-columns: 1fr 1fr; }
+  .grupo-corpo > div { padding: 12px 16px; min-width: 0; }
+  .grupo-corpo > div + div { border-left: 1px solid var(--borda); }
+  .grupo h4 { margin: 0 0 8px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); }
+  .fatos { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+  .fatos li { padding: 5px 6px; border-radius: 6px; }
+  .fatos li.realce { background: #fff1c2; }
+  .fatos li.contra { background: #fde2e2; }
+  .chip.contra { border-color: #f3b6c8; background: #fdecf1; color: #7a1233; }
+  .ajustes { font-size: 11px; color: var(--texto-suave); margin: 4px 0; }
+  .fatos b, .chip { font-family: Consolas, ui-monospace, monospace; }
+  .chip { display: inline-block; font-size: 11px; border: 1px solid var(--borda); border-radius: 6px; padding: 0 5px; margin: 0 3px 2px 0; background: #fafafa; }
+  .hip { border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; font-size: 13px; }
+  .hip.aceita { border-color: #00b18688; background: var(--ok-10); }
+  .hip.recusada { border-color: #d4d4d4; background: #f4f4f4; }
+  .hip .causa { font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+  .conf { font-size: 11px; font-weight: 600; border-radius: 20px; padding: 0 8px; margin-left: 4px; }
+  .conf.alta { background: var(--ok-10); color: #00785b; } .conf.media { background: #fff7e6; color: #6b4e00; } .conf.baixa { background: #f2f2f2; color: #555; }
+  .hip .acoes { margin-top: 8px; gap: 8px; }
+  .hip .botao { padding: 5px 14px; font-size: 13px; }
+  .decidido { font-size: 12px; margin-top: 6px; color: var(--texto-suave); }
+  .ia-extra { font-size: 13px; margin: 6px 0; }
+  .ia-extra ul { margin: 2px 0 0; padding-left: 18px; }
+  .aviso-ia { font-size: 12px; color: var(--texto-suave); border-top: 1px dashed var(--borda); margin-top: 8px; padding-top: 6px; }
+  .vazio { font-size: 13px; color: var(--texto-suave); }
+  @media (max-width: 720px) { .grupo-corpo { grid-template-columns: 1fr; } .grupo-corpo > div + div { border-left: 0; border-top: 1px solid var(--borda); } }
   footer { text-align: center; color: var(--texto-suave); font-size: 13px; padding: 0 16px 32px; }
   @media (max-width: 560px) {
     .cartao { padding: 18px; }
@@ -100,7 +140,7 @@
   <div class="conteudo">
     <span class="etiqueta">Ferramenta interna do financeiro</span>
     <h1>Fechamento mensal — Tarvo</h1>
-    <p>Envie os 6 arquivos do mês, clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos que você enviar não são alterados.</p>
+    <p>Envie os arquivos do mês (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos que você enviar não são alterados.</p>
   </div>
 </header>
 
@@ -124,7 +164,7 @@
 
     <section class="cartao">
       <h2><span class="passo">2</span> Rodar o fechamento</h2>
-      <p class="sub">O botão fica disponível quando os 6 arquivos estiverem reconhecidos. Leva poucos segundos.</p>
+      <p class="sub">O botão fica disponível quando os arquivos do mês estiverem reconhecidos (Orbe, taxas, Ponte, plano de contas e os dois extratos). Leva poucos segundos.</p>
       <div class="acoes" style="margin-top:0">
         <button class="botao grande" id="rodar" type="button" disabled><span class="giro"></span><span id="rodarTexto">Rodar fechamento</span></button>
       </div>
@@ -138,6 +178,19 @@
       <ul class="arquivos" id="saidas"></ul>
       <div class="acoes"><a class="botao" id="baixarTudo" href="/api/baixar-tudo">Baixar tudo (.zip)</a></div>
       <div id="previa"></div>
+    </section>
+
+    <section class="cartao oculto" id="cartaoInvestigacao">
+      <h2><span class="passo">4</span> Investigação de divergências</h2>
+      <p class="sub">Para cada grupo de divergência: à esquerda, os fatos calculados pelo fechamento; à direita, as hipóteses de causa sugeridas pela IA. Você aceita ou recusa cada hipótese. Nada aqui altera os arquivos do fechamento.</p>
+      <div class="inv-topo">
+        <label>Seu nome (obrigatório para decidir)<input class="campo" id="analista" autocomplete="name" placeholder="ex.: Helena"></label>
+        <button class="botao ia" id="gerarIA" type="button"><span class="giro"></span><span id="gerarTexto">Gerar hipóteses com IA</span></button>
+        <a class="botao leve" id="baixarDecisoes" href="/api/baixar-decisoes" download="decisoes_investigacao.csv">Baixar decisões (.csv)</a>
+        <div class="motivo-ia oculto" id="motivoIA"></div>
+      </div>
+      <div class="erro oculto" id="erroIA"></div>
+      <div id="grupos"></div>
     </section>
   </div>
 </main>
@@ -160,12 +213,13 @@ function desenhar(e) {
   $("esperados").innerHTML = e.esperados.map((x) => `
     <li class="${x.nome ? "ok" : ""}">
       <span class="marca">✓</span>
-      <div><div class="nome">${esc(x.rotulo)}</div>
-      ${x.nome ? `<div class="det">${esc(x.nome)} · ${tamanho(x.tamanho)}</div>`
+      <div><div class="nome">${esc(x.rotulo)}${x.nomes ? `: ${x.nomes.length} ${x.nomes.length === 1 ? "arquivo" : "arquivos"}` : ""}</div>
+      ${x.nomes ? `<div class="det">${x.nomes.length} ${x.nomes.length === 1 ? "arquivo" : "arquivos"} · ${tamanho(x.tamanho)}</div>${x.nomes.map((m) => `<div class="det">${esc(m)}</div>`).join("")}`
+      : x.nome ? `<div class="det">${esc(x.nome)} · ${tamanho(x.tamanho)}</div>`
                : `<div class="faltando">faltando</div><div class="det">nome com “${esc(x.padrao)}”</div>`}</div>
     </li>`).join("");
   const n = e.esperados.filter((x) => x.nome).length;
-  $("contagem").textContent = `${n} de ${e.esperados.length} arquivos reconhecidos`;
+  $("contagem").textContent = `${n} de ${e.esperados.length} fontes reconhecidas`;
   $("rodar").disabled = !e.pronto || rodando;
 
   $("erro").classList.toggle("oculto", !e.erro);
@@ -197,6 +251,7 @@ function desenhar(e) {
       <tbody>${p.linhas.map((l) => `<tr><td>${esc(l[0])}</td><td>${esc(l[1])}</td><td class="valor">${esc(l[2])}</td><td class="motivo">${esc(l[3])}</td><td>${esc(l[4])}</td></tr>`).join("")}</tbody></table></div>` : "";
   }
   $("rodape").textContent = e.pasta ? "Pasta desta execução: " + e.pasta : "";
+  desenharInvestigacao(r ? e.investigacao : null);
 }
 
 async function enviar(arquivos) {
@@ -238,6 +293,112 @@ $("rodar").addEventListener("click", async () => {
     rodando = false; $("rodar").classList.remove("rodando"); $("rodarTexto").textContent = "Rodar fechamento";
     try { desenhar(await api("/api/estado")); } catch (_) {}
   }
+});
+
+// ------------------------------------------------ investigação de divergências
+const NATUREZA = { CONTRATO: "Divergência de contrato", ISENCAO_NAO_INFORMADA: "Isenção não informada ao parceiro" };
+const PARCEIRO = { ORBE: "Orbe", PONTE: "Ponte" };
+const reais = (v) => "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let ultimaInv = "", espera = null;
+try { $("analista").value = localStorage.getItem("tarvo.analista") || ""; } catch (_) {}
+const nomeAnalista = () => $("analista").value.trim();
+
+function desenharInvestigacao(inv) {
+  $("cartaoInvestigacao").classList.toggle("oculto", !inv);
+  if (!inv) { ultimaInv = ""; return; }
+  const analisando = inv.ia_estado === "analisando";
+  $("gerarIA").disabled = !inv.ia_disponivel || analisando;
+  $("gerarIA").classList.toggle("rodando", analisando);
+  $("gerarTexto").textContent = analisando ? "Analisando…" : (inv.ia ? "Gerar hipóteses de novo" : "Gerar hipóteses com IA");
+  $("motivoIA").classList.toggle("oculto", inv.ia_disponivel);
+  $("motivoIA").textContent = inv.ia_disponivel ? "" : "IA indisponível: " + inv.ia_motivo;
+  clearTimeout(espera);
+  if (analisando) espera = setTimeout(async () => { try { desenhar(await api("/api/estado")); } catch (_) {} }, 1500);
+  const assinatura = JSON.stringify([inv.ia_estado, inv.ia, inv.decisoes, inv.dossie.competencia, inv.dossie.grupos.length, nomeAnalista() !== ""]);
+  if (assinatura === ultimaInv) return;          // não redesenha à toa (preserva comentários em digitação)
+  ultimaInv = assinatura;
+  const iaPor = Object.fromEntries(((inv.ia && inv.ia.grupos) || []).map((g) => [g.id_grupo, g]));
+  const dec = Object.fromEntries(inv.decisoes.map((d) => [d.id_grupo + "#" + d.hipotese_n, d]));
+  $("grupos").innerHTML = inv.dossie.grupos.map((g) => grupoHTML(g, iaPor[g.id_grupo], dec, analisando)).join("");
+}
+
+function grupoHTML(g, r, dec, analisando) {
+  const fatos = g.fatos.map((f) => `<li data-f="${esc(f.id)}"><b>${esc(f.id)}</b> ${esc(f.texto)}</li>`).join("")
+    + g.respostas_financeiro.map((s) => `<li data-f="${esc(s.id)}"><b>${esc(s.id)}</b> <i>Financeiro:</i> ${esc(s.texto)}</li>`).join("");
+  let dir;
+  if (analisando) dir = `<p class="vazio">Analisando…</p>`;
+  else if (!r) dir = `<p class="vazio">Nenhuma hipótese ainda. Use “Gerar hipóteses com IA”.</p>`;
+  else if (r.erro) dir = `<div class="erro" style="margin-top:0">${esc(r.erro)}</div>`;
+  else {
+    const hips = r.hipoteses.length ? r.hipoteses.map((h, i) => hipHTML(g, h, i + 1, dec[g.id_grupo + "#" + (i + 1)])).join("")
+      : `<p class="vazio">A IA não trouxe hipótese sustentada por fatos.</p>`;
+    dir = (r.resumo ? `<div class="ia-extra"><strong>Resumo:</strong> ${esc(r.resumo)}</div>` : "") + hips
+      + (r.conferir && r.conferir.length ? `<div class="ia-extra"><strong>Conferir:</strong><ul>${r.conferir.map((c) => `<li>${esc(c)}</li>`).join("")}</ul></div>` : "")
+      + (r.falar_com ? `<div class="ia-extra"><strong>Falar com:</strong> ${esc(r.falar_com)}</div>` : "")
+      + (r.dado_faltante ? `<div class="ia-extra"><strong>Dado que falta:</strong> ${esc(r.dado_faltante)}</div>` : "")
+      + (r.hipoteses_descartadas ? `<div class="ia-extra">${r.hipoteses_descartadas} hipótese(s) descartada(s) por não citar fatos válidos.</div>` : "")
+      + (r.ajustes && r.ajustes.length ? `<div class="ajustes">Ajustes do programa: ${r.ajustes.map((a) => esc(a.ajuste) + (a.causa ? " (“" + esc(a.causa) + "”)" : "")).join("; ")}</div>` : "")
+      + `<div class="aviso-ia">${esc(r.aviso || "")} Modelo: ${esc(r.modelo_resposta || r.modelo || "?")} · prompt ${esc(r.versao_prompt || "?")}</div>`;
+  }
+  return `<div class="grupo" data-grupo="${esc(g.id_grupo)}">
+    <div class="grupo-cab"><span class="nome">${esc(g.id_grupo)} · ${esc(g.lojista)}</span>
+      <span class="selo ${g.natureza === "CONTRATO" ? "contrato" : "isencao"}">${esc(NATUREZA[g.natureza] || g.natureza)}</span>
+      <span class="meta">${esc(PARCEIRO[g.contraparte] || g.contraparte)} · ${g.qtd} ${g.linha_negocio === "REMESSA" ? "operações" : "transações"} ·
+        devolver ao lojista <strong>${reais(g.valor_devolver_lojista_brl)}</strong> · recuperar do parceiro <strong>${reais(g.valor_recuperar_parceiro_brl)}</strong></span></div>
+    <div class="grupo-corpo"><div><h4>Fatos</h4><ul class="fatos">${fatos}</ul></div><div><h4>Hipóteses da IA</h4>${dir}</div></div></div>`;
+}
+
+function hipHTML(g, h, n, d) {
+  const semNome = !nomeAnalista();
+  const status = d ? `<div class="decidido"><strong>${d.decisao === "ACEITA" ? "Aceita" : "Recusada"}</strong> por ${esc(d.analista)} em ${esc(d.data_hora.replace("T", " "))}${d.comentario ? " — “" + esc(d.comentario) + "”" : ""}</div>` : "";
+  const contra = h.fatos_contrarios || [];
+  return `<div class="hip ${d ? d.decisao.toLowerCase() : ""}" data-cita="${esc(h.fatos_citados.join(" "))}" data-contra="${esc(contra.join(" "))}">
+    <div class="causa">${n}. ${esc(h.causa)} <span class="conf ${esc(h.confianca)}">confiança ${esc(h.confianca === "media" ? "média" : h.confianca)}</span></div>
+    <div>Fatos citados: ${h.fatos_citados.map((f) => `<span class="chip">${esc(f)}</span>`).join("")}</div>
+    ${contra.length ? `<div class="contra-lista">Contra: ${contra.map((f) => `<span class="chip contra">${esc(f)}</span>`).join("")}</div>` : ""}
+    ${status}
+    <textarea class="campo" data-com="${esc(g.id_grupo)}#${n}" placeholder="Comentário (opcional)">${esc(d ? d.comentario : "")}</textarea>
+    <div class="acoes"><button class="botao secundario" type="button" data-decidir="ACEITA" data-g="${esc(g.id_grupo)}" data-n="${n}" ${semNome ? "disabled title='Informe seu nome'" : ""}>Aceitar</button>
+      <button class="botao leve" type="button" data-decidir="RECUSADA" data-g="${esc(g.id_grupo)}" data-n="${n}" ${semNome ? "disabled title='Informe seu nome'" : ""}>Recusar</button></div></div>`;
+}
+
+$("analista").addEventListener("input", async () => {
+  try { localStorage.setItem("tarvo.analista", nomeAnalista()); } catch (_) {}
+  document.querySelectorAll("[data-decidir]").forEach((b) => { b.disabled = !nomeAnalista(); });
+});
+
+$("gerarIA").addEventListener("click", async () => {
+  $("erroIA").classList.add("oculto");
+  const r = await fetch("/api/ia/gerar", { method: "POST" });
+  const e = await r.json();
+  if (e.aviso_ia) { $("erroIA").classList.remove("oculto"); $("erroIA").textContent = e.aviso_ia; }
+  desenhar(e);
+});
+
+$("grupos").addEventListener("click", async (ev) => {
+  const b = ev.target.closest("[data-decidir]");
+  if (!b) return;
+  const chave = b.dataset.g + "#" + b.dataset.n;
+  const com = document.querySelector(`[data-com="${CSS.escape(chave)}"]`);
+  const r = await fetch("/api/ia/decidir", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id_grupo: b.dataset.g, hipotese_n: Number(b.dataset.n), decisao: b.dataset.decidir,
+                           comentario: com ? com.value : "", analista: nomeAnalista() }) });
+  const e = await r.json();
+  $("erroIA").classList.toggle("oculto", !e.aviso_ia);
+  if (e.aviso_ia) $("erroIA").textContent = e.aviso_ia;
+  desenhar(e);
+});
+
+// realce dos fatos citados ao passar o mouse na hipótese
+$("grupos").addEventListener("mouseover", (ev) => {
+  const h = ev.target.closest(".hip");
+  document.querySelectorAll(".fatos li.realce, .fatos li.contra").forEach((li) => li.classList.remove("realce", "contra"));
+  if (!h) return;
+  const grupo = h.closest(".grupo");
+  const marcar = (ids, cls) => ids.split(" ").filter(Boolean).forEach((id) => {
+    const li = grupo.querySelector(`.fatos li[data-f="${CSS.escape(id)}"]`); if (li) li.classList.add(cls); });
+  marcar(h.dataset.cita, "realce");
+  marcar(h.dataset.contra || "", "contra");
 });
 
 api("/api/estado").then(desenhar).catch(() => {});

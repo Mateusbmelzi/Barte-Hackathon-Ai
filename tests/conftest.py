@@ -8,11 +8,11 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 
 from src import fechamento  # noqa: E402
-from src.leitores import descobrir_arquivos  # noqa: E402
+from src.leitores import achatar, descobrir_arquivos  # noqa: E402
 
 
 def _hashes():
-    return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in descobrir_arquivos(RAIZ).values()}
+    return {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in achatar(descobrir_arquivos(RAIZ))}
 
 
 @pytest.fixture(scope="session")

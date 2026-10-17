@@ -21,3 +21,33 @@ Fonte: threads do canal (respostas da Helena, financeiro Tarvo). Transcrição r
 - **S17 — Confirmações checkout.** Comissão = taxa inteira (sem custo Orbe), pela taxa contratada. Estornos de agosto abatem setembro. Antecipação entra na mesma nota; reversão abate.
 
 Sem resposta ainda (follow-up do Lucca, proposta de lançamentos): baixa de passivos de agosto (D Salários a pagar / tributos × C Aurora); repasse Ponte 08: D Meridiano × C 1.1.03.002; PIX 7.350: C 1.1.09.002 Créditos não identificados + pendência; devolução 12.400: C 2.1.01.001 Repasses a lojistas a pagar + pendência; transferência 300 mil: 1.1.09.001 Transferências entre contas próprias.
+
+---
+
+# Respostas recebidas em 17/10/2026 (manhã)
+
+## Respostas às nossas perguntas (PERGUNTAS_SLACK.md)
+- **S18 — Casa do Estudante (P3).** É diferente de divergência comum: a Orbe cobrou certo pela planilha, porque ninguém avisou a isenção. Não há o que cobrar da Orbe; é devolução ao lojista, pendência da Helena com o comercial. Deixar separado das divergências de contrato, com o valor.
+- **S19 — Divergência na remessa (P5).** É quando o lojista paga spread diferente do contratado. Spread negativo: ver S25.
+- **S20 — Venda cobrada a mais e estornada (P2).** Venda e estorno se anulam; cobra-se da Orbe só a diferença líquida.
+- **S21 — Estorno de venda anterior à isenção (P1).** Vale a taxa da data da venda original; em 21/08 a isenção não valia.
+- **S22 — PIX R$ 18.240 (P6).** É a Ponte Aérea Estudantil (lojista, sem relação com a Ponte Câmbio) enviando dinheiro de uma remessa ainda não feita; a operação sai em outubro.
+- **S23 — Antecipação da Atlas (P8).** Não deveria acontecer: antecipação é sobre o que o lojista já vendeu, e não há trava. Tratar como alerta para Helena e Comercial, ainda mais sem contrato.
+- **S24 — Orbe cobrando abaixo do contrato (P4).** Também é divergência; Helena decide caso a caso. Não ocorreu em setembro.
+
+## Respostas a outros times (canal público)
+- **S25 — Spread negativo (MN AI).** Divergência é quando o lojista pagou diferente do contrato; no spread negativo ele não pagou a mais, o prejuízo é da Tarvo com a Ponte → pendência de contestação. Pode listar também nas divergências desde que fique claro que é outra natureza.
+- **S26 — CNPJ da Ponte fora da planilha (Desbravadores).** Não ocorreu; calcular a metade do spread mesmo assim e abrir pendência de cadastro para o comercial é razoável. Registrar como premissa.
+- **S27 — Atlas depois da confirmação da taxa (MN AI).** A taxa vale desde o começo (10/09); setembro é faturado junto com outubro. O fechamento de outubro precisa puxar as linhas da Atlas de setembro que ficaram pendentes.
+- **S28 — Devolução PIX R$ 12.400 (Desbravadores).** 2.1.01.001 ou 2.1.01.002 fazem sentido; escolher uma, manter o critério e escrever o motivo.
+- **S29 — Provisões (Desbravadores).** Sempre: todo mês a folha e os impostos do mês ficam provisionados no fechamento; o pagamento no mês seguinte baixa a provisão.
+- **S30 — Aviso de condições à Orbe/Ponte (MN AI).** Ninguém tem essa função. O comercial fecha e, quando lembra, manda e-mail. A Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas.
+- **S31 — Rascunho de contestação (MN AI).** Um rascunho de e-mail por contraparte (Orbe, Ponte) com as operações anexadas "serve, e muito"; Helena revisa e envia.
+- **S32 — Quem aprova regra (MN AI).** Taxa e condição comercial: aprova o Comercial, Helena registra. Regra de como fechar: aprova Helena. Nas férias dela, hoje ninguém fecha. Registrar quem aprovou e quando.
+- **S33 — Processo atual (Turma do Barulho).** Sequência: baixar Orbe/e-mail Ponte/extratos → casar Orbe com planilha e calcular comissão → remessa → classificar extratos no ERP → notas. Executam duas analistas; Helena confere e aprova. Controle = aba na planilha com "ok" e data. Bia: checkout e planilha de taxas; Caio: bancos e remessas; Helena: confere, decide exceções, fala com comercial/Orbe/Ponte. Tempo: comissão checkout ~3 dias (metade casando nome com EC/CNPJ, metade retrabalho por planilha desatualizada); remessa ~2 dias (maior parte espera por Ponte/comercial); extratos ~2 dias (manual linha a linha); último dia notas e revisão. Quase tudo descoberto no canal estava só na cabeça da Helena.
+- **S34 — Como a taxa chega ao lojista (Turma do Barulho).** A Orbe liquida o líquido (taxa descontada no pagamento); o lojista vê no extrato de repasse. A nota só documenta a taxa já descontada, sem cobrança nova. Se a Orbe cobra a mais, o lojista já recebeu a menos e a Tarvo precisa devolver.
+- **S35 — Repasses (Turma do Barulho).** Duas vezes por mês, perto dos dias 10 e 24, do que a Orbe já liquidou; regra no contrato de adesão (pasta do comercial). Na prática a Bia às vezes paga antes da liquidação usando a conta garantida, sem regra escrita nem limite.
+- **S36 — Retorno de contestação da Ponte (Turma do Barulho).** A Ponte responde por e-mail e lança o ajuste no relatório do mês seguinte, como crédito ou débito. Helena confere e registra no fechamento do mês em que o ajuste aparece.
+- **S37 — Casa do Estudante, formato (Fox AI).** Uma pendência com o total e o detalhe por transação marcado serve; não pode entrar na cobrança da Orbe.
+- **S38 — Formato das pendências e decisor (Casa Barton).** Uma pendência por contraparte e por lojista, com o detalhe das transações anexado (vira o rascunho de contestação). Cadastro e contrato quem decide é o Comercial; a Bia mantém a planilha mas não decide taxa. Conta por conta Helena não valida (critério S12). Não vendem acima de 12x; se aparecer, pendência. Critério Spread % × Spread R$ (R$ 0,03): escolher e escrever.
+- **S39 — Repasse à Atlas (Lucca).** O repasse não para: o dinheiro é do lojista; fica suspenso só o faturamento da taxa.

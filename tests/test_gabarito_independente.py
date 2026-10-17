@@ -22,9 +22,9 @@ def test_totais_auditados(resultado):
     lan = _ler(resultado, "lancamentos_classificados.csv")
     chk = com[com.linha_negocio == "CHECKOUT"]
     rem = com[com.linha_negocio == "REMESSA"]
-    assert _soma(chk.comissao_brl) == D("207039.73")
+    assert _soma(chk.comissao_brl) == D("203735.34")  # inclui 06_orbe_ajustes_tardios
     n_chk = notas[notas.linha_negocio == "CHECKOUT"]
-    assert len(n_chk) == 20 and _soma(n_chk.valor_brl) == D("207045.23")
+    assert len(n_chk) == 20 and _soma(n_chk.valor_brl) == D("203740.84")  # inclui 06_orbe_ajustes_tardios
     d_chk = div[div.linha_negocio == "CHECKOUT"]
     assert len(d_chk) == 210 and _soma(d_chk.diferenca_brl) == D("16973.65")
     assert _soma(rem.comissao_brl) == D("39543.45")
@@ -40,13 +40,16 @@ def test_totais_auditados(resultado):
 
 @pytest.mark.parametrize("cnpj,comissao", [
     ("03229837000103", "7316.07"),    # Fluente
-    ("07752116000126", "10711.41"),   # Kiwi (de-para S03, com reversão)
-    ("23109187000161", "16077.90"),   # Oxford (taxas como texto, estorno de agosto)
-    ("22224579000109", "11916.02"),   # Bridge (troca de vigência 15/09)
+    ("07752116000126", "10886.22"),   # Kiwi (de-para S03, com reversão; inclui 06: venda 3x)
+    ("23109187000161", "13845.71"),   # Oxford (taxas como texto, estorno de agosto; inclui 06: estornos e reversões de antecipação)
+    ("22224579000109", "11769.74"),   # Bridge (troca de vigência 15/09; inclui 06)
     ("95927868000148", "15621.27"),   # Rota Global
     ("66564512000199", "7767.78"),    # Novo Horizonte (de-para S03)
     ("78576234000179", "9014.42"),    # Horizonte Viagens (de-para S03)
-    ("17217888000111", "18522.09"),   # Mundo Aberto
+    ("17217888000111", "18508.09"),   # Mundo Aberto (inclui 06)
+    ("16181276000153", "11858.16"),   # EduAbroad (inclui 06)
+    ("34671260000100", "14165.77"),   # Maple Study (inclui 06)
+    ("68567965000102", "11876.37"),   # Dublin Hub (inclui 06)
 ])
 def test_checkout_por_lojista(resultado, cnpj, comissao):
     com = _ler(resultado, "comissoes_por_lojista.csv")

@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from src import fechamento
-from src.leitores import descobrir_arquivos
+from src.leitores import achatar, descobrir_arquivos
 from src.saidas import COLUNAS
 
 OBRIGATORIAS = {
@@ -94,6 +94,21 @@ def test_roda_com_nomes_de_outubro(raiz, tmp_path):
     novos = {"orbe": "orbe_comissoes_out.csv", "taxas": "taxas_v2.xlsx", "ponte": "ponte.eml",
              "plano": "plano_de_contas.csv", "aurora": "aurora_out.csv", "meridiano": "meridiano.ofx"}
     for k, p in descobrir_arquivos(raiz).items():
-        shutil.copy(p, ent / novos[k])
+        for i, q in enumerate(p if isinstance(p, list) else [p]):
+            shutil.copy(q, ent / (novos[k] if i == 0 else f"{i}_{novos[k]}"))
     r = fechamento.executar(ent, tmp_path / "saida")
-    assert sum(c["comissao"] for c in r["comissoes"]) == D("207039.73") + D("39543.45")
+    assert sum(c["comissao"] for c in r["comissoes"]) == D("203735.34") + D("39543.45")
+
+
+def test_arquivo_aberto_no_excel_da_mensagem_clara(tmp_path, monkeypatch):
+    import builtins
+    from src import saidas
+    real = builtins.open
+
+    def travado(p, *a, **k):
+        if str(p).endswith("pendencias.csv"):
+            raise PermissionError(13, "Permission denied")
+        return real(p, *a, **k)
+    monkeypatch.setattr(builtins, "open", travado)
+    with pytest.raises(PermissionError, match="Feche o arquivo pendencias.csv no Excel"):
+        saidas.escrever(tmp_path, "pendencias.csv", [])

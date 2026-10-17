@@ -7,3 +7,8 @@ venv/
 
 # execuções da interface (app/)
 execucoes/
+
+# chave da API (IA)
+.env
+.env.*
+!.env.example

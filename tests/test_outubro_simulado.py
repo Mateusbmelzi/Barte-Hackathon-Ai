@@ -12,17 +12,21 @@ from src import fechamento
 from src.leitores import descobrir_arquivos
 
 EC_NOVO = "1999999999"
+EC_VELA = "1086291869"   # lojista existente; venda em 18x (S38: não vendem acima de 12x)
 
 
-def _orbe_outubro(origem, destino):
+def _orbe_outubro(origem, destino, extras=True):
     linhas = origem.read_text(encoding="utf-8").splitlines()
     out = [linhas[0]]
     for l in linhas[1:]:
         c = l.split(";")
         c[1] = c[1].replace("/09/2026", "/10/2026")      # só data_movimento
         out.append(";".join(c))
-    out.append(f"TX99000001;10/10/2026;{EC_NOVO};ESCOLA NOVA IDIOMAS;VENDA;CREDITO A VISTA;1;VISA;"
-               "1000,00;2,69;26,90;973,10;;")
+    if extras:
+        out.append(f"TX99000001;10/10/2026;{EC_NOVO};ESCOLA NOVA IDIOMAS;VENDA;CREDITO A VISTA;1;VISA;"
+                   "1000,00;2,69;26,90;973,10;;")
+        out.append(f"TX99000002;11/10/2026;{EC_VELA};VELA;VENDA;CREDITO PARCELADO;18;VISA;"
+                   "1000,00;3,79;37,90;962,10;;")
     destino.write_text("\r\n".join(out) + "\r\n", encoding="utf-8")
 
 
@@ -40,7 +44,8 @@ def outubro(raiz, tmp_path_factory):
     arq = descobrir_arquivos(raiz)
     for k, p in arq.items():
         if k == "orbe":
-            _orbe_outubro(p, ent / "orbe_out2026.csv")
+            for i, q in enumerate(p):
+                _orbe_outubro(q, ent / f"orbe_out2026_{i}.csv", extras=(i == 0))
         elif k == "aurora":
             _aurora_com_desconhecido(p, ent / "extrato_aurora_out2026.csv")
         else:
@@ -87,3 +92,11 @@ def test_rastro_fecha(outubro):
         for it in outubro[grupo]:
             if it[k] is not None:
                 assert sum((r[2] for r in it["rastro"]), D("0")) == it[k], it["id"]
+
+
+def test_parcelamento_acima_de_12x_vira_pendencia(outubro):
+    linha = next(l for l in outubro["checkout"] if l["id"] == "TX99000002")
+    assert linha["status"] == "EXCLUIDA" and linha["motivo"] == "ACIMA_12X"
+    p = [p for p in outubro["pendencias"] if p["tipo"] == "PARCELAMENTO_ACIMA_12X"]
+    assert len(p) == 1 and p[0]["ref_origem"] == f"EC {EC_VELA}" and p[0]["valor"] == D("37.90")
+    assert not any(r[1] == "TX99000002" for c in outubro["comissoes"] for r in c["rastro"])

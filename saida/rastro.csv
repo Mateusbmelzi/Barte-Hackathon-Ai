@@ -285,6 +285,7 @@ COM-CHK-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440395;180.35;VENDA 3.1
 COM-CHK-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440659;92.04;VENDA 2.59%
 COM-CHK-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441111;84.30;VENDA 3.19%
 COM-CHK-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442772;5.13;VENDA 1.49%
+COM-CHK-0003;06_orbe_ajustes_tardios_set2026.csv;TX88447225;174.81;VENDA 3.19%
 COM-CHK-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88410667;658.68;VENDA 3.79%
 COM-CHK-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88410045;41.21;VENDA 2.69%
 COM-CHK-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88412086;15.51;VENDA 2.69%
@@ -464,6 +465,8 @@ COM-CHK-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88442867;36.96;VENDA 3.19
 COM-CHK-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88443192;93.11;VENDA 3.19%
 COM-CHK-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88442588;176.13;VENDA 3.19%
 COM-CHK-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88443797;5.34;VENDA 0.89%
+COM-CHK-0005;06_orbe_ajustes_tardios_set2026.csv;TX88447057;-124.36;ESTORNO 3.19%
+COM-CHK-0005;06_orbe_ajustes_tardios_set2026.csv;TX88447109;-87.65;ESTORNO 3.19%
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88410886;33.15;VENDA 2.49%
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88411123;13.48;VENDA 2.49%
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88410554;9.21;VENDA 0.89%
@@ -632,6 +635,7 @@ COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88444082;98.62;VENDA 2.99
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88446943;-694.95;ESTORNO 3.79%
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88443765;90.74;VENDA 2.99%
 COM-CHK-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88444056;192.47;VENDA 2.99%
+COM-CHK-0006;06_orbe_ajustes_tardios_set2026.csv;TX88447030;-14.00;ESTORNO 2.49%
 COM-CHK-0007;01_orbe_relatorio_comissoes_set2026.csv;TX88410997;20.54;VENDA 2.69%
 COM-CHK-0007;01_orbe_relatorio_comissoes_set2026.csv;TX88411617;128.41;VENDA 3.19%
 COM-CHK-0007;01_orbe_relatorio_comissoes_set2026.csv;TX88412460;213.88;VENDA 3.79%
@@ -857,6 +861,8 @@ COM-CHK-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88442753;3.60;VENDA 0.89%
 COM-CHK-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88444329;15.52;VENDA 2.19%
 COM-CHK-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88443632;3.64;VENDA 0.89%
 COM-CHK-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88443575;6.16;VENDA 0.89%
+COM-CHK-0009;06_orbe_ajustes_tardios_set2026.csv;TX88447044;-63.23;ESTORNO 3.19%
+COM-CHK-0009;06_orbe_ajustes_tardios_set2026.csv;TX88447070;-83.05;ESTORNO 3.19%
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88410316;42.62;VENDA 2.59%
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88411115;422.69;VENDA 3.79%
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88444848;-83.12;ESTORNO 3.79%
@@ -955,6 +961,10 @@ COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;AN88446810;1219.93;ANTECIPA
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88444183;5.49;VENDA 0.89%
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88443668;83.85;VENDA 3.09%
 COM-CHK-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88443842;321.85;VENDA 3.79%
+COM-CHK-0010;06_orbe_ajustes_tardios_set2026.csv;TX88447087;-327.73;ESTORNO 3.79%
+COM-CHK-0010;06_orbe_ajustes_tardios_set2026.csv;TX88447140;-61.28;ESTORNO 2.59%
+COM-CHK-0010;06_orbe_ajustes_tardios_set2026.csv;AN88447152;-967.69;REVERSAO ANTECIPACAO 2.1%
+COM-CHK-0010;06_orbe_ajustes_tardios_set2026.csv;AN88447178;-875.49;REVERSAO ANTECIPACAO 2.1%
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88410990;423.24;VENDA 3.79%
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88410442;139.10;VENDA 3.19%
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88411202;115.22;VENDA 2.69%
@@ -1060,6 +1070,9 @@ COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88443793;227.03;VENDA 3.7
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88444370;7.51;VENDA 0.89%
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88443743;235.50;VENDA 3.79%
 COM-CHK-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88444468;205.64;VENDA 3.19%
+COM-CHK-0011;06_orbe_ajustes_tardios_set2026.csv;TX88447011;-6.27;ESTORNO 1.49%
+COM-CHK-0011;06_orbe_ajustes_tardios_set2026.csv;TX88447093;-70.49;ESTORNO 2.69%
+COM-CHK-0011;06_orbe_ajustes_tardios_set2026.csv;AN88447194;-768.25;REVERSAO ANTECIPACAO 2.1%
 COM-CHK-0012;01_orbe_relatorio_comissoes_set2026.csv;TX88412281;396.18;VENDA 3.79%
 COM-CHK-0012;01_orbe_relatorio_comissoes_set2026.csv;TX88412026;41.10;VENDA 3.19%
 COM-CHK-0012;01_orbe_relatorio_comissoes_set2026.csv;TX88412495;126.57;VENDA 3.19%
@@ -1550,6 +1563,7 @@ COM-CHK-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88443984;4.52;VENDA 0.89%
 COM-CHK-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88444363;68.37;VENDA 3.19%
 COM-CHK-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88444149;193.30;VENDA 3.19%
 COM-CHK-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88443603;10.88;VENDA 0.89%
+COM-CHK-0017;06_orbe_ajustes_tardios_set2026.csv;TX88446992;-29.71;ESTORNO 2.59%
 COM-CHK-0018;01_orbe_relatorio_comissoes_set2026.csv;TX88410916;8.36;VENDA 0.89%
 COM-CHK-0018;01_orbe_relatorio_comissoes_set2026.csv;TX88410633;46.59;VENDA 2.69%
 COM-CHK-0018;01_orbe_relatorio_comissoes_set2026.csv;TX88410782;119.24;VENDA 3.19%
@@ -2513,6 +2527,7 @@ NF-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88440395;180.35;VENDA 3.19%
 NF-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88440659;92.04;VENDA 2.59%
 NF-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88441111;84.30;VENDA 3.19%
 NF-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88442772;5.13;VENDA 1.49%
+NF-0002;06_orbe_ajustes_tardios_set2026.csv;TX88447225;174.81;VENDA 3.19%
 NF-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88410667;658.68;VENDA 3.79%
 NF-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88410045;41.21;VENDA 2.69%
 NF-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88412086;15.51;VENDA 2.69%
@@ -2692,6 +2707,8 @@ NF-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88442867;36.96;VENDA 3.19%
 NF-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88443192;93.11;VENDA 3.19%
 NF-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88442588;176.13;VENDA 3.19%
 NF-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88443797;5.34;VENDA 0.89%
+NF-0004;06_orbe_ajustes_tardios_set2026.csv;TX88447057;-124.36;ESTORNO 3.19%
+NF-0004;06_orbe_ajustes_tardios_set2026.csv;TX88447109;-87.65;ESTORNO 3.19%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88410886;33.15;VENDA 2.49%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88411123;13.48;VENDA 2.49%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88410554;9.21;VENDA 0.89%
@@ -2860,6 +2877,7 @@ NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88444082;98.62;VENDA 2.99%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88446943;-694.95;ESTORNO 3.79%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88443765;90.74;VENDA 2.99%
 NF-0005;01_orbe_relatorio_comissoes_set2026.csv;TX88444056;192.47;VENDA 2.99%
+NF-0005;06_orbe_ajustes_tardios_set2026.csv;TX88447030;-14.00;ESTORNO 2.49%
 NF-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88410997;20.54;VENDA 2.69%
 NF-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88411617;128.41;VENDA 3.19%
 NF-0006;01_orbe_relatorio_comissoes_set2026.csv;TX88412460;213.88;VENDA 3.79%
@@ -3085,6 +3103,8 @@ NF-0008;01_orbe_relatorio_comissoes_set2026.csv;TX88442753;3.60;VENDA 0.89%
 NF-0008;01_orbe_relatorio_comissoes_set2026.csv;TX88444329;15.52;VENDA 2.19%
 NF-0008;01_orbe_relatorio_comissoes_set2026.csv;TX88443632;3.64;VENDA 0.89%
 NF-0008;01_orbe_relatorio_comissoes_set2026.csv;TX88443575;6.16;VENDA 0.89%
+NF-0008;06_orbe_ajustes_tardios_set2026.csv;TX88447044;-63.23;ESTORNO 3.19%
+NF-0008;06_orbe_ajustes_tardios_set2026.csv;TX88447070;-83.05;ESTORNO 3.19%
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88410316;42.62;VENDA 2.59%
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88411115;422.69;VENDA 3.79%
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88444848;-83.12;ESTORNO 3.79%
@@ -3183,6 +3203,10 @@ NF-0009;01_orbe_relatorio_comissoes_set2026.csv;AN88446810;1219.93;ANTECIPACAO 2
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88444183;5.49;VENDA 0.89%
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88443668;83.85;VENDA 3.09%
 NF-0009;01_orbe_relatorio_comissoes_set2026.csv;TX88443842;321.85;VENDA 3.79%
+NF-0009;06_orbe_ajustes_tardios_set2026.csv;TX88447087;-327.73;ESTORNO 3.79%
+NF-0009;06_orbe_ajustes_tardios_set2026.csv;TX88447140;-61.28;ESTORNO 2.59%
+NF-0009;06_orbe_ajustes_tardios_set2026.csv;AN88447152;-967.69;REVERSAO ANTECIPACAO 2.1%
+NF-0009;06_orbe_ajustes_tardios_set2026.csv;AN88447178;-875.49;REVERSAO ANTECIPACAO 2.1%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88410990;423.24;VENDA 3.79%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88410442;139.10;VENDA 3.19%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88411202;115.22;VENDA 2.69%
@@ -3288,6 +3312,9 @@ NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88443793;227.03;VENDA 3.79%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88444370;7.51;VENDA 0.89%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88443743;235.50;VENDA 3.79%
 NF-0010;01_orbe_relatorio_comissoes_set2026.csv;TX88444468;205.64;VENDA 3.19%
+NF-0010;06_orbe_ajustes_tardios_set2026.csv;TX88447011;-6.27;ESTORNO 1.49%
+NF-0010;06_orbe_ajustes_tardios_set2026.csv;TX88447093;-70.49;ESTORNO 2.69%
+NF-0010;06_orbe_ajustes_tardios_set2026.csv;AN88447194;-768.25;REVERSAO ANTECIPACAO 2.1%
 NF-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88412281;396.18;VENDA 3.79%
 NF-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88412026;41.10;VENDA 3.19%
 NF-0011;01_orbe_relatorio_comissoes_set2026.csv;TX88412495;126.57;VENDA 3.19%
@@ -3778,6 +3805,7 @@ NF-0016;01_orbe_relatorio_comissoes_set2026.csv;TX88443984;4.52;VENDA 0.89%
 NF-0016;01_orbe_relatorio_comissoes_set2026.csv;TX88444363;68.37;VENDA 3.19%
 NF-0016;01_orbe_relatorio_comissoes_set2026.csv;TX88444149;193.30;VENDA 3.19%
 NF-0016;01_orbe_relatorio_comissoes_set2026.csv;TX88443603;10.88;VENDA 0.89%
+NF-0016;06_orbe_ajustes_tardios_set2026.csv;TX88446992;-29.71;ESTORNO 2.59%
 NF-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88410916;8.36;VENDA 0.89%
 NF-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88410633;46.59;VENDA 2.69%
 NF-0017;01_orbe_relatorio_comissoes_set2026.csv;TX88410782;119.24;VENDA 3.19%
@@ -4341,216 +4369,216 @@ NF-0021;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_
 NF-0021;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0566;191.84;50% Spread R$
 NF-0021;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0569;487.22;50% Spread R$
 NF-0021;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0570;110.42;50% Spread R$
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410932;16.38;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410975;16.54;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410128;218.82;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410468;208.16;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410859;119.87;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410171;210.41;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412076;162.19;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412454;23.26;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88413035;122.24;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88413399;49.65;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412743;137.19;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415491;104.51;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416144;71.39;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415433;193.77;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415685;178.14;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415978;85.99;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416311;277.42;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416907;89.23;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416509;60.12;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417204;7.62;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416842;284.66;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417236;35.02;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418090;208.68;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418435;197.92;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418273;51.00;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418116;15.99;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417794;48.76;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418183;17.09;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418180;248.75;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418131;35.65;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88419350;663.48;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418990;119.24;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418675;2.58;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445172;103.70;ANTECIPACAO
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88420231;107.69;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88420767;219.85;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88419800;42.82;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421653;5.34;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421206;83.62;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421843;50.55;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421445;110.49;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421923;115.29;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88422954;228.88;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445486;910.93;ANTECIPACAO
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423783;93.42;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423749;45.12;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423823;106.85;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423709;83.06;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423880;303.81;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423515;352.41;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423437;30.74;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88424905;73.21;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88425223;156.47;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88425512;8.15;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426178;21.13;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426890;184.48;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426592;138.51;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426399;38.88;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426693;232.18;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88427666;12.35;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445740;606.36;ANTECIPACAO
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88427447;11.15;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88428766;24.06;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88429419;19.80;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88428877;236.05;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445802;1206.58;ANTECIPACAO
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88430460;24.08;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88429864;6.83;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431591;26.33;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431209;63.43;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431428;24.78;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432026;314.08;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432675;94.07;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432502;13.07;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431751;8.47;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432422;82.06;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434117;28.80;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433069;587.10;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433927;233.03;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433215;145.99;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433422;140.23;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433046;394.21;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434067;257.52;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433569;18.62;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434450;2.68;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434700;5.27;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434297;29.11;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434330;39.71;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434663;11.80;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88435634;6.17;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88435991;40.27;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88436989;39.22;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437827;50.42;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437720;205.62;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437409;22.70;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437916;39.44;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438834;12.35;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438430;182.26;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438047;23.99;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438180;372.75;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437994;86.61;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438090;43.64;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88439362;272.74;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88440140;43.08;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88439855;6.64;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88440981;100.00;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442297;4.40;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88441917;9.09;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442386;146.25;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442455;24.52;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443269;504.90;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443300;9.95;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88446763;-9.09;ESTORNO
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442853;56.32;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443222;101.43;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444622;5.11;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444796;105.04;VENDA
-PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444507;94.68;VENDA
-PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88428053;4.50;VENDA
-PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88429199;2.86;VENDA
-PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88428930;3.44;VENDA
-PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88429931;7.95;VENDA
-PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88431123;11.20;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88423890;32.25;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424136;9.41;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88423647;66.28;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424022;5.37;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424077;17.84;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425052;38.38;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425173;13.72;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425448;9.99;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427107;4.31;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426252;12.76;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427001;63.45;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426233;6.92;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426013;7.89;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428435;2.23;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427564;23.88;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427377;34.31;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427938;8.96;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428178;11.23;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428474;4.09;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429536;26.98;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428712;5.93;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428970;5.13;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428735;25.33;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429150;5.42;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428676;52.10;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429336;14.23;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430353;6.45;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429990;26.86;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429827;29.98;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430153;8.73;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429989;3.29;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431556;9.98;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431486;7.74;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431560;13.56;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430936;32.50;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431672;19.79;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88432567;40.26;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88432830;13.94;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431963;18.48;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433646;14.13;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433964;2.88;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433537;21.56;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433590;5.86;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435140;13.05;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434338;33.22;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434839;10.06;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434983;16.15;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434470;13.44;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434471;10.81;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435217;14.33;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434224;15.81;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434279;42.87;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434373;8.69;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435787;51.66;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435619;12.15;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435587;56.13;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435592;25.07;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435533;2.96;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435384;10.89;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88437238;6.09;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446419;-52.10;ESTORNO
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88437958;38.92;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446585;-5.13;ESTORNO
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438431;18.93;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446596;-29.98;ESTORNO
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438067;27.48;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438149;9.38;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438012;5.44;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446647;-11.23;ESTORNO
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439849;16.48;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439502;29.86;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439678;16.20;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440095;2.51;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440860;69.84;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442245;13.17;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441880;5.58;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442136;35.19;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441819;19.51;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441580;44.82;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441929;8.83;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442909;39.85;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88443187;13.46;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442937;7.21;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442710;13.31;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442632;5.18;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88443503;11.40;VENDA
-PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88444545;64.41;VENDA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410932;16.38;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410975;16.54;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410128;218.82;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410468;208.16;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410859;119.87;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88410171;210.41;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412076;162.19;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412454;23.26;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88413035;122.24;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88413399;49.65;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88412743;137.19;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415491;104.51;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416144;71.39;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415433;193.77;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415685;178.14;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88415978;85.99;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416311;277.42;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416907;89.23;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416509;60.12;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417204;7.62;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88416842;284.66;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417236;35.02;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418090;208.68;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418435;197.92;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418273;51.00;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418116;15.99;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88417794;48.76;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418183;17.09;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418180;248.75;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418131;35.65;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88419350;663.48;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418990;119.24;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88418675;2.58;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445172;103.70;ANTECIPACAO ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88420231;107.69;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88420767;219.85;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88419800;42.82;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421653;5.34;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421206;83.62;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421843;50.55;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421445;110.49;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88421923;115.29;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88422954;228.88;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445486;910.93;ANTECIPACAO ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423783;93.42;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423749;45.12;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423823;106.85;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423709;83.06;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423880;303.81;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423515;352.41;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88423437;30.74;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88424905;73.21;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88425223;156.47;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88425512;8.15;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426178;21.13;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426890;184.48;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426592;138.51;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426399;38.88;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88426693;232.18;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88427666;12.35;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445740;606.36;ANTECIPACAO ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88427447;11.15;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88428766;24.06;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88429419;19.80;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88428877;236.05;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;AN88445802;1206.58;ANTECIPACAO ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88430460;24.08;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88429864;6.83;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431591;26.33;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431209;63.43;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431428;24.78;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432026;314.08;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432675;94.07;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432502;13.07;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88431751;8.47;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88432422;82.06;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434117;28.80;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433069;587.10;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433927;233.03;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433215;145.99;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433422;140.23;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433046;394.21;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434067;257.52;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88433569;18.62;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434450;2.68;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434700;5.27;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434297;29.11;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434330;39.71;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88434663;11.80;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88435634;6.17;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88435991;40.27;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88436989;39.22;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437827;50.42;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437720;205.62;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437409;22.70;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437916;39.44;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438834;12.35;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438430;182.26;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438047;23.99;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438180;372.75;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88437994;86.61;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88438090;43.64;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88439362;272.74;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88440140;43.08;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88439855;6.64;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88440981;100.00;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442297;4.40;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88441917;9.09;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442386;146.25;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442455;24.52;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443269;504.90;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443300;9.95;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88446763;-9.09;ESTORNO ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88442853;56.32;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88443222;101.43;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444622;5.11;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444796;105.04;VENDA ISENCAO_NAO_INFORMADA
+PEN-0001;01_orbe_relatorio_comissoes_set2026.csv;TX88444507;94.68;VENDA ISENCAO_NAO_INFORMADA
+PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88428053;4.50;VENDA CONTRATO
+PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88429199;2.86;VENDA CONTRATO
+PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88428930;3.44;VENDA CONTRATO
+PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88429931;7.95;VENDA CONTRATO
+PEN-0002;01_orbe_relatorio_comissoes_set2026.csv;TX88431123;11.20;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88423890;32.25;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424136;9.41;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88423647;66.28;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424022;5.37;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88424077;17.84;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425052;38.38;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425173;13.72;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88425448;9.99;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427107;4.31;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426252;12.76;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427001;63.45;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426233;6.92;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88426013;7.89;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428435;2.23;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427564;23.88;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427377;34.31;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88427938;8.96;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428178;11.23;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428474;4.09;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429536;26.98;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428712;5.93;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428970;5.13;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428735;25.33;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429150;5.42;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88428676;52.10;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429336;14.23;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430353;6.45;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429990;26.86;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429827;29.98;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430153;8.73;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88429989;3.29;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431556;9.98;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431486;7.74;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431560;13.56;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88430936;32.50;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431672;19.79;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88432567;40.26;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88432830;13.94;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88431963;18.48;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433646;14.13;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433964;2.88;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433537;21.56;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88433590;5.86;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435140;13.05;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434338;33.22;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434839;10.06;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434983;16.15;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434470;13.44;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434471;10.81;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435217;14.33;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434224;15.81;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434279;42.87;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88434373;8.69;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435787;51.66;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435619;12.15;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435587;56.13;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435592;25.07;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435533;2.96;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88435384;10.89;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88437238;6.09;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446419;-52.10;ESTORNO CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88437958;38.92;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446585;-5.13;ESTORNO CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438431;18.93;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446596;-29.98;ESTORNO CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438067;27.48;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438149;9.38;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88438012;5.44;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88446647;-11.23;ESTORNO CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439849;16.48;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439502;29.86;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88439678;16.20;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440095;2.51;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88440860;69.84;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442245;13.17;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441880;5.58;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442136;35.19;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441819;19.51;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441580;44.82;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88441929;8.83;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442909;39.85;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88443187;13.46;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442937;7.21;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442710;13.31;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88442632;5.18;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88443503;11.40;VENDA CONTRATO
+PEN-0003;01_orbe_relatorio_comissoes_set2026.csv;TX88444545;64.41;VENDA CONTRATO
 PEN-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88410932;0.00;VENDA 0%
 PEN-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88410975;0.00;VENDA 0%
 PEN-0004;01_orbe_relatorio_comissoes_set2026.csv;TX88410128;0.00;VENDA 0%
@@ -4777,10 +4805,10 @@ PEN-0008;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO
 PEN-0008;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0492;18.07;50% do excesso
 PEN-0008;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0516;11.64;50% do excesso
 PEN-0008;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0566;38.38;50% do excesso
-PEN-0009;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0210;-687.52;Spread R$ realizado
-PEN-0010;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0326;-509.22;Spread R$ realizado
+PEN-0009;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0326;-509.22;Spread R$ realizado
+PEN-0010;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0545;-345.03;Spread R$ realizado
 PEN-0011;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0491;-292.28;Spread R$ realizado
-PEN-0012;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0545;-345.03;Spread R$ realizado
+PEN-0012;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0210;-687.52;Spread R$ realizado
 PEN-0013;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0162;821.88;linha repetida Excel 77
 PEN-0014;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0002;131.01;50% Spread R$
 PEN-0014;03_email_ponte_cambio_relatorio_set2026.eml#PonteCambio_Relatorio_TARVO_092026.xlsx;PC-0926-0003;270.39;50% Spread R$

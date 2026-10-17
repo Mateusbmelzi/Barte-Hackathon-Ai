@@ -1,20 +1,20 @@
 id_saida;tomador_cnpj;tomador;linha_negocio;valor_brl;discriminacao;qtd_linhas_origem
 NF-0001;03229837000103;Fluente Idiomas Online Ltda;CHECKOUT;7316.07;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 7.316,07 e antecipacao R$ 0,00 (82 transacoes Orbe);82
-NF-0002;07752116000126;Kiwi Experience;CHECKOUT;10711.41;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 10.208,39 e antecipacao R$ 503,02 (85 transacoes Orbe);85
+NF-0002;07752116000126;Kiwi Experience;CHECKOUT;10886.22;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 10.383,20 e antecipacao R$ 503,02 (86 transacoes Orbe);86
 NF-0003;08780784000120;Campus Global Ltda;CHECKOUT;9336.06;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.336,06 e antecipacao R$ 0,00 (79 transacoes Orbe);79
-NF-0004;16181276000153;EduAbroad;CHECKOUT;12070.17;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 10.312,30 e antecipacao R$ 1.757,87 (100 transacoes Orbe);100
-NF-0005;17217888000111;Mundo Aberto;CHECKOUT;18522.09;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 17.337,07 e antecipacao R$ 1.185,02 (168 transacoes Orbe);168
+NF-0004;16181276000153;EduAbroad;CHECKOUT;11858.16;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 10.100,29 e antecipacao R$ 1.757,87 (102 transacoes Orbe);102
+NF-0005;17217888000111;Mundo Aberto;CHECKOUT;18508.09;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 17.323,07 e antecipacao R$ 1.185,02 (169 transacoes Orbe);169
 NF-0006;20987545000140;Vela;CHECKOUT;9315.31;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.315,31 e antecipacao R$ 0,00 (51 transacoes Orbe);51
 NF-0007;21394880000106;Trilha Jovem Turismo Ltda;CHECKOUT;5628.57;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 5.628,57 e antecipacao R$ 0,00 (67 transacoes Orbe);67
-NF-0008;22224579000109;Escola Bridge de Idiomas Ltda;CHECKOUT;11916.02;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 11.916,02 e antecipacao R$ 0,00 (107 transacoes Orbe);107
-NF-0009;23109187000161;Oxford Prep Cursos Ltda;CHECKOUT;16077.90;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.529,99 e antecipacao R$ 6.547,91 (98 transacoes Orbe);98
-NF-0010;34671260000100;Maple Study Assessoria Educacional Ltda;CHECKOUT;15010.78;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 12.476,24 e antecipacao R$ 2.534,54 (105 transacoes Orbe);105
+NF-0008;22224579000109;Escola Bridge de Idiomas Ltda;CHECKOUT;11769.74;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 11.769,74 e antecipacao R$ 0,00 (109 transacoes Orbe);109
+NF-0009;23109187000161;Oxford Prep Cursos Ltda;CHECKOUT;13845.71;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.140,98 e antecipacao R$ 4.704,73 (102 transacoes Orbe);102
+NF-0010;34671260000100;Maple Study Assessoria Educacional Ltda;CHECKOUT;14165.77;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 12.399,48 e antecipacao R$ 1.766,29 (108 transacoes Orbe);108
 NF-0011;50900987000179;Bagagem Livre Turismo Ltda;CHECKOUT;7703.98;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 7.703,98 e antecipacao R$ 0,00 (74 transacoes Orbe);74
 NF-0012;53857560000123;Canguru;CHECKOUT;11679.43;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 8.917,78 e antecipacao R$ 2.761,65 (80 transacoes Orbe);80
 NF-0013;61720397000180;Lisboa Cursos e Viagens Ltda;CHECKOUT;8470.78;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 8.470,78 e antecipacao R$ 0,00 (76 transacoes Orbe);76
 NF-0014;66564512000199;Novo Horizonte Intercambio;CHECKOUT;7767.78;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 7.767,78 e antecipacao R$ 0,00 (73 transacoes Orbe);73
 NF-0015;67869675000142;Bem-Vindo Exchange Ltda;CHECKOUT;9259.74;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.259,74 e antecipacao R$ 0,00 (76 transacoes Orbe);76
-NF-0016;68567965000102;Dublin Hub Intercâmbio Ltda;CHECKOUT;11906.08;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.390,27 e antecipacao R$ 2.515,81 (111 transacoes Orbe);111
+NF-0016;68567965000102;Dublin Hub Intercâmbio Ltda;CHECKOUT;11876.37;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.360,56 e antecipacao R$ 2.515,81 (112 transacoes Orbe);112
 NF-0017;78576234000179;Horizonte Viagens;CHECKOUT;9014.42;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 9.014,42 e antecipacao R$ 0,00 (75 transacoes Orbe);75
 NF-0018;85694108000184;Andes Expedições Ltda;CHECKOUT;3819.35;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 3.819,35 e antecipacao R$ 0,00 (41 transacoes Orbe);41
 NF-0019;89779285000114;Sol Nascente Viagens Ltda;CHECKOUT;5898.02;Servicos de intermediacao de pagamentos (checkout) - competencia 09/2026 - MDR R$ 5.898,02 e antecipacao R$ 0,00 (60 transacoes Orbe);60
