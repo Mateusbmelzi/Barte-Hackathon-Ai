@@ -2,13 +2,14 @@
 import re
 from collections import OrderedDict
 
-from . import config
+from . import cadastro, config
 from .checkout import contrato_vigente, contratos_ativos, nome_por_cnpj
 from .dinheiro import arred, soma, fmt_br, fmt_pct
 
 
-def calcular(ops, contratos, competencia_mes):
-    """Classifica cada operação: VALIDA, DUPLICATA, NEGATIVA, FORA_COMPETENCIA ou AJUSTE (S40)."""
+def calcular(ops, contratos, competencia_mes, condicoes=()):
+    """Classifica cada operação: VALIDA, DUPLICATA, NEGATIVA, FORA_COMPETENCIA ou AJUSTE (S40).
+    `condicoes` = cadastro (src/cadastro.py): ISENCAO/TAXA_ESPECIAL em SPREAD_REMESSA mudam o spread contratado."""
     ativos = contratos_ativos(contratos)
     vistos = set()
     out = []
@@ -35,6 +36,10 @@ def calcular(ops, contratos, competencia_mes):
             r["contratado"] = config.SPREAD_PADRAO if padrao else contrato["spread"]   # CC03 (padrão); negociado = linha da planilha (ex.: CC02)
             r["regra_spread"] = ("CC03 spread padrão 1,5% (célula em branco/'padrão')" if padrao
                                  else f"spread contratado linha {contrato['linha']}")
+            cond = cadastro.condicao_aplicada(contrato, condicoes, o["data"], cadastro.FAIXA_REMESSA)
+            if cond:                                  # o cadastro vale por cima da planilha (e do padrão)
+                r["contratado"], origem = cadastro.taxa_efetiva(contrato, condicoes, o["data"], cadastro.FAIXA_REMESSA)
+                r["regra_spread"] = f"spread contratado do {origem}"
         else:
             r["contratado"], r["regra_spread"] = None, None
         if r["status"] in ("VALIDA", "AJUSTE"):
@@ -126,7 +131,7 @@ def divergencias(resultado, contratos):
     return out
 
 
-def pendencias(resultado, contratos, meta_ponte, total_nota):
+def pendencias(resultado, contratos, meta_ponte, total_nota, condicoes=()):
     """Pendências da remessa. total_nota = valor da nota para a Ponte."""
     nomes = nome_por_cnpj(contratos)
     out = []
@@ -146,8 +151,7 @@ def pendencias(resultado, contratos, meta_ponte, total_nota):
                                f"recuperar do parceiro (Ponte) {fmt_br(total)} (R60/S34). A fórmula da lista de "
                                f"divergências ((spread% - contratado) x PTAX x ME) soma {fmt_br(formula)}. "
                                "O que decide é a condição contratada, não o aviso (S41). Contestar com a Ponte (S15)."
-                               + (" " + config.CONTEXTO_PENDENCIA[("REMESSA", cnpj)]
-                                  if ("REMESSA", cnpj) in config.CONTEXTO_PENDENCIA else "")),
+                               + "".join(" " + t for t in cadastro.notas_pendencia(condicoes, cnpj, "REMESSA"))),
                     "quem_decide": config.QUEM_HELENA,
                     "rastro": [("ponte", o["op"], o["dif_contrato"], "Spread R$ cobrado a mais") for o in ls]})
         metade = [(o, arred(o["dif_contrato"] * config.PARTICIPACAO_REMESSA)) for o in ls]

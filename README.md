@@ -34,7 +34,9 @@ Se `.venv\Scripts\activate` for bloqueado pelo PowerShell (política de execuç�
 
 Documentos relacionados:
 - [COMO_USAR.md](COMO_USAR.md): passo a passo para a analista do financeiro
-- [REGRAS_DE_NEGOCIO.md](REGRAS_DE_NEGOCIO.md): regras confirmadas (R##), com a fonte
+- [REGRAS_DE_NEGOCIO.md](REGRAS_DE_NEGOCIO.md): só as regras gerais, que valem todo mês para qualquer lojista (R##), com fonte, quem aprovou e data
+- `cadastro/condicoes_comerciais.csv`: condições comerciais por cliente (C###: isenções, spread negociado, de-para de EC, lojista bloqueado), com quem aprovou e a vigência; editável pela aba Clientes da tela. A planilha do cliente nunca é alterada
+- [docs/fechamento_2026-09.md](docs/fechamento_2026-09.md): registro do fechamento de setembro/2026 (as ocorrências do mês, com regra, condição e pendência de cada uma); histórico para outubro
 - [HIPOTESES.md](HIPOTESES.md): premissas assumidas (H##), perguntas feitas e respostas
 - [CONTEXTO_EMPRESA.md](CONTEXTO_EMPRESA.md): a empresa, o processo atual e a causa raiz (1 página)
 - [PERGUNTAS_SLACK.md](PERGUNTAS_SLACK.md): perguntas feitas ao financeiro (todas respondidas em 17/10)

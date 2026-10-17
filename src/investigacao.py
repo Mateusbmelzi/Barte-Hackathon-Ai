@@ -14,7 +14,7 @@ from collections import Counter, OrderedDict
 from decimal import Decimal
 from pathlib import Path
 
-from . import config
+from . import cadastro, config
 from .checkout import contratos_ativos, nome_por_cnpj, referencia_taxa
 from .dinheiro import fmt, fmt_br, soma
 
@@ -121,6 +121,7 @@ def _fato_vigencia(fatos, linhas, d0, d1, refs):
 
 def _grupos_checkout(r, antigas):
     d = r["dados"]
+    condicoes = r.get("condicoes") or []
     contratos = d["contratos"]
     nomes = nome_por_cnpj(contratos)
     por_id = {l["id"]: l for l in d["orbe"]}
@@ -135,11 +136,11 @@ def _grupos_checkout(r, antigas):
             grupos.setdefault((l["cnpj"], l["natureza"]), []).append(l)
     out = []
     for (cnpj, natureza), ls in sorted(grupos.items()):
-        out.append(_grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas))
+        out.append(_grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas, condicoes))
     return out
 
 
-def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
+def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas, condicoes=()):
     chave = lambda l: (ref[l["id"]][0], l["id"])
     ls = sorted(ls, key=chave)
     todas = sorted((l for l in fat if l["cnpj"] == cnpj), key=chave)
@@ -206,11 +207,11 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
     if natureza == config.NATUREZA_ISENCAO:
         ecs = sorted({l["ec"] for l in ls})
         for ec in ecs:
-            ini, fim = config.TAXA_ZERO_CHECKOUT[ec]
+            ini, fim = cadastro.periodo(cadastro.vigentes(condicoes, d0, ec=ec, cnpj=cnpj, tipo="ISENCAO")[0])
             dias = (d0 - ini).days
             rel = "no mesmo dia" if dias == 0 else f"{dias} dia(s) depois"
             _fato(fatos, "A planilha de taxas não registra a isenção; ela vem do acordo comercial informado pelo "
-                         f"financeiro (S07), válido de {_d(ini)} a {_d(fim)}; a divergência começa {rel}"
+                         f"financeiro (S07), válido de {_d(ini)} a {_d(fim) if fim else 'sem data final'}; a divergência começa {rel}"
                          f"{'' if dias == 0 else f' ({_d(d0)})'}.", [ls[0]["id"]])
     # F: proporção
     jan_af = [l for l in janela if ref[l["id"]][1] in fx_div]
@@ -240,7 +241,7 @@ def _grupo_checkout(cnpj, natureza, ls, fat, ref, contratos, nomes, antigas):
         "ec_orbe": "|".join(ecs), "natureza": natureza, "qtd": len(ls),
         "valor_divergencia_brl": fmt(total), "valor_devolver_lojista_brl": fmt(devolver),
         "valor_recuperar_parceiro_brl": fmt(recuperar),
-        "condicao_contratual": _condicao_checkout(linhas, ecs),
+        "condicao_contratual": _condicao_checkout(linhas, ecs, condicoes, cnpj),
         "fatos": fatos, "respostas_financeiro": _respostas("CHECKOUT", cnpj), "exemplos": _exemplos(ls),
         "_total": total,
     }
@@ -329,16 +330,22 @@ def _fatos_coincidencia(fatos, cnpj, natureza, ls, ref, afetadas, linhas, contra
                      "lojistas) em: " + _lista(f"{ROTULO[f]} {_pct(unicas[f])}" for f in nenhuma) + ".")
 
 
-def _condicao_checkout(linhas, ecs):
+def _condicao_checkout(linhas, ecs, condicoes=(), cnpj=None):
     partes = []
     for c in linhas:
         tx = "; ".join(f"{ROTULO[f]} {_pct(c['taxas'][f])}" for f in FAIXAS if c["taxas"].get(f) is not None)
         obs = f" (obs: '{c['obs']}')" if c["obs"] else ""
         partes.append(f"Planilha linha {c['linha']} ({_vig(c)}): {tx}{obs}")
     for ec in ecs:
-        if ec in config.TAXA_ZERO_CHECKOUT:
-            ini, fim = config.TAXA_ZERO_CHECKOUT[ec]
-            partes.append(f"Isenção {config.ISENCAO_CONDICAO.get(ec, 'cadastro')}/S07: taxa zero no checkout (MDR e antecipação) de {_d(ini)} a {_d(fim)}")
+        for c in cadastro.do_lojista(condicoes, "ISENCAO", ec=ec, linha="CHECKOUT"):
+            ini, fim = cadastro.periodo(c)
+            ref = f"{cadastro.rotulo(c)}/{cadastro.referencia_fonte(c)}"
+            faixas = "MDR e antecipação" if c["campo"] == "todas" else ", ".join(ROTULO.get(f, f) for f in c["campo"].split(","))
+            partes.append(f"Isenção {ref}: taxa zero no checkout ({faixas}) de {_d(ini)} a {_d(fim) if fim else 'sem data final'}")
+        for c in cadastro.do_lojista(condicoes, "TAXA_ESPECIAL", ec=ec, linha="CHECKOUT"):
+            ini, fim = cadastro.periodo(c)
+            partes.append(f"Taxa especial cadastro {c['id_condicao']} (aprovado por {c['aprovado_por']}): "
+                          f"{ROTULO.get(c['campo'], c['campo'])} {c['valor']}% de {_d(ini)} a {_d(fim) if fim else 'sem data final'}")
     return " | ".join(partes)
 
 

@@ -1,7 +1,7 @@
 """CLI do fechamento mensal.
 
-Uso:  python -m src.fechamento --entrada <pasta com os arquivos do mês> --saida <pasta> [--ia]
-Defaults: entrada = raiz do projeto; saida = <raiz>/saida.
+Uso:  python -m src.fechamento --entrada <pasta com os arquivos do mês> --saida <pasta> [--cadastro <pasta>] [--ia]
+Defaults: entrada = raiz do projeto; saida = <raiz>/saida; cadastro = <raiz>/cadastro (condições comerciais por cliente).
 --ia: além do dossiê, pede hipóteses à IA (src/ia.py) e grava em execucoes/cli_<data_hora>/investigacao_ia.json
       (fora de saida/, que fica determinística). Sem chave/biblioteca: avisa e segue.
 """
@@ -13,11 +13,12 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from . import checkout, config, extratos, investigacao, remessa, saidas
+from . import cadastro as cad, checkout, config, extratos, investigacao, remessa, saidas
 from .dinheiro import soma, fmt_br
 from .leitores import ler_taxas_antigas, ler_tudo_parcial
 
 RAIZ = Path(__file__).resolve().parent.parent
+CADASTRO_PADRAO = RAIZ / "cadastro"
 
 
 def _competencia(orbe):
@@ -59,6 +60,15 @@ def _pendencias_bloqueio(bloqueios):
         f = b["fonte"]
         rotulo = config.ROTULO_FONTE.get(f, f)
         efeito = config.EFEITO_BLOQUEIO.get(f, "parte do fechamento não calculada")
+        if b["tipo"] == "CADASTRO_AUSENTE":
+            motivo = (f"Condições comerciais não aplicadas: o cadastro ({b['detalhe']}) não foi encontrado. Isenções, "
+                      "taxas especiais, de-para de EC e bloqueios de faturamento foram ignorados; notas e comissões "
+                      "podem estar erradas (ex.: lojista isento volta a ser faturado). O fechamento foi marcado como "
+                      "PROVISORIO. Restaurar o cadastro (pasta cadastro/ ou --cadastro <pasta>) e rodar de novo, "
+                      "ou liberar o mês assim.")
+            out.append({"tipo": b["tipo"], "ref_origem": b["arquivo"], "valor": Decimal("0"), "motivo": motivo,
+                        "quem_decide": config.QUEM_HELENA_COMERCIAL, "rastro": []})
+            continue
         if b["tipo"] == "FONTE_AUSENTE":
             motivo = (f"Falta o arquivo da fonte {rotulo} (esperado nome '{b['arquivo']}'). Bloqueado: {efeito}. "
                       "O restante foi fechado e está marcado como PROVISORIO. Enviar o arquivo e rodar de novo, "
@@ -73,6 +83,17 @@ def _pendencias_bloqueio(bloqueios):
         out.append({"tipo": b["tipo"], "ref_origem": b["arquivo"], "valor": Decimal("0"), "motivo": motivo,
                     "quem_decide": config.QUEM_HELENA, "rastro": []})
     return out
+
+
+def _carregar_cadastro(pasta):
+    """Lê as condições comerciais. Pasta/arquivo ausente NÃO derruba o fechamento: segue só com a planilha, mas conta como
+    bloqueio (fechamento PARCIAL, S53): pendência CADASTRO_AUSENTE e notas/comissões PROVISORIO. Cadastro malformado
+    levanta CadastroInvalido (ValueError, mensagem legível). Devolve (condicoes, bloqueio|None)."""
+    try:
+        return cad.ler(pasta), None
+    except cad.CadastroAusente:
+        return [], {"fonte": "cadastro", "tipo": "CADASTRO_AUSENTE", "arquivo": cad.ARQ_CONDICOES,
+                    "detalhe": f"cadastro de condições comerciais não encontrado em {pasta}"}
 
 
 def _neutralizar_conciliacoes(lancs, pend, sem_ponte, bancos_ausentes):
@@ -97,13 +118,17 @@ def _neutralizar_conciliacoes(lancs, pend, sem_ponte, bancos_ausentes):
     return [p for p in pend if p["tipo"] not in tipos]
 
 
-def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
+def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None):
+    """`cadastro` = pasta do cadastro de condições comerciais (padrão: cadastro/ na raiz do projeto)."""
+    condicoes, bloq_cadastro = _carregar_cadastro(CADASTRO_PADRAO if cadastro is None else cadastro)
     d = ler_tudo_parcial(entrada)
-    ok, bloqueios = d["ok"], d["bloqueios"]
+    ok, bloqueios = d["ok"], list(d["bloqueios"])
     if not ok:
         raise ValueError("Nenhum arquivo do mês pôde ser lido:\n" + "\n".join(
             f"- {config.ROTULO_FONTE.get(b['fonte'], b['fonte'])}: "
             + ("arquivo não encontrado" if b["tipo"] == "FONTE_AUSENTE" else b["detalhe"]) for b in bloqueios))
+    if bloq_cadastro:
+        bloqueios.append(bloq_cadastro)
     chk_ok = "orbe" in ok and "taxas" in ok
     rem_ok = "ponte" in ok
     lan_ok = "plano" in ok and ("aurora" in ok or "meridiano" in ok)
@@ -118,20 +143,20 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
     # checkout (precisa de Orbe + taxas)
     chk, com_chk, nf_chk, div_chk, pen_chk = [], [], [], [], []
     if chk_ok:
-        chk = checkout.calcular(d["orbe"], d["contratos"])
+        chk = checkout.calcular(d["orbe"], d["contratos"], condicoes)
         com_chk = checkout.comissoes(chk, d["contratos"])
         nf_chk = checkout.notas(com_chk, comp_txt)
         div_chk = checkout.divergencias(chk, d["contratos"])
-        pen_chk = checkout.pendencias(chk, com_chk, d["contratos"]) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
+        pen_chk = checkout.pendencias(chk, com_chk, d["contratos"], condicoes) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
 
     # remessa (precisa do e-mail da Ponte; sem taxas não há divergência nem cadastro para conferir)
     rem, com_rem, nf_rem, div_rem, pen_rem = [], [], [], [], []
     if rem_ok:
-        rem = remessa.calcular(d["ponte"], d["contratos"], comp_mes)
+        rem = remessa.calcular(d["ponte"], d["contratos"], comp_mes, condicoes)
         com_rem = remessa.comissoes(rem, d["contratos"])
         nf_rem = remessa.nota(rem, comp_txt)
         div_rem = remessa.divergencias(rem, d["contratos"])
-        pen_rem = remessa.pendencias(rem, d["contratos"], d["meta_ponte"], nf_rem[0]["valor"] if nf_rem else None)
+        pen_rem = remessa.pendencias(rem, d["contratos"], d["meta_ponte"], nf_rem[0]["valor"] if nf_rem else None, condicoes)
         if sem_taxas:
             pen_rem = [p for p in pen_rem if p["tipo"] != "REMESSA_SEM_CONTRATO"]
 
@@ -177,13 +202,13 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True):
     # o que ficou bloqueado, para o resumo e a tela (S53)
     efeitos = []
     for b in bloqueios:
-        motivo = "falta" if b["tipo"] == "FONTE_AUSENTE" else "layout inesperado em"
+        motivo = "falta" if b["tipo"] in ("FONTE_AUSENTE", "CADASTRO_AUSENTE") else "layout inesperado em"
         efeitos.append(f"{config.EFEITO_BLOQUEIO.get(b['fonte'], b['fonte'])} "
                        f"({motivo} {config.ROTULO_FONTE.get(b['fonte'], b['fonte'])})")
     r = {"competencia": comp_txt, "dados": d, "checkout": chk, "remessa": rem,
          "comissoes": comissoes, "divergencias": divs, "notas": notas, "lancamentos": lancs,
          "pendencias": pends, "saida": Path(saida), "investigacao": None, "investigacao_erro": None,
-         "parcial": parcial, "bloqueios": bloqueios,
+         "parcial": parcial, "bloqueios": bloqueios, "condicoes": condicoes, "cadastro_ausente": bool(bloq_cadastro),
          "bloqueado": {"checkout": not chk_ok, "remessa": not rem_ok,
                        "divergencias_remessa": not rem_ok or sem_taxas,
                        "AURORA": not (lan_ok and "aurora" in ok), "MERIDIANO": not (lan_ok and "meridiano" in ok)},
@@ -256,10 +281,12 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="Fechamento mensal Tarvo (checkout + remessa + extratos)")
     ap.add_argument("--entrada", default=str(RAIZ), help="pasta com os arquivos de origem (default: raiz do projeto)")
     ap.add_argument("--saida", default=str(RAIZ / "saida"), help="pasta de saída (default: saida/)")
+    ap.add_argument("--cadastro", default=str(CADASTRO_PADRAO),
+                    help="pasta do cadastro de condições comerciais (default: cadastro/ na raiz do projeto)")
     ap.add_argument("--ia", action="store_true", help="gera hipóteses com IA em execucoes/cli_<data_hora>/")
     a = ap.parse_args(argv)
     try:
-        r = executar(Path(a.entrada), Path(a.saida))
+        r = executar(Path(a.entrada), Path(a.saida), cadastro=Path(a.cadastro))
     except (PermissionError, FileNotFoundError, ValueError) as e:
         sys.exit(f"ERRO: {e}")
     try:

@@ -23,7 +23,7 @@ TX88445133 é o estorno, em setembro, de uma venda da Casa do Estudante feita em
 
 **P6 — PIX de R$ 18.240,00 no Meridiano (H10) — respondida**
 O que é o PIX de R$ 18.240,00 recebido de "PONTE AEREA ESTUDANTIL L" em 17/09 (FITID MRD2026090425)? Não achamos nenhuma operação da Ponte Câmbio com esse valor. Os outros PIX desse lojista batem com as remessas dele.
-> Resposta (Helena): **Respondida (S22, 17/10/2026).** É a Ponte Aérea Estudantil (lojista, sem relação com a Ponte Câmbio) enviando dinheiro de uma remessa ainda não feita; a operação sai em outubro. → H10 CONFIRMADA, OC09.
+> Resposta (Helena): **Respondida (S22, 17/10/2026).** É a Ponte Aérea Estudantil (lojista, sem relação com a Ponte Câmbio) enviando dinheiro de uma remessa ainda não feita; a operação sai em outubro. → H10 CONFIRMADA, ocorrência 9 em docs/fechamento_2026-09.md.
 
 **P8 — Antecipação da Atlas Idiomas (H15) — respondida**
 Existe regra ou limite de antecipação por lojista? A Atlas antecipou R$ 179.592,82 em 15/09 e, até essa data, tinha R$ 55.357,50 em vendas. Quem na Tarvo precisa ser avisado de um caso assim?

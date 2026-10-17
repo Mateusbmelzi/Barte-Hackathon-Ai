@@ -3,7 +3,7 @@ from collections import Counter, OrderedDict
 from datetime import date
 from decimal import Decimal
 
-from . import config
+from . import cadastro, config
 from .dinheiro import arred, soma, fmt_br, fmt_pct
 
 ZERO = Decimal("0")
@@ -38,13 +38,14 @@ def contrato_vigente(candidatos, data):
     return None, f"mais de uma vigência cobre a data {data:%d/%m/%Y} (linhas {[c['linha'] for c in ok]})"
 
 
-def candidatos_por_ec(contratos, ec):
-    """Orbe -> planilha pelo EC; ECs sem código usam o de-para S03 (CC04) por CNPJ. Sem fuzzy."""
+def candidatos_por_ec(contratos, ec, condicoes=(), data=None):
+    """Orbe -> planilha pelo EC; ECs sem código usam o de-para S03 (CC04) do cadastro (DE_PARA_EC) por CNPJ. Sem fuzzy."""
     ativos = contratos_ativos(contratos)
     cand = [c for c in ativos if c["ec"] == ec]
-    if not cand and ec in config.DEPARA_EC_CNPJ:
-        cnpj = config.DEPARA_EC_CNPJ[ec]
-        cand = [c for c in ativos if c["cnpj"] == cnpj]
+    if not cand:
+        cnpj = cadastro.cnpj_do_ec(condicoes, ec, data)
+        if cnpj:
+            cand = [c for c in ativos if c["cnpj"] == cnpj]
     return cand
 
 
@@ -88,25 +89,29 @@ def referencia_taxa(linha, por_id):
     return None, None, f"tipo_lancamento desconhecido: {tipo}"
 
 
-def taxa_contratada(linha, contratos, por_id):
-    """Devolve (taxa_pct, contrato, regra, erro)."""
+def taxa_contratada(linha, contratos, por_id, condicoes=()):
+    """Devolve (taxa_pct, contrato, regra, erro). A taxa é a da planilha, com as condições VIGENTES do cadastro
+    por cima (ISENCAO = zero; TAXA_ESPECIAL = a taxa do cadastro naquela faixa e período)."""
     data, fx, erro = referencia_taxa(linha, por_id)
     if erro:
         return None, None, None, erro
     if fx is None:
         return None, None, None, f"modalidade/parcelas sem faixa na planilha ({linha['modalidade']} {linha['parcelas']})"
-    contrato, erro = contrato_vigente(candidatos_por_ec(contratos, linha["ec"]), data)
+    contrato, erro = contrato_vigente(candidatos_por_ec(contratos, linha["ec"], condicoes, data), data)
     if erro:
         return None, None, None, erro
-    taxa = contrato["taxas"].get(fx)
+    taxa, origem = cadastro.taxa_efetiva(contrato, condicoes, data, fx, ec=linha["ec"])
     if taxa is None:
         return None, contrato, None, f"planilha sem taxa de {fx} para o lojista"
     regra = f"R10 taxa {fx} da linha {contrato['linha']} vigente em {data:%d/%m/%Y}"
-    zero = config.TAXA_ZERO_CHECKOUT.get(linha["ec"])
-    if zero and zero[0] <= data <= zero[1]:
-        cond = config.ISENCAO_CONDICAO.get(linha["ec"], "cadastro")
-        taxa, regra = ZERO, (f"R52 isenção {cond}: taxa zero ({zero[0]:%d/%m}-{zero[1]:%d/%m/%Y}) "
-                             f"na data {data:%d/%m/%Y}")
+    cond = cadastro.condicao_aplicada(contrato, condicoes, data, fx, ec=linha["ec"])
+    if cond and cond["tipo"] == "ISENCAO":
+        ini, fim = cadastro.periodo(cond)
+        ate = f"{fim:%d/%m/%Y}" if fim else "em aberto"
+        regra = (f"R52 isenção {cadastro.rotulo(cond)}: taxa zero ({ini:%d/%m}-{ate}) "
+                 f"na data {data:%d/%m/%Y}") if fim else                 (f"R52 isenção {cadastro.rotulo(cond)}: taxa zero (desde {ini:%d/%m/%Y}) na data {data:%d/%m/%Y}")
+    elif cond:
+        regra = f"R10 taxa {fx} de {origem} vigente em {data:%d/%m/%Y}"
     if linha["tipo"] == "ESTORNO":
         regra += " (R11 data da venda original)"
     if linha["tipo"] == "REVERSAO ANTECIPACAO":
@@ -136,22 +141,25 @@ def estornos_duplicados(orbe):
     return dup
 
 
-def calcular(orbe, contratos):
-    """Classifica cada linha Orbe em FATURAVEL ou EXCLUIDA e calcula comissão/divergência."""
+def calcular(orbe, contratos, condicoes=()):
+    """Classifica cada linha Orbe em FATURAVEL ou EXCLUIDA e calcula comissão/divergência.
+    `condicoes` = cadastro de condições comerciais (src/cadastro.py); vazio = só a planilha."""
     por_id = {l["id"]: l for l in orbe}
     duplos = estornos_duplicados(orbe)
     resultado = []
     for l in orbe:
         r = dict(l)
-        if l["id"] in duplos and l["ec"] not in config.ECS_BLOQUEADOS:
+        cand = candidatos_por_ec(contratos, l["ec"], condicoes, l["data"])
+        bloq = cadastro.bloqueio(condicoes, l["ec"], l["data"], cand[0]["cnpj"] if cand else None)
+        if l["id"] in duplos and not bloq:
             r["estorno_duplicado_de"] = duplos[l["id"]]["id"]
             if not config.APLICAR_ESTORNO_DUPLICADO:
                 r.update(status="EXCLUIDA", motivo="ESTORNO_DUPLICADO",
                          erro=f"{l['tipo'].lower()} de {l['id_ref']}, que já foi estornado/revertido por {duplos[l['id']]['id']}")
                 resultado.append(r)
                 continue
-        if l["ec"] in config.ECS_BLOQUEADOS:
-            r.update(status="EXCLUIDA", motivo="BLOQUEADO", erro=config.ECS_BLOQUEADOS[l["ec"]])
+        if bloq:
+            r.update(status="EXCLUIDA", motivo="BLOQUEADO", erro=bloq["observacao"], condicao_bloqueio=bloq["id_condicao"])
             resultado.append(r)
             continue
         if acima_do_maximo(l, por_id):
@@ -159,7 +167,7 @@ def calcular(orbe, contratos):
                      erro=f"venda em {l['parcelas']}x, acima do máximo de {config.MAX_PARCELAS}x (R57/S38)")
             resultado.append(r)
             continue
-        taxa, contrato, regra, erro = taxa_contratada(l, contratos, por_id)
+        taxa, contrato, regra, erro = taxa_contratada(l, contratos, por_id, condicoes)
         if erro:
             r.update(status="EXCLUIDA", motivo="SEM_TAXA", erro=erro)
             resultado.append(r)
@@ -230,7 +238,7 @@ def divergencias(resultado, contratos):
     return out
 
 
-def pendencias(resultado, comissoes_chk, contratos):
+def pendencias(resultado, comissoes_chk, contratos, condicoes=()):
     nomes = nome_por_cnpj(contratos)
     out = []
     fat = [l for l in resultado if l["status"] == "FATURAVEL"]
@@ -240,7 +248,7 @@ def pendencias(resultado, comissoes_chk, contratos):
         for natureza in (config.NATUREZA_ISENCAO, config.NATUREZA_CONTRATO):
             ls = [l for l in ls_cnpj if l["natureza"] == natureza]
             if ls:
-                out.append(_pendencia_divergencia(ls, nomes[cnpj], natureza))
+                out.append(_pendencia_divergencia(ls, nomes[cnpj], natureza, condicoes))
     # saldo <= 0 (R31)
     for c in comissoes_chk:
         if c["comissao"] <= 0:
@@ -271,7 +279,7 @@ def pendencias(resultado, comissoes_chk, contratos):
                         "rastro": [("orbe", l["id"], l["valor_taxa"], f"{l['parcelas']}x valor_taxa Orbe") for l in ls]})
             continue
         if bloqueado:
-            cnpj_b = config.CNPJ_EC_BLOQUEADO.get(ec)
+            cnpj_b = (cadastro.bloqueio(condicoes, ec) or {}).get("cnpj")
             ident = (f" CNPJ {cnpj_b} (aba antiga da planilha, S45: só identifica o lojista; a taxa daquela aba não vale)."
                      if cnpj_b else "")
             motivo = (f"{ls[0]['erro']}.{ident} {len(ls)} transações (bruto {fmt_br(bruto)}) fora de comissões e notas "
@@ -286,7 +294,7 @@ def pendencias(resultado, comissoes_chk, contratos):
         out.append({"tipo": tipo, "ref_origem": f"EC {ec}", "valor": vt, "motivo": motivo,
                     "quem_decide": config.QUEM_COMERCIAL,
                     "rastro": [("orbe", l["id"], l["valor_taxa"], "valor_taxa Orbe") for l in ls]})
-    out += alertas_antecipacao(resultado)
+    out += alertas_antecipacao(resultado, condicoes)
     return out
 
 
@@ -341,7 +349,7 @@ def competencia_mes(linhas):
     return Counter((l["data"].year, l["data"].month) for l in linhas).most_common(1)[0][0]
 
 
-def alertas_antecipacao(resultado):
+def alertas_antecipacao(resultado, condicoes=()):
     """S42/S50 (critério nosso, config.ALERTA_ANTECIPACAO_SO_LOJISTA_NOVO): lojista NOVO (nenhuma transação com data de
     referência anterior ao mês e primeira transação depois do 1º dia) cuja antecipação acumulada, líquida das reversões
     já ocorridas, supera em algum dia as vendas acumuladas até a data. Alerta pelo PICO; o motivo cita as reversões
@@ -383,8 +391,9 @@ def alertas_antecipacao(resultado):
         revs_dep = [l for l in movs if l["tipo"] == "REVERSAO ANTECIPACAO" and l["data"] > dia]
         total_ants = soma(l["bruto"] for l in ants)
         total_revs = soma(l["bruto"] for l in movs if l["tipo"] == "REVERSAO ANTECIPACAO")
-        bloqueado = ec in config.ECS_BLOQUEADOS
-        cnpj_b = config.CNPJ_EC_BLOQUEADO.get(ec)
+        bloq = cadastro.bloqueio(condicoes, ec)
+        bloqueado = bool(bloq)
+        cnpj_b = (bloq or {}).get("cnpj")
         quem = f"{ls[0]['nome']} (EC {ec}" + (f", CNPJ {cnpj_b}" if cnpj_b else "") + ")"
         motivo = (f"Lojista novo {quem}: primeira transação em {primeira:%d/%m/%Y}, sem histórico antes do mês. "
                   f"Pico de antecipação acumulada de {fmt_br(liq)} em {dia:%d/%m/%Y} ({len(ate)} lançamentos de "
@@ -402,7 +411,7 @@ def alertas_antecipacao(resultado):
     return out
 
 
-def _pendencia_divergencia(ls, nome, natureza):
+def _pendencia_divergencia(ls, nome, natureza, condicoes=()):
     """Uma pendência por lojista e natureza (S38). S51: o valor a devolver é o que saiu do bolso do lojista
     (valor_taxa da Orbe - comissão contratada, nas linhas divergentes); a lista divergencias_taxa.csv segue a fórmula
     bruto x diferença de taxa (S11), e a diferença entre as duas é o truncamento da Orbe. S41: concessão comercial
@@ -417,8 +426,10 @@ def _pendencia_divergencia(ls, nome, natureza):
              f"{fmt_br(formula - total)} é truncamento da Orbe (S51). ")
     if natureza == config.NATUREZA_ISENCAO:
         desc = config.DESCRICAO_NATUREZA[natureza]
+        isencao = cadastro.do_lojista(condicoes, "ISENCAO", ec=ec)
+        ref_cond = (f"{cadastro.rotulo(isencao[0])}/{cadastro.referencia_fonte(isencao[0])}" if isencao else "cadastro/S07")
         motivo = (f"{desc[0].upper() + desc[1:]} (R52/S41): a Orbe cobrou pela planilha em {base}"
-                  f"Taxa zero acordada pelo Comercial ({config.ISENCAO_CONDICAO.get(ec, 'cadastro')}/S07), fora do contrato, "
+                  f"Taxa zero acordada pelo Comercial ({ref_cond}), fora do contrato, "
                   "que ninguém comunicou à Orbe (S18/S30). NÃO entra na cobrança da "
                   f"Orbe: é devolução ao lojista de {fmt_br(total)}, do caixa da Tarvo (S18/S34/S37). {trunc}"
                   "Detalhe por transação em divergencias_taxa.csv (natureza ISENCAO_NAO_INFORMADA, cobrar_parceiro N).")

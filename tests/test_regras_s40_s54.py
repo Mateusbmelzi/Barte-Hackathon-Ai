@@ -10,7 +10,7 @@ from email.message import EmailMessage
 import openpyxl
 import pytest
 
-from src import checkout, config, fechamento, leitores
+from src import cadastro, checkout, config, fechamento, leitores
 from src.dinheiro import soma
 
 CASA_EC, CASA = "1018325654", "00520815000100"
@@ -165,7 +165,7 @@ def test_s45_atlas_identificada_pelo_cnpj_e_fora_das_comissoes(resultado):
     p = _pend(resultado, "LOJISTA_SEM_CONTRATO")[0]
     assert p["ref_origem"] == f"EC {ATLAS_EC}" and ATLAS_CNPJ in p["motivo"] and "S45" in p["motivo"]
     assert len(p["rastro"]) == 57 and soma(r[2] for r in p["rastro"]) == p["valor"] == D("7876.05")
-    assert config.CNPJ_EC_BLOQUEADO[ATLAS_EC] == ATLAS_CNPJ
+    assert cadastro.bloqueio(resultado["condicoes"], ATLAS_EC)["cnpj"] == ATLAS_CNPJ   # CNPJ vem do cadastro (C005)
     assert ATLAS_CNPJ not in {c["cnpj"] for c in resultado["comissoes"]}
     assert ATLAS_EC not in {ec for c in resultado["comissoes"] for ec in c["ec_orbe"].split("|")}
     assert not any(n["tomador_cnpj"] == ATLAS_CNPJ for n in resultado["notas"])
@@ -201,7 +201,7 @@ def test_s47_isencao_casa_antecipacao_pela_data_da_antecipacao(resultado):
     contratos = resultado["dados"]["contratos"]
 
     def taxa(linha, por_id=None):
-        t, _, regra, erro = checkout.taxa_contratada(linha, contratos, por_id or {linha["id"]: linha})
+        t, _, regra, erro = checkout.taxa_contratada(linha, contratos, por_id or {linha["id"]: linha}, resultado["condicoes"])
         assert erro is None
         return t, regra
 

@@ -32,7 +32,7 @@
 
 - E-mail ou registro do Comercial com a data em que a isenção foi fechada e se algo foi enviado à Orbe.
 - Taxas cadastradas para o EC 1018325654 na Orbe, para ver se estão iguais à linha 13 da planilha.
-- Termo do acordo comercial CC01 para confirmar vigência de 01/09/2026 a 31/12/2026 e as faixas isentas (MDR e antecipação).
+- Termo do acordo comercial C001 para confirmar vigência de 01/09/2026 a 31/12/2026 e as faixas isentas (MDR e antecipação).
 - Transações de exemplo AN88445802, AN88445486 e TX88419350 para validar o detalhe por transação, incluindo o estorno.
 
 **Falar com:** Comercial  
@@ -74,7 +74,7 @@
 
 - **F1** 23 operações com spread acima do contratado; valor cheio pago a mais pelo lojista R$ 1.418,85. A devolver ao lojista: R$ 1.418,85; a recuperar da Ponte: R$ 1.418,85.
 - **F4** Diferença variável de +0,2991 p.p. a +0,3009 p.p. sobre o spread contratado (1,20%).
-- **F5** Spread aplicado de 1,4991% a 1,5009%: coincide com o spread padrão de 1,50% (CC03) dentro da tolerância de 0,01 p.p. (H06) em 23 de 23 operações; contratado 1,20%.
+- **F5** Spread aplicado de 1,4991% a 1,5009%: coincide com o spread padrão de 1,50% (R21) dentro da tolerância de 0,01 p.p. (H06) em 23 de 23 operações; contratado 1,20%.
 - **F8** No mês, outros 4 lojista(s) com spread contratado diferente do padrão (Nórdica Educação Internacional Ltda 1,25%, EduAbroad 1,30%, Lisboa Cursos e Viagens Ltda 1,60%, Novo Horizonte Intercambio 1,40%) tiveram 60 operações válidas, nenhuma divergente.
 
 **Resumo da IA:** Nas remessas da Mundo Aberto, de 01/09/2026 a 30/09/2026, a Ponte aplicou spread de 1,4991% a 1,5009% em vez dos 1,20% contratados em 23 operações, com R$ 1.418,85 pagos a mais pelo lojista.

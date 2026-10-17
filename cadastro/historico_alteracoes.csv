@@ -1,0 +1,7 @@
+data_hora;usuario;acao;id_condicao;resumo
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C001;migrada do src/config.py | isenção | Casa do Estudante Viagens Ltda | CHECKOUT | todas | 2026-09-01 a 2026-12-31
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C002;migrada do src/config.py | de-para de EC | Novo Horizonte Intercambio | CHECKOUT | 2026-01-01 a em aberto
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C003;migrada do src/config.py | de-para de EC | Horizonte Viagens | CHECKOUT | 2026-01-01 a em aberto
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C004;migrada do src/config.py | de-para de EC | Kiwi Experience | CHECKOUT | 2026-01-01 a em aberto
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C005;migrada do src/config.py | bloqueio de faturamento | Atlas Idiomas | CHECKOUT | 2026-09-10 a em aberto
+2026-10-17 14:31:16;migração (Dev A);CRIAR;C006;migrada do src/config.py | nota de pendência | Mundo Aberto | REMESSA | 2026-01-01 a em aberto

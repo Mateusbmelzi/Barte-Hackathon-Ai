@@ -1,6 +1,6 @@
 # Contexto da empresa: Tarvo Pagamentos
 
-Camada 1 do conhecimento: o que a Tarvo é e como o fechamento funciona hoje. Só fatos, cada um com a fonte (S## = `docs/00_slack_respostas_financeiro.md`). As regras estão em `REGRAS_DE_NEGOCIO.md` e as premissas em `HIPOTESES.md`.
+Camada 1 do conhecimento: o que a Tarvo é e como o fechamento funciona hoje. Só fatos, cada um com a fonte (S## = `docs/00_slack_respostas_financeiro.md`). As regras gerais estão em `REGRAS_DE_NEGOCIO.md`, as condições de cada cliente em `cadastro/condicoes_comerciais.csv` (C###), o que aconteceu em setembro em `docs/fechamento_2026-09.md` e as premissas em `HIPOTESES.md`.
 
 ## Negócio e linhas
 A Tarvo intermedeia pagamentos para lojistas (escolas de idiomas e agências de intercâmbio). Tem duas linhas de receita:

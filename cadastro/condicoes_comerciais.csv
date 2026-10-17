@@ -1,0 +1,7 @@
+id_condicao;tipo;cnpj;ec_orbe;lojista;linha_negocio;campo;valor;vigencia_inicio;vigencia_fim;aprovado_por;data_registro;fonte;observacao
+C001;ISENCAO;00520815000100;1018325654;Casa do Estudante Viagens Ltda;CHECKOUT;todas;;2026-09-01;2026-12-31;Comercial;2026-10-17;S07/S47;CC01. Taxa zero no checkout (MDR e antecipação) de 01/09 a 31/12/2026, acordo comercial fora do contrato. Migrada do config.py (TAXA_ZERO_CHECKOUT).
+C002;DE_PARA_EC;66564512000199;1043300981;Novo Horizonte Intercambio;CHECKOUT;;;2026-01-01;;;2026-10-17;S03;CC04. EC Orbe HORIZONTE INTERCAMBIO = Novo Horizonte Intercambio. Migrada do config.py (DEPARA_EC_CNPJ).
+C003;DE_PARA_EC;78576234000179;1043396662;Horizonte Viagens;CHECKOUT;;;2026-01-01;;;2026-10-17;S03;CC04. EC Orbe HORIZONTE VIAGENS TURISMO = Horizonte Viagens (outra empresa). Migrada do config.py (DEPARA_EC_CNPJ).
+C004;DE_PARA_EC;07752116000126;1038867654;Kiwi Experience;CHECKOUT;;;2026-01-01;;;2026-10-17;S03;CC04. EC Orbe KIWI EXPERIENCE TURISMO = Kiwi Experience. Migrada do config.py (DEPARA_EC_CNPJ).
+C005;BLOQUEIO_FATURAMENTO;39566044000119;1076801732;Atlas Idiomas;CHECKOUT;;;2026-09-10;;Comercial;2026-10-17;S03/S45;"Atlas Idiomas: sem contrato na aba vigente; taxa desconhecida (R15/CC05)"
+C006;NOTA_PENDENCIA;17217888000111;;Mundo Aberto;REMESSA;;;2026-01-01;;;2026-10-17;S05/S30;Caso de fronteira: a Ponte não foi avisada do spread de 1,20% (S30), mas a Helena decidiu tratar como divergência e contestar com a Ponte (S05).

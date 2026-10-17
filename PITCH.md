@@ -28,7 +28,7 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 - **Ponte sem critério:** operação duplicada e spread negativo eram aceitos ou não "no feeling".
 - **Número de destaque:** R$ 15.396,77 da Casa do Estudante: um acordo que não foi avisado vira 118 cobranças erradas em um mês (de 210 transações de checkout cobradas fora do contrato, `divergencias_taxa.csv`)
 
-> Nota do apresentador: este é o slide da causa raiz. Automatizar o processo como ele é só faria o erro mais rápido. O contrato decide quem deve (S41): por isso a Casa, que é concessão fora do contrato, é custo da Tarvo, e Bridge e Mundo Aberto são cobrança de parceiro. A correção foi tirar a regra da cabeça (REGRAS_DE_NEGOCIO.md, com quem aprovou e quando), a taxa da planilha solta e mostrar todo mês o que foi cobrado fora do contrato. O próximo passo é avisar o parceiro quando a condição muda (slide 8).
+> Nota do apresentador: este é o slide da causa raiz. Automatizar o processo como ele é só faria o erro mais rápido. O contrato decide quem deve (S41): por isso a Casa, que é concessão fora do contrato, é custo da Tarvo, e Bridge e Mundo Aberto são cobrança de parceiro. A correção foi tirar a regra da cabeça (REGRAS_DE_NEGOCIO.md, só regras gerais, com quem aprovou e quando; condições por cliente em `cadastro/condicoes_comerciais.csv`; o que aconteceu no mês em `docs/fechamento_2026-09.md`), a taxa da planilha solta e mostrar todo mês o que foi cobrado fora do contrato. O próximo passo é avisar o parceiro quando a condição muda (slide 8).
 
 ---
 
@@ -40,6 +40,7 @@ Público: financeiro e CFO, não engenheiros. Todos os números vêm de `saida/*
 - Monta as notas fiscais: para quem, de qual linha, de quanto, com o texto
 - Classifica os 184 lançamentos dos dois extratos no plano de contas
 - Separa o que precisa de gente: 18 pendências, cada uma com motivo e responsável
+- **Condições comerciais num cadastro com vigência e quem aprovou, editável na tela** (aba Clientes): ataca a causa raiz (condição que não chega a quem precisa)
 - **Número de destaque:** comissão checkout R$ 203.735,34 (21 lojistas, 1.900 transações) e remessa R$ 39.543,45 (228 operações) (`comissoes_por_lojista.csv`)
 
 > Nota do apresentador: mostrar o resumo que o comando imprime na tela. Nota checkout soma R$ 203.740,84 porque a Casa do Estudante fecha negativa (−R$ 5,50) e não emite nota.

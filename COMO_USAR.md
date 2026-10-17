@@ -3,6 +3,8 @@
 Este guia é para quem fecha o mês no financeiro. Não precisa saber programar. A instalação (feita uma vez) está no `README.md`.
 
 ## Jeito mais fácil: dois cliques em `fechar_mes.bat`
+
+> **Atualizou o programa?** Feche todas as janelas pretas abertas e dê dois cliques em `fechar_mes.bat` de novo. Uma janela antiga continua mostrando a versão anterior (por exemplo, a aba Clientes aparece vazia).
 Não precisa abrir terminal nem digitar comando.
 
 1. Na pasta do programa, dê **dois cliques em `fechar_mes.bat`**. Abre uma janela preta e, em seguida, o navegador com a tela **"Fechamento mensal — Tarvo"**. **Deixe a janela preta aberta** enquanto usa a tela (fechá-la encerra o programa).
@@ -28,6 +30,15 @@ Aparece na tela como **Passo 4**, depois que o fechamento roda. Serve para desco
 - **Botão desabilitado?** A IA não está configurada neste computador (o motivo aparece em amarelo). Os fatos continuam na tela. Para habilitar, veja "Investigação com IA (opcional)" no `README.md`.
 - **Decidir**: escreva **seu nome** no topo (fica lembrado neste navegador). Em cada hipótese, se quiser, um comentário, e **Aceitar** ou **Recusar**. Pode mudar de ideia: vale a última decisão. A decisão fica gravada com nome, data e hora em `execucoes\<data_hora>\decisoes_investigacao.csv`, e as hipóteses em `investigacao_ia.json` na mesma pasta. **Baixar decisões (.csv)** traz o arquivo. Gerar as hipóteses de novo apaga as decisões daquela execução.
 - A IA **não decide, não altera valores, não fecha pendência e não envia nada**. Quem confere e fala com o parceiro é você.
+
+## Aba "Clientes": ver um lojista e registrar mudança de taxa
+
+No topo da tela há duas abas: **Fechamento** (o de sempre) e **Clientes**.
+
+1. Em **Clientes**, busque o lojista por nome, CNPJ ou código do EC da Orbe e clique nele. Os selos mostram o que merece atenção: "isenção ativa", "taxa especial", "bloqueado", "sem contrato".
+2. A ficha traz, num lugar só: identificação (razão social da planilha, CNPJ, EC Orbe e, se você já rodou o fechamento, os nomes que o lojista tem na Orbe e na Ponte), **taxas que valem hoje** por faixa com "de onde vem" (planilha linha X ou cadastro C00X), condições comerciais (vigentes e encerradas, com quem aprovou e a fonte), como o lojista é faturado, as regras que se aplicam e o resumo do mês.
+3. **+ Nova condição**: escolha o tipo, a linha, as faixas, o valor em %, a vigência, **quem aprovou** (obrigatório para taxa e isenção: Comercial ou Helena) e **seu nome**. **Encerrar** (nas condições ativas) pede a data de fim; só dá para antecipar o fim, não adiar.
+4. Nada disso altera a planilha de taxas do cliente: as mudanças ficam em `cadastro/condicoes_comerciais.csv`, com o histórico em `cadastro/historico_alteracoes.csv`. **Depois de salvar, rode o fechamento de novo para aplicar.**
 
 ## 1. Juntar os arquivos do mês
 Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **arquivos do mês** (1 de cada tipo, exceto a Orbe, que pode mandar mais de um), sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
@@ -87,7 +98,7 @@ A solução lê a aba cujo nome contém "vigentes". Mantenha as colunas com os m
 |---|---|
 | **Lojista novo** | Incluir uma linha na aba vigente com nome, CNPJ, **EC Orbe**, taxas e vigência. Sem EC, as transações dele não acham contrato e viram pendência `TAXA_CONTRATADA_INDEFINIDA` (fora da nota). |
 | **Nova vigência de taxa** (mudou a taxa a partir de uma data) | Manter a linha antiga com vigência `até DD/MM/AAAA` e criar a nova com `a partir de DD/MM/AAAA` (ou só `DD/MM/AAAA`). São os únicos formatos reconhecidos. Outro texto → o lojista inteiro vira pendência ("vigência não reconhecida"), sem chute. |
-| **EC faltando na planilha** | Preencher o EC na planilha (melhor) ou, se não der, pedir para incluir o de-para EC → CNPJ em `DEPARA_EC_CNPJ` (`src/config.py`). |
+| **EC faltando na planilha** | Preencher o EC na planilha (melhor) ou, se não der, incluir o de-para EC → CNPJ na aba **Clientes** (cadastro de condições, C###). |
 | **Lojista saiu** | Riscar a linha (tachado). Linha riscada é ignorada. |
 | **Spread de remessa padrão** | Deixar em branco ou escrever "padrão" = 1,5%. |
 | **Taxa digitada como texto ("1,49%") ou CNPJ sem zero** | Funciona, a solução corrige. Mas o ideal é padronizar. |
@@ -120,9 +131,9 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 
 | Quero mudar... | Edite em `src/config.py` |
 |---|---|
-| Um lojista que não pode ser faturado (sem contrato) ou liberar a Atlas | `ECS_BLOQUEADOS` |
-| Período de taxa zero de um lojista (acordo comercial, ex.: Casa do Estudante) | `TAXA_ZERO_CHECKOUT` |
-| De-para de EC Orbe sem código na planilha | `DEPARA_EC_CNPJ` |
+| Um lojista que não pode ser faturado (sem contrato) ou liberar a Atlas | Aba **Clientes** (condição C005 em `cadastro/condicoes_comerciais.csv`) |
+| Período de taxa zero de um lojista (acordo comercial, ex.: Casa do Estudante, condição C001) | Aba **Clientes**, com quem aprovou e a vigência |
+| De-para de EC Orbe sem código na planilha (C002 a C004) | Aba **Clientes** |
 | Percentual da Tarvo no spread de remessa (hoje 50%) | `PARTICIPACAO_REMESSA` |
 | Spread padrão (hoje 1,5%) | `SPREAD_PADRAO` |
 | Tolerância para divergência de remessa (hoje 0,01 p.p.) | `TOLERANCIA_SPREAD` |
@@ -133,7 +144,7 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 | Respostas do financeiro (S##) mostradas no dossiê de investigação, por lojista | `RESPOSTAS_FINANCEIRO`, `TEXTOS_FINANCEIRO` |
 | Nome dos arquivos de entrada | `PADROES_ARQUIVOS` |
 
-Depois de mudar: rodar `python -m pytest -q` (148 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
+Depois de mudar: rodar `python -m pytest -q` (148 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md` (regra geral) ou no cadastro de condições (condição de cliente). O que aconteceu no mês fica em `docs/fechamento_2026-09.md` (um registro por fechamento).
 
 ## 8. Quando a solução não resolve sozinha
 Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem decide. Tipos de pendência em `pendencias.csv`:

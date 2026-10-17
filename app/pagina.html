@@ -131,6 +131,56 @@
   .aviso-ia { font-size: 12px; color: var(--texto-suave); border-top: 1px dashed var(--borda); margin-top: 8px; padding-top: 6px; }
   .vazio { font-size: 13px; color: var(--texto-suave); }
   @media (max-width: 720px) { .grupo-corpo { grid-template-columns: 1fr; } .grupo-corpo > div + div { border-left: 0; border-top: 1px solid var(--borda); } }
+  nav.abas { display: flex; gap: 6px; margin-top: 22px; }
+  nav.abas button { font: inherit; font-weight: 500; color: #c9c7d1; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 8px 18px; cursor: pointer; }
+  nav.abas button:hover { color: #fff; }
+  nav.abas button.ativa { color: #fff; border-bottom-color: var(--destaque); }
+  .busca { width: 100%; min-width: 0; font-size: 16px; padding: 10px 12px; }
+  .cli-lista { list-style: none; margin: 14px 0 0; padding: 0; border: 1px solid var(--borda); border-radius: 12px; overflow: hidden; }
+  .cli-lista li { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; padding: 11px 14px; border-top: 1px solid var(--borda); cursor: pointer; }
+  .cli-lista li:first-child { border-top: 0; }
+  .cli-lista li:hover { background: var(--destaque-10); }
+  .cli-lista .nome { font-weight: 600; flex: 1 1 260px; }
+  .cli-lista .meta { font-size: 13px; color: var(--texto-suave); }
+  .selo.bloqueado, .selo.sem_contrato { border-color: #f3b6c8; background: #fdecf1; color: #7a1233; }
+  .selo.taxa_especial { border-color: #b6d4f3; background: #ecf4fd; color: #123f7a; }
+  .selo.inativo, .selo.pendencia { background: #f2f2f2; color: #555; }
+  .selo.ativa { border-color: #00b18688; background: var(--ok-10); color: #00785b; }
+  .selo.futura { border-color: #b6d4f3; background: #ecf4fd; color: #123f7a; }
+  .selo.encerrada { background: #f2f2f2; color: #555; }
+  .selos { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .ficha-topo { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+  .ficha-topo h2 { margin: 0; }
+  .bloco h2 { font-size: 18px; }
+  .dados { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 24px; margin: 8px 0 0; }
+  .dados dt { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); }
+  .dados dd { margin: 2px 0 0; word-break: break-word; }
+  .taxa-origem { font-size: 13px; color: var(--texto-suave); }
+  td.pct { font-family: var(--titulo); font-weight: 600; white-space: nowrap; }
+  .cond { border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; margin-top: 12px; }
+  .cond.encerrada { background: #fafafa; color: var(--texto-suave); }
+  .cond-cab { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+  .cond-cab .nome { font-weight: 600; }
+  .cond-det { font-size: 13px; color: var(--texto-suave); margin-top: 6px; }
+  .cond-det b { color: var(--texto); font-weight: 600; }
+  .enc { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-top: 10px; }
+  .enc label, .form-cond label { font-size: 13px; color: var(--texto-suave); display: flex; flex-direction: column; gap: 4px; }
+  .enc input.campo { min-width: 0; }
+  .form-cond { border: 2px solid var(--destaque); border-radius: 12px; padding: 16px; margin-top: 14px; background: #fffafc; }
+  .form-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 16px; }
+  .form-grade input.campo, .form-grade select.campo, .form-grade textarea.campo { min-width: 0; width: 100%; }
+  .form-grade .larga { grid-column: 1 / -1; }
+  select.campo { font: inherit; border: 1px solid var(--borda); border-radius: 8px; padding: 8px 10px; background: #fff; color: var(--texto); }
+  .dica { font-size: 13px; color: var(--texto-suave); margin: 0; }
+  .faixas { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .faixas label { flex-direction: row; align-items: center; gap: 6px; color: var(--texto); font-size: 14px; }
+  .sucesso { margin: 0 0 16px; padding: 12px 16px; border-radius: 10px; background: var(--ok-10); border: 1px solid #00b18655; color: #005f47; }
+  .regras { margin: 8px 0 0; padding: 0; list-style: none; }
+  .regras li { padding: 6px 0; border-top: 1px solid var(--borda); font-size: 14px; }
+  .regras li:first-child { border-top: 0; }
+  .regras b { display: inline-block; min-width: 42px; color: var(--destaque-escuro); }
+  .voltar { margin-bottom: 14px; }
+  .nada { color: var(--texto-suave); font-size: 14px; margin: 10px 0 0; }
   footer { text-align: center; color: var(--texto-suave); font-size: 13px; padding: 0 16px 32px; }
   @media (max-width: 560px) {
     .cartao { padding: 18px; }
@@ -144,11 +194,13 @@
     <span class="etiqueta">Ferramenta interna do financeiro</span>
     <h1>Fechamento mensal — Tarvo</h1>
     <p>Envie os arquivos do mês (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos que você enviar não são alterados.</p>
+    <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabCli">Clientes</button></nav>
   </div>
 </header>
 
 <main>
   <div class="conteudo">
+    <div id="abaFechamento">
     <section class="cartao">
       <h2><span class="passo">1</span> Arquivos de entrada</h2>
       <p class="sub">Arraste os arquivos para a área abaixo (pode ser todos de uma vez) ou clique para escolher.</p>
@@ -196,6 +248,17 @@
       <div class="erro oculto" id="erroIA"></div>
       <div id="grupos"></div>
     </section>
+    </div>
+    <div id="abaClientes" class="oculto">
+      <section class="cartao" id="cliLista">
+        <h2>Clientes</h2>
+        <p class="sub">Tudo de um lojista num lugar só: taxas que valem hoje, condições combinadas, como é faturado e o resumo do último fechamento. Aqui você registra mudanças de taxa ou condição; a planilha de taxas do cliente nunca é alterada.</p>
+        <input class="campo busca" id="busca" type="search" placeholder="Buscar por nome, CNPJ ou código do EC da Orbe" autocomplete="off">
+        <ul class="cli-lista" id="cliItens"></ul>
+        <p class="nada oculto" id="cliVazio">Nenhum lojista encontrado.</p>
+      </section>
+      <div id="cliFicha" class="oculto"></div>
+    </div>
   </div>
 </main>
 <footer id="rodape"></footer>
@@ -413,6 +476,200 @@ $("grupos").addEventListener("mouseover", (ev) => {
 });
 
 api("/api/estado").then(desenhar).catch(() => {});
+
+// ------------------------------------------------ abas e aba Clientes
+const NOME_FAIXAS = {
+  CHECKOUT: [["DEBITO", "Débito"], ["CREDITO A VISTA", "Crédito à vista"], ["PARC_2_6", "Crédito 2 a 6x"], ["PARC_7_12", "Crédito 7 a 12x"], ["PIX", "Pix"], ["ANTECIPACAO", "Antecipação"]],
+  REMESSA: [["SPREAD_REMESSA", "Spread da remessa"]],
+};
+const DICA_TIPO = {
+  TAXA_ESPECIAL: "Troca a taxa da planilha nas faixas marcadas, durante a vigência.",
+  ISENCAO: "Taxa zero nas faixas marcadas, durante a vigência.",
+  DE_PARA_EC: "Liga um código de EC da Orbe a este lojista (para EC que não consta na planilha).",
+  BLOQUEIO_FATURAMENTO: "O lojista não é faturado até o Comercial confirmar o contrato. Explique o motivo na observação.",
+  NOTA_PENDENCIA: "Texto que aparece junto das pendências de divergência deste lojista. Escreva na observação.",
+};
+let clientes = [], fichaAtual = null, recado = "", dataRef = "";
+const hojeISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const nomeUsuarioSalvo = () => { try { return localStorage.getItem("tarvo.analista") || ""; } catch (_) { return ""; } };
+const selosHTML = (ss) => `<span class="selos">${ss.map((s) => `<span class="selo ${esc(s.codigo)}">${esc(s.texto)}</span>`).join("")}</span>`;
+
+function mostrarAba(nome) {
+  const cli = nome === "clientes";
+  $("abaFechamento").classList.toggle("oculto", cli);
+  $("abaClientes").classList.toggle("oculto", !cli);
+  $("tabFech").classList.toggle("ativa", !cli);
+  $("tabCli").classList.toggle("ativa", cli);
+  try { history.replaceState(null, "", cli ? "#clientes" : "#"); } catch (_) {}
+  if (cli) { fichaAtual ? abrirFicha(fichaAtual.chave, "") : carregarClientes(); }
+}
+$("tabFech").addEventListener("click", () => mostrarAba("fechamento"));
+$("tabCli").addEventListener("click", () => mostrarAba("clientes"));
+
+async function carregarClientes() {
+  try { clientes = (await api("/api/clientes")).clientes; } catch (_) { clientes = []; }
+  desenharLista();
+}
+function desenharLista() {
+  const norm = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const q = norm($("busca").value), qd = q.replace(/\D/g, "");
+  const vis = clientes.filter((c) => !q || norm(c.nome).includes(q) || (qd && (c.cnpj.replace(/\D/g, "").includes(qd) || c.ecs.some((e) => e.includes(qd)))));
+  $("cliItens").innerHTML = vis.map((c) => `<li data-chave="${esc(c.chave)}"><span class="nome">${esc(c.nome)}</span>
+    <span class="meta">${c.cnpj ? "CNPJ " + esc(c.cnpj) : "CNPJ não conhecido"}${c.ecs.length ? " · EC Orbe " + esc(c.ecs.join(", ")) : ""}</span>${selosHTML(c.selos)}</li>`).join("");
+  $("cliVazio").classList.toggle("oculto", vis.length > 0);
+}
+$("busca").addEventListener("input", desenharLista);
+$("cliItens").addEventListener("click", (ev) => { const li = ev.target.closest("li[data-chave]"); if (li) abrirFicha(li.dataset.chave); });
+
+async function abrirFicha(chave, aviso) {
+  recado = aviso || "";
+  try { fichaAtual = await api("/api/clientes/" + encodeURIComponent(chave) + (dataRef ? "?data=" + dataRef : "")); } catch (_) { fichaAtual = null; return carregarClientes(); }
+  desenharFicha();
+}
+function voltarLista() { fichaAtual = null; dataRef = ""; $("cliFicha").classList.add("oculto"); $("cliLista").classList.remove("oculto"); carregarClientes(); }
+
+function campoUsuario(id) {
+  return `<label>Seu nome<input class="campo nome-usuario" id="${id}" autocomplete="name" placeholder="ex.: Helena" value="${esc(nomeUsuarioSalvo())}"></label>`;
+}
+function desenharFicha() {
+  const f = fichaAtual, i = f.identificacao, m = f.mes;
+  $("cliLista").classList.add("oculto"); $("cliFicha").classList.remove("oculto");
+  const taxas = f.taxas.map((t) => `<tr><td>${esc(t.rotulo)}</td><td class="pct">${esc(t.valor)}</td><td class="taxa-origem">${esc(t.origem)}</td></tr>`).join("");
+  const conds = f.condicoes.length ? f.condicoes.map((c) => `<div class="cond ${esc(c.status)}">
+      <div class="cond-cab"><span class="nome">${esc(c.tipo_texto)}${c.campo ? " · " + esc(c.campo) : ""}${c.valor ? " · " + esc(c.valor) : ""}</span>
+        <span class="selo ${esc(c.status)}">${{ ativa: "ativa", futura: "começa depois", encerrada: "encerrada" }[c.status]}</span>
+        <span class="taxa-origem">Condição ${esc(c.id)}</span></div>
+      <div class="cond-det"><b>Vigência:</b> de ${esc(c.inicio || "—")} ${c.fim ? "até " + esc(c.fim) : "(sem data de fim)"} · <b>Linha:</b> ${esc(c.linha_negocio)}
+        · <b>Aprovado por:</b> ${esc(c.aprovado_por || "não se aplica")} · <b>Fonte:</b> ${esc(c.fonte || "—")} · <b>Registrada em:</b> ${esc(c.registrado_em || "—")}
+        ${c.observacao ? `<br>${esc(c.observacao)}` : ""}</div>
+      ${c.status !== "encerrada" ? `<div class="enc" data-id="${esc(c.id)}"><label>Encerrar em<input class="campo" type="date" data-fim value="${hojeISO()}"></label>
+        ${campoUsuario("usr_" + c.id)}<button class="botao leve" type="button" data-encerrar="${esc(c.id)}">Encerrar</button>
+        <span class="erro oculto" style="margin:0;padding:6px 10px"></span></div>` : ""}
+    </div>`).join("") : `<p class="nada">Nenhuma condição registrada no cadastro para este lojista.</p>`;
+  const mes = m ? `
+      <p class="sub">Competência ${esc(m.competencia)}, do fechamento rodado nesta sessão.</p>
+      <div class="numeros">
+        <div class="numero"><div class="r">Comissão checkout</div><div class="v">${esc(m.comissao_checkout || "—")}</div></div>
+        <div class="numero"><div class="r">Comissão remessa</div><div class="v">${esc(m.comissao_remessa || "—")}</div></div>
+        <div class="numero"><div class="r">Divergências de taxa</div><div class="v">${m.divergencia_linhas} linhas</div><div class="d">${esc(m.divergencia_valor || "nenhuma")}</div></div>
+        <div class="numero"><div class="r">Devolver ao lojista</div><div class="v">${esc(m.devolver_lojista || "—")}</div></div>
+        <div class="numero"><div class="r">Recuperar do parceiro</div><div class="v">${esc(m.recuperar_parceiro || "—")}</div></div>
+      </div>
+      <h3>Pendências deste lojista (${m.pendencias.length})</h3>
+      ${m.pendencias.length ? `<div class="tabela"><table><thead><tr><th>Tipo</th><th>Valor</th><th>Motivo</th><th>Quem decide</th></tr></thead><tbody>${m.pendencias.map((p) =>
+        `<tr><td>${esc(p.tipo)}</td><td class="valor">${esc(p.valor || "")}</td><td class="motivo">${esc(p.motivo)}</td><td>${esc(p.quem_decide)}</td></tr>`).join("")}</tbody></table></div>` : `<p class="nada">Nenhuma pendência.</p>`}`
+    : `<p class="nada">Rode o fechamento na aba “Fechamento” para ver aqui as comissões, divergências e pendências deste lojista.</p>`;
+  $("cliFicha").innerHTML = `
+    <button class="botao leve voltar" type="button" id="voltar">← Voltar para a lista</button>
+    ${recado ? `<div class="sucesso"><strong>${esc(recado)}</strong></div>` : ""}
+    <section class="cartao bloco"><div class="ficha-topo"><h2>${esc(i.nome)}</h2>${selosHTML(f.selos)}</div>
+      <dl class="dados">
+        <div><dt>Razão social na planilha</dt><dd>${esc(i.razao_social_planilha || "não consta como vigente na planilha")}</dd></div>
+        <div><dt>CNPJ</dt><dd>${esc(i.cnpj || "não conhecido")}</dd></div>
+        <div><dt>EC Orbe</dt><dd>${esc(i.ecs.join(", ") || "—")}</dd></div>
+        <div><dt>Nome na Orbe</dt><dd>${esc(i.nomes_orbe.join(", ") || (i.fechamento_rodado ? "não apareceu neste mês" : "disponível depois de rodar o fechamento"))}</dd></div>
+        <div><dt>Nome na Ponte Câmbio</dt><dd>${esc(i.nomes_ponte.join(", ") || (i.fechamento_rodado ? "não apareceu neste mês" : "disponível depois de rodar o fechamento"))}</dd></div>
+        ${i.obs_planilha ? `<div><dt>Observação da planilha</dt><dd>${esc(i.obs_planilha)}</dd></div>` : ""}
+      </dl></section>
+    <section class="cartao bloco"><h2>Taxas que valem em ${esc(f.data_referencia.split("-").reverse().join("/"))}${f.data_referencia === f.data_hoje ? " (hoje)" : ""}</h2>
+      <p class="sub">Já considera as condições do cadastro por cima da planilha. A coluna “De onde vem” diz qual das duas manda em cada faixa.</p>
+      <div class="enc" style="margin:0 0 12px"><label>Data de referência<input class="campo" type="date" id="dataRef" value="${esc(f.data_referencia)}"></label>
+        <button class="botao leve" type="button" id="dataHoje">Hoje</button>
+        ${f.data_competencia ? `<button class="botao leve" type="button" id="dataComp">Competência do último fechamento (${esc(f.competencia)})</button>` : ""}</div>
+      <div class="tabela"><table><thead><tr><th>Faixa</th><th>Taxa</th><th>De onde vem</th></tr></thead><tbody>${taxas}</tbody></table></div></section>
+    <section class="cartao bloco"><div class="ficha-topo"><h2>Condições comerciais</h2>
+        <button class="botao" type="button" id="novaCond">+ Nova condição</button></div>
+      <p class="sub">Combinados com este lojista, vigentes e encerrados. Nada é apagado: condição errada ou vencida é encerrada.</p>
+      <div id="formCond"></div>${conds}</section>
+    <section class="cartao bloco"><h2>Como é faturado</h2>${f.faturamento.map((t) => `<p>${esc(t)}</p>`).join("")}</section>
+    <section class="cartao bloco"><h2>Regras que se aplicam</h2><ul class="regras">${f.regras.map((r) => `<li><b>${esc(r.id)}</b> ${esc(r.texto)}</li>`).join("")}</ul>
+      <p class="taxa-origem">Texto completo em REGRAS_DE_NEGOCIO.md.</p></section>
+    <section class="cartao bloco"><h2>Resumo do mês</h2>${mes}</section>`;
+  window.scrollTo({ top: 0 });
+}
+
+$("cliFicha").addEventListener("click", async (ev) => {
+  if (ev.target.id === "voltar") return voltarLista();
+  if (ev.target.id === "dataHoje") { dataRef = ""; return abrirFicha(fichaAtual.chave); }
+  if (ev.target.id === "dataComp") { dataRef = fichaAtual.data_competencia; return abrirFicha(fichaAtual.chave); }
+  if (ev.target.id === "novaCond") return abrirFormulario();
+  if (ev.target.id === "cancelarCond") { $("formCond").innerHTML = ""; return; }
+  if (ev.target.id === "salvarCond") return salvarCondicao();
+  const b = ev.target.closest("[data-encerrar]");
+  if (b) {
+    const bloco = b.closest(".enc"), erro = bloco.querySelector(".erro");
+    const r = await fetch("/api/condicoes/" + encodeURIComponent(b.dataset.encerrar) + "/encerrar", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data_fim: bloco.querySelector("[data-fim]").value, usuario: bloco.querySelector(".nome-usuario").value.trim() }) });
+    const e = await r.json();
+    if (!r.ok) { erro.textContent = e.erro; erro.classList.remove("oculto"); return; }
+    await abrirFicha(fichaAtual.chave, e.aviso);
+  }
+});
+$("cliFicha").addEventListener("change", (ev) => {
+  if (ev.target.id === "dataRef" && ev.target.value) { dataRef = ev.target.value; abrirFicha(fichaAtual.chave); }
+});
+document.addEventListener("input", (ev) => {
+  if (!ev.target.classList.contains("nome-usuario")) return;
+  try { localStorage.setItem("tarvo.analista", ev.target.value.trim()); } catch (_) {}
+  document.querySelectorAll(".nome-usuario").forEach((x) => { if (x !== ev.target) x.value = ev.target.value; });
+  $("analista").value = ev.target.value;
+});
+$("analista").addEventListener("input", () => {
+  document.querySelectorAll(".nome-usuario").forEach((x) => { x.value = $("analista").value; });
+});
+
+function abrirFormulario() {
+  $("formCond").innerHTML = `<div class="form-cond">
+    <div class="form-grade">
+      <label>O que registrar<select class="campo" id="fTipo">
+        <option value="TAXA_ESPECIAL">Taxa especial</option><option value="ISENCAO">Isenção (taxa zero)</option>
+        <option value="DE_PARA_EC">De-para de EC Orbe</option><option value="BLOQUEIO_FATURAMENTO">Bloqueio de faturamento</option>
+        <option value="NOTA_PENDENCIA">Nota / pendência</option></select></label>
+      <label>Linha de negócio<select class="campo" id="fLinha"><option value="CHECKOUT">Checkout (Orbe)</option><option value="REMESSA">Remessa (Ponte Câmbio)</option><option value="TODAS">Todas as linhas</option></select></label>
+      <p class="dica larga" id="fDica"></p>
+      <div class="larga" id="fFaixasBox"><div class="dica" style="margin-bottom:6px">Faixas</div><div class="faixas" id="fFaixas"></div></div>
+      <label id="fValorBox">Taxa (%)<input class="campo" id="fValor" inputmode="decimal" placeholder="ex.: 2,19"></label>
+      <label id="fEcBox">Código do EC Orbe<input class="campo" id="fEc" inputmode="numeric" placeholder="ex.: 1043300981"></label>
+      <label>Vigência: início<input class="campo" type="date" id="fIni" value="${hojeISO()}"></label>
+      <label>Vigência: fim (opcional)<input class="campo" type="date" id="fFim"></label>
+      <label id="fAprovBox">Aprovado por<select class="campo" id="fAprov"><option value="">Escolha…</option><option>Comercial</option><option>Helena (Financeiro)</option></select></label>
+      <label>Fonte (de onde veio o combinado)<input class="campo" id="fFonte" placeholder="ex.: e-mail do Comercial de 15/10"></label>
+      <label class="larga">Observação<textarea class="campo" id="fObs" placeholder="Detalhes, motivo, quem pediu"></textarea></label>
+      ${campoUsuario("fUsr")}
+    </div>
+    <div class="erro oculto" id="fErro"></div>
+    <div class="acoes"><button class="botao" type="button" id="salvarCond">Salvar condição</button><button class="botao leve" type="button" id="cancelarCond">Cancelar</button></div>
+    <p class="dica" style="margin-top:10px">Isto grava no cadastro de condições (arquivo nosso), não na planilha do cliente. O fechamento só passa a usar depois de rodar de novo.</p></div>`;
+  $("fTipo").addEventListener("change", ajustarFormulario); $("fLinha").addEventListener("change", ajustarFormulario);
+  ajustarFormulario();
+  $("formCond").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function ajustarFormulario() {
+  const t = $("fTipo").value, linha = $("fLinha").value;
+  const comFaixas = t === "TAXA_ESPECIAL" || t === "ISENCAO";
+  $("fDica").textContent = DICA_TIPO[t];
+  $("fFaixasBox").classList.toggle("oculto", !comFaixas);
+  $("fValorBox").classList.toggle("oculto", t !== "TAXA_ESPECIAL");
+  $("fEcBox").classList.toggle("oculto", t !== "DE_PARA_EC");
+  $("fAprovBox").classList.toggle("oculto", !comFaixas);
+  const lista = linha === "TODAS" ? [...NOME_FAIXAS.CHECKOUT, ...NOME_FAIXAS.REMESSA] : NOME_FAIXAS[linha];
+  const marcadas = new Set([...document.querySelectorAll("#fFaixas input:checked")].map((x) => x.value));
+  $("fFaixas").innerHTML = lista.map(([v, r]) => `<label><input type="checkbox" value="${esc(v)}" ${marcadas.has(v) ? "checked" : ""}> ${esc(r)}</label>`).join("");
+}
+async function salvarCondicao() {
+  const erro = $("fErro"); erro.classList.add("oculto");
+  const corpo = {
+    chave: fichaAtual.chave, tipo: $("fTipo").value, linha_negocio: $("fLinha").value,
+    faixas: [...document.querySelectorAll("#fFaixas input:checked")].map((x) => x.value),
+    valor: $("fValor").value, ec_orbe: $("fEc").value, vigencia_inicio: $("fIni").value, vigencia_fim: $("fFim").value,
+    aprovado_por: $("fAprov").value, fonte: $("fFonte").value, observacao: $("fObs").value, usuario: $("fUsr").value.trim(),
+  };
+  const r = await fetch("/api/condicoes", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) });
+  const e = await r.json();
+  if (!r.ok) { erro.textContent = e.erro; erro.classList.remove("oculto"); return; }
+  await abrirFicha(fichaAtual.chave, e.aviso);
+}
+if (location.hash === "#clientes") mostrarAba("clientes");
 </script>
 </body>
 </html>

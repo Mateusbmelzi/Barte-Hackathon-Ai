@@ -1,6 +1,5 @@
 """Parâmetros de negócio do fechamento. Cada um cita a regra (R##, REGRAS_DE_NEGOCIO.md)
 ou a hipótese (H##, HIPOTESES.md) que o justifica. Mudou a regra? Mude AQUI, não no código."""
-from datetime import date
 from decimal import Decimal
 
 # ---------------------------------------------------------------- descoberta de arquivos
@@ -27,31 +26,9 @@ QUEM_RISCO = "Helena (Financeiro) / Comercial"   # B3: cliente não citou área 
 QUEM_HELENA_COMERCIAL = "Helena (Financeiro) / Comercial"   # S18: devolução por isenção não informada
 
 # ---------------------------------------------------------------- checkout (Orbe)
-# CC04/S03: ECs Orbe sem código na planilha -> CNPJ da linha da aba vigente.
-DEPARA_EC_CNPJ = {
-    "1043300981": "66564512000199",  # HORIZONTE INTERCAMBIO = Novo Horizonte Intercambio
-    "1043396662": "78576234000179",  # HORIZONTE VIAGENS TURISMO = Horizonte Viagens (outra empresa)
-    "1038867654": "07752116000126",  # KIWI EXPERIENCE TURISMO = Kiwi Experience
-}
-
-# R15/CC05/S03: ECs que NÃO podem ser faturados (sem contrato vigente). Ficam fora de
-# comissões e notas e viram pendência para o Comercial. H15: checar risco de antecipação.
-ECS_BLOQUEADOS = {
-    "1076801732": "Atlas Idiomas: sem contrato na aba vigente; taxa desconhecida (R15/CC05)",
-}
-# S45: CNPJ do EC bloqueado, tirado da aba antiga (2025) da planilha de taxas. Serve SÓ para identificar o lojista
-# nas pendências (a taxa daquela aba NÃO vale). Decisão nossa (S45): o lojista sem contrato fica FORA de
-# comissoes_por_lojista.csv e as transações aparecem no rastro da pendência LOJISTA_SEM_CONTRATO.
-CNPJ_EC_BLOQUEADO = {"1076801732": "39566044000119"}   # Atlas Idiomas (39.566.044/0001-19)
-
-# CC01/S07 (tratamento R52): taxa contratada ZERO no checkout (MDR e antecipação) por período.
-# Chave = EC Orbe; (início, fim) inclusivos, aplicados à data de referência da taxa
-# (venda: data_movimento; estorno: data da venda original - R11/H01).
-TAXA_ZERO_CHECKOUT = {
-    "1018325654": (date(2026, 9, 1), date(2026, 12, 31)),  # Casa do Estudante
-}
-# ID da condição contratual (REGRAS_DE_NEGOCIO.md, seção "Condições contratuais vigentes") de cada isenção.
-ISENCAO_CONDICAO = {"1018325654": "CC01"}
+# Condições ESPECÍFICAS DE CLIENTE (isenções, taxas especiais, de-para de EC Orbe, EC bloqueado/CNPJ do bloqueado,
+# notas de pendência por lojista) saíram daqui: ficam no CADASTRO versionado, cadastro/condicoes_comerciais.csv
+# (módulo src/cadastro.py; a planilha de taxas do cliente nunca é alterada). Aqui ficam só as regras GERAIS.
 
 # R57/S38: a Tarvo não vende acima de 12x; se aparecer, a linha fica fora de comissões/notas e vira pendência.
 MAX_PARCELAS = 12
@@ -170,11 +147,7 @@ TEXTOS_FINANCEIRO = {
     "S30": "Ninguém tem a função de avisar Orbe/Ponte das condições novas; a Bridge foi avisada alguns dias depois de 15/09; Casa do Estudante e Mundo Aberto não foram avisadas.",
     "S37": "Casa do Estudante: uma pendência com o total e o detalhe por transação; não pode entrar na cobrança da Orbe.",
 }
-# Contexto de fronteira escrito no motivo da pendência de divergência (o que a Helena precisa saber ao decidir).
-CONTEXTO_PENDENCIA = {
-    ("REMESSA", "17217888000111"): ("Caso de fronteira: a Ponte não foi avisada do spread de 1,20% (S30), mas a "
-                                    "Helena decidiu tratar como divergência e contestar com a Ponte (S05)."),
-}
+# (O contexto de fronteira por lojista no motivo da pendência é a condição NOTA_PENDENCIA do cadastro.)
 RESPOSTAS_FINANCEIRO = {
     ("CHECKOUT", "95927868000148"): ["S06", "S51"],                      # Rota Global (EC 1074504011)
     ("CHECKOUT", "00520815000100"): ["S07", "S18", "S37", "S30", "S41", "S51"],  # Casa do Estudante (EC 1018325654)
@@ -191,6 +164,7 @@ STATUS_PROVISORIO = "PROVISORIO"      # coluna extra 'status' em comissoes/notas
 ROTULO_FONTE = {
     "orbe": "relatório da Orbe", "taxas": "tabela de taxas", "ponte": "e-mail da Ponte",
     "plano": "plano de contas", "aurora": "extrato Aurora", "meridiano": "extrato Meridiano",
+    "cadastro": "cadastro de condições comerciais",
 }
 # O que fica sem calcular quando a fonte não está disponível.
 EFEITO_BLOQUEIO = {
@@ -200,4 +174,5 @@ EFEITO_BLOQUEIO = {
     "plano": "lançamentos dos extratos Aurora e Meridiano não classificados",
     "aurora": "lançamentos do extrato Aurora não classificados; transferências entre contas não conferidas",
     "meridiano": "lançamentos do extrato Meridiano não classificados; transferências entre contas e TED/PIX da Ponte não conferidos",
+    "cadastro": "condições comerciais não aplicadas: isenções, de-para e bloqueios ignorados; notas e comissões podem estar erradas",
 }
