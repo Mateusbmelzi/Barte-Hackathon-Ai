@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fechamento mensal — Tarvo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;600;700&display=swap">
+<style>
+  :root {
+    --destaque: #df285d;
+    --destaque-escuro: #cb2159;
+    --destaque-10: #df285d1a;
+    --escuro: #161426;
+    --escuro-2: #1a1e33;
+    --texto: #2d2727;
+    --texto-suave: #6b6b6b;
+    --fundo: #f8f8f8;
+    --cartao: #ffffff;
+    --borda: #e3e3e3;
+    --ok: #00b186;
+    --ok-10: #00b1861a;
+    --raio: 16px;
+    --corpo: Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    --titulo: Outfit, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--fundo); color: var(--texto); font-family: var(--corpo); font-size: 15px; line-height: 1.5; }
+  header { background: linear-gradient(135deg, var(--escuro) 0%, var(--escuro-2) 100%); color: #f9f7f7; padding: 36px 16px 64px; }
+  .conteudo { max-width: 960px; margin: 0 auto; }
+  header h1 { font-family: var(--titulo); font-weight: 600; font-size: clamp(26px, 4vw, 36px); margin: 0 0 6px; letter-spacing: -.01em; }
+  header p { margin: 0; color: #c9c7d1; max-width: 640px; }
+  .etiqueta { display: inline-block; border: 2px solid var(--destaque); background: var(--destaque-10); color: #ff8fb0; border-radius: 20px; padding: 3px 12px; font-size: 12px; margin-bottom: 14px; }
+  main { padding: 0 16px 48px; margin-top: -36px; }
+  .cartao { background: var(--cartao); border: 1px solid var(--borda); border-radius: var(--raio); padding: 24px; margin-bottom: 20px; box-shadow: 0 6px 24px #0000000d; }
+  .cartao h2 { font-family: var(--titulo); font-weight: 600; font-size: 20px; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  .passo { width: 28px; height: 28px; border-radius: 50%; background: var(--destaque); color: #fff; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+  .sub { color: var(--texto-suave); margin: 0 0 18px; }
+  .soltar { display: block; border: 2px dashed #d4d4d4; border-radius: 12px; padding: 28px 16px; text-align: center; cursor: pointer; transition: .15s; background: #fcfcfc; }
+  .soltar:hover, .soltar.ativo { border-color: var(--destaque); background: var(--destaque-10); }
+  .soltar strong { display: block; font-size: 16px; margin-bottom: 4px; }
+  .soltar span { color: var(--texto-suave); font-size: 14px; }
+  .lista { list-style: none; margin: 18px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+  .lista li { border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start; }
+  .lista li.ok { border-color: #00b18655; background: var(--ok-10); }
+  .marca { width: 22px; height: 22px; border-radius: 50%; flex: none; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; border: 2px solid #d4d4d4; color: transparent; margin-top: 1px; }
+  .ok .marca { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .lista .nome { font-weight: 600; }
+  .lista .det { font-size: 13px; color: var(--texto-suave); word-break: break-all; }
+  .faltando { color: var(--destaque); font-size: 13px; font-weight: 500; }
+  .aviso { margin-top: 14px; padding: 10px 14px; border-radius: 10px; font-size: 14px; background: #fff7e6; border: 1px solid #f5d38a; color: #6b4e00; }
+  .erro { margin-top: 16px; padding: 14px 16px; border-radius: 10px; background: #fdecf1; border: 1px solid #f3b6c8; color: #7a1233; }
+  .erro pre { white-space: pre-wrap; font-family: Consolas, ui-monospace, monospace; font-size: 13px; margin: 8px 0 0; }
+  .acoes { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 18px; }
+  .botao { font: inherit; font-weight: 500; border: 2px solid var(--destaque); background: var(--destaque); color: #fff; border-radius: 8px; padding: 10px 22px; cursor: pointer; transition: .15s; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; }
+  .botao:hover:not(:disabled) { background: #fff; color: var(--destaque); }
+  .botao.secundario { background: #fff; color: var(--destaque); }
+  .botao.secundario:hover:not(:disabled) { background: var(--destaque-10); }
+  .botao.leve { border-color: var(--borda); background: #fff; color: var(--texto); }
+  .botao.leve:hover:not(:disabled) { border-color: var(--texto-suave); color: var(--texto); }
+  .botao:disabled { opacity: .45; cursor: not-allowed; }
+  .botao.grande { padding: 13px 28px; font-size: 16px; }
+  .status { color: var(--texto-suave); font-size: 14px; }
+  .giro { width: 16px; height: 16px; border: 2px solid #fff6; border-top-color: #fff; border-radius: 50%; animation: g .8s linear infinite; display: none; }
+  .rodando .giro { display: inline-block; }
+  @keyframes g { to { transform: rotate(360deg); } }
+  .numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 18px; }
+  .numero { border: 1px solid var(--borda); border-radius: 12px; padding: 14px 16px; }
+  .numero .r { font-size: 13px; color: var(--texto-suave); }
+  .numero .v { font-family: var(--titulo); font-size: 22px; font-weight: 600; margin: 2px 0; }
+  .numero .d { font-size: 13px; color: var(--texto-suave); }
+  .numero.destaque { border-color: var(--destaque); background: var(--destaque-10); }
+  .numero.destaque .v { color: var(--destaque-escuro); }
+  .comp { display: inline-block; border: 2px solid var(--destaque); background: var(--destaque-10); color: var(--destaque); border-radius: 20px; padding: 2px 12px; font-size: 13px; font-weight: 600; }
+  .arquivos { list-style: none; margin: 0; padding: 0; }
+  .arquivos li { display: flex; gap: 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--borda); }
+  .arquivos li:first-child { border-top: 0; }
+  .arquivos .info { flex: 1; min-width: 0; }
+  .arquivos .nome { font-weight: 600; word-break: break-all; }
+  .arquivos .linhas { font-size: 12px; color: var(--texto-suave); background: #f2f2f2; border-radius: 20px; padding: 1px 8px; margin-left: 6px; white-space: nowrap; }
+  .arquivos .desc { font-size: 14px; color: var(--texto-suave); }
+  .tabela { overflow-x: auto; margin-top: 12px; border: 1px solid var(--borda); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--borda); vertical-align: top; }
+  th { background: #f5f6f7; font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.motivo { min-width: 320px; }
+  td.valor { white-space: nowrap; text-align: right; }
+  h3 { font-family: var(--titulo); font-weight: 600; font-size: 16px; margin: 24px 0 0; }
+  .oculto { display: none !important; }
+  footer { text-align: center; color: var(--texto-suave); font-size: 13px; padding: 0 16px 32px; }
+  @media (max-width: 560px) {
+    .cartao { padding: 18px; }
+    .arquivos li { flex-direction: column; align-items: flex-start; gap: 8px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="conteudo">
+    <span class="etiqueta">Ferramenta interna do financeiro</span>
+    <h1>Fechamento mensal — Tarvo</h1>
+    <p>Envie os 6 arquivos do mês, clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos que você enviar não são alterados.</p>
+  </div>
+</header>
+
+<main>
+  <div class="conteudo">
+    <section class="cartao">
+      <h2><span class="passo">1</span> Arquivos de entrada</h2>
+      <p class="sub">Arraste os arquivos para a área abaixo (pode ser todos de uma vez) ou clique para escolher.</p>
+      <label class="soltar" id="soltar">
+        <input type="file" id="escolher" multiple hidden>
+        <strong>Solte os arquivos aqui</strong>
+        <span>ou clique para escolher no computador</span>
+      </label>
+      <ul class="lista" id="esperados"></ul>
+      <div class="aviso oculto" id="naoReconhecidos"></div>
+      <div class="acoes">
+        <button class="botao leve" id="limpar" type="button">Limpar e recomeçar</button>
+        <span class="status" id="contagem"></span>
+      </div>
+    </section>
+
+    <section class="cartao">
+      <h2><span class="passo">2</span> Rodar o fechamento</h2>
+      <p class="sub">O botão fica disponível quando os 6 arquivos estiverem reconhecidos. Leva poucos segundos.</p>
+      <div class="acoes" style="margin-top:0">
+        <button class="botao grande" id="rodar" type="button" disabled><span class="giro"></span><span id="rodarTexto">Rodar fechamento</span></button>
+      </div>
+      <div class="erro oculto" id="erro"></div>
+      <div class="oculto" id="resumo"></div>
+    </section>
+
+    <section class="cartao oculto" id="cartaoSaidas">
+      <h2><span class="passo">3</span> Arquivos para baixar</h2>
+      <p class="sub">Para abrir no Excel sem estragar valores e CNPJs, use Dados → Obter Dados → De Texto/CSV (veja o COMO_USAR.md).</p>
+      <ul class="arquivos" id="saidas"></ul>
+      <div class="acoes"><a class="botao" id="baixarTudo" href="/api/baixar-tudo">Baixar tudo (.zip)</a></div>
+      <div id="previa"></div>
+    </section>
+  </div>
+</main>
+<footer id="rodape"></footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const tamanho = (b) => b < 1024 ? b + " B" : b < 1048576 ? (b / 1024).toFixed(1).replace(".", ",") + " KB" : (b / 1048576).toFixed(1).replace(".", ",") + " MB";
+const int = (n) => Number(n).toLocaleString("pt-BR");
+let rodando = false;
+
+async function api(url, opcoes) {
+  const r = await fetch(url, opcoes);
+  if (!r.ok) throw new Error("O servidor respondeu " + r.status);
+  return r.json();
+}
+
+function desenhar(e) {
+  $("esperados").innerHTML = e.esperados.map((x) => `
+    <li class="${x.nome ? "ok" : ""}">
+      <span class="marca">✓</span>
+      <div><div class="nome">${esc(x.rotulo)}</div>
+      ${x.nome ? `<div class="det">${esc(x.nome)} · ${tamanho(x.tamanho)}</div>`
+               : `<div class="faltando">faltando</div><div class="det">nome com “${esc(x.padrao)}”</div>`}</div>
+    </li>`).join("");
+  const n = e.esperados.filter((x) => x.nome).length;
+  $("contagem").textContent = `${n} de ${e.esperados.length} arquivos reconhecidos`;
+  $("rodar").disabled = !e.pronto || rodando;
+
+  $("erro").classList.toggle("oculto", !e.erro);
+  if (e.erro) $("erro").innerHTML = `<strong>Não foi possível concluir.</strong> ${esc(e.erro.titulo)}<pre>${esc(e.erro.detalhe)}</pre>`;
+
+  const r = e.resultado;
+  $("resumo").classList.toggle("oculto", !r);
+  $("cartaoSaidas").classList.toggle("oculto", !r);
+  if (r) {
+    const resp = Object.entries(r.pendencias.por_responsavel).map(([k, v]) => `${esc(k)}: ${v}`).join(" · ");
+    $("resumo").innerHTML = `
+      <h3>Pronto! Competência <span class="comp">${esc(r.competencia)}</span></h3>
+      <div class="numeros">
+        <div class="numero"><div class="r">Comissão checkout</div><div class="v">${esc(r.checkout.valor)}</div><div class="d">${r.checkout.lojistas} lojistas · ${int(r.checkout.transacoes)} transações</div></div>
+        <div class="numero"><div class="r">Comissão remessa</div><div class="v">${esc(r.remessa.valor)}</div><div class="d">${r.remessa.lojistas} lojistas · ${int(r.remessa.operacoes)} operações</div></div>
+        <div class="numero"><div class="r">Notas a emitir</div><div class="v">${r.notas.quantidade} notas</div><div class="d">Total ${esc(r.notas.valor)}</div></div>
+        <div class="numero"><div class="r">Divergências de taxa</div><div class="v">${r.divergencias.checkout.linhas + r.divergencias.remessa.linhas} linhas</div><div class="d">Checkout ${esc(r.divergencias.checkout.valor)} · Remessa ${esc(r.divergencias.remessa.valor)}</div></div>
+        <div class="numero"><div class="r">Lançamentos classificados</div><div class="v">${int(r.lancamentos)}</div><div class="d">Extratos Aurora e Meridiano</div></div>
+        <div class="numero destaque"><div class="r">Pendências para decidir</div><div class="v">${r.pendencias.quantidade}</div><div class="d">${resp}</div></div>
+      </div>`;
+    $("saidas").innerHTML = e.saidas.map((s) => `
+      <li><div class="info"><span class="nome">${esc(s.nome)}</span><span class="linhas">${int(s.linhas)} linhas</span>
+        <div class="desc">${esc(s.descricao)}</div></div>
+        <a class="botao secundario" href="/api/baixar/${encodeURIComponent(s.nome)}" download="${esc(s.nome)}">Baixar</a></li>`).join("");
+    const p = e.previa_pendencias;
+    $("previa").innerHTML = p ? `
+      <h3>Primeiras pendências (${Math.min(p.linhas.length, p.total)} de ${p.total})</h3>
+      <div class="tabela"><table><thead><tr><th>Código</th><th>Tipo</th><th>Valor (R$)</th><th>Motivo</th><th>Quem decide</th></tr></thead>
+      <tbody>${p.linhas.map((l) => `<tr><td>${esc(l[0])}</td><td>${esc(l[1])}</td><td class="valor">${esc(l[2])}</td><td class="motivo">${esc(l[3])}</td><td>${esc(l[4])}</td></tr>`).join("")}</tbody></table></div>` : "";
+  }
+  $("rodape").textContent = e.pasta ? "Pasta desta execução: " + e.pasta : "";
+}
+
+async function enviar(arquivos) {
+  const ignorados = [];
+  let e = null;
+  for (const f of arquivos) {
+    $("contagem").textContent = "Enviando " + f.name + "…";
+    try {
+      e = await api("/api/enviar", { method: "POST", headers: { "X-Nome-Arquivo": encodeURIComponent(f.name) }, body: f });
+      if (!e.envio.reconhecido) ignorados.push(f.name);
+    } catch (err) { ignorados.push(f.name + " (falha no envio)"); }
+  }
+  if (e) desenhar(e); else desenhar(await api("/api/estado"));
+  const av = $("naoReconhecidos");
+  av.classList.toggle("oculto", !ignorados.length);
+  av.innerHTML = ignorados.length ? "<strong>Não reconhecidos (não foram usados):</strong> " + ignorados.map(esc).join(", ") +
+    ". Confira se o nome contém a palavra esperada (ex.: “orbe”, “taxas”, “plano_de_contas”, “aurora”) ou termina em .eml / .ofx." : "";
+}
+
+$("escolher").addEventListener("change", (ev) => { enviar([...ev.target.files]); ev.target.value = ""; });
+const zona = $("soltar");
+["dragenter", "dragover"].forEach((t) => zona.addEventListener(t, (ev) => { ev.preventDefault(); zona.classList.add("ativo"); }));
+["dragleave", "drop"].forEach((t) => zona.addEventListener(t, (ev) => { ev.preventDefault(); zona.classList.remove("ativo"); }));
+zona.addEventListener("drop", (ev) => enviar([...ev.dataTransfer.files]));
+window.addEventListener("dragover", (ev) => ev.preventDefault());
+window.addEventListener("drop", (ev) => ev.preventDefault());
+
+$("limpar").addEventListener("click", async () => {
+  $("naoReconhecidos").classList.add("oculto");
+  desenhar(await api("/api/limpar", { method: "POST" }));
+});
+
+$("rodar").addEventListener("click", async () => {
+  rodando = true;
+  $("rodar").disabled = true; $("rodar").classList.add("rodando"); $("rodarTexto").textContent = "Rodando…";
+  try { desenhar(await api("/api/rodar", { method: "POST" })); }
+  catch (err) { $("erro").classList.remove("oculto"); $("erro").innerHTML = "<strong>Não foi possível falar com o programa.</strong> A janela preta foi fechada? <pre>" + esc(err.message) + "</pre>"; }
+  finally {
+    rodando = false; $("rodar").classList.remove("rodando"); $("rodarTexto").textContent = "Rodar fechamento";
+    try { desenhar(await api("/api/estado")); } catch (_) {}
+  }
+});
+
+api("/api/estado").then(desenhar).catch(() => {});
+</script>
+</body>
+</html>

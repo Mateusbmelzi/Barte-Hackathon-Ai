@@ -1,35 +1,35 @@
 # Perguntas para levar ao #tarvo-financeiro (17/10)
 
-Comece cada mensagem com o nome do time e `[Tarvo]`. Em ordem de impacto em R$. Ao receber a resposta, colar abaixo e avisar o gestor — o lembrete de atualização está em HIPOTESES.md §3.
+Comece cada mensagem com o nome do time e `[Tarvo]`. São perguntas abertas sobre a regra: não trazem a nossa premissa nem pedem confirmação de resultado. As premissas que estamos usando enquanto não há resposta estão em `HIPOTESES.md` (coluna Status).
+Ordem = impacto em R$. Ao receber a resposta, colar abaixo e avisar o gestor (atualização conforme HIPOTESES.md §3).
 
-**P3 — Casa do Estudante no arquivo de divergências (H03, R$ 15.397,42)**
-Com a tarifa zerada de set a dez, tudo que a Orbe cobrou da Casa do Estudante em setembro (118 transações, R$ 15.397,42) é diferença entre aplicada e contratada (0%). Vocês querem ver isso como divergência transação por transação (taxa contratada 0,00) — que é o que a Helena usa para devolver e cobrar a Orbe — ou só como um total de devolução?
+**P3 — Tarifa zerada da Casa do Estudante × divergência (H03, até R$ 15.397,42)**
+Durante a tarifa zerada da Casa do Estudante, a Orbe continuou cobrando a taxa normal (ex.: TX88410932, 01/09, 2,69%). Como o financeiro trata esse valor cobrado: da mesma forma que uma divergência de taxa comum ou de outro jeito?
 > Resposta:
 
-**P2 — Estornos de vendas cobradas acima do contrato (H02, R$ 107,53)**
-Algumas vendas cobradas acima do contrato foram estornadas no mês (ex.: Rota TX88446419, Casa TX88446763). Listamos o estorno como divergência negativa, para o total por lojista ser o líquido que a Orbe ficou a mais (total 16.973,65 em vez de 17.081,18). Está certo?
+**P5 — O que é divergência na remessa (H08, R$ 1.834,05)**
+Na remessa, o que caracteriza uma divergência de taxa para o financeiro? Como entram nisso as operações com spread negativo, como PC-0926-0210?
 > Resposta:
 
-**P1 — Estorno de agosto da Casa do Estudante (H01, R$ 5,50)**
-TX88445133 estorna uma venda de 21/08 da Casa (débito, taxa de agosto 1,49%). Pela regra, abate setembro à taxa de agosto: −R$ 5,50. Como o resto do mês da Casa é zero, ela fecha negativa e não emite nota (vira pendência). Confirmam, ou a taxa zero vale também para estornos de vendas anteriores a setembro?
+**P2 — Venda cobrada acima do contrato e estornada (H02, R$ 107,53)**
+Quando uma venda que a Orbe cobrou acima do contrato é estornada (ex.: Rota, TX88446419), como o financeiro considera essa venda e o estorno na hora de cobrar a diferença da Orbe?
 > Resposta:
 
-**P5 — Spreads negativos no arquivo de divergências (H08, R$ 1.834,05)**
-As 4 operações com spread negativo (PC-0926-0210, -0326, -0491, -0545) já estão fora da comissão e na lista de contestação. Elas também devem aparecer como divergência de taxa (aplicada ≠ contratada), ou divergência é só quando o lojista pagou a mais?
+**P1 — Estorno de venda anterior à tarifa zerada (H01, R$ 5,50)**
+TX88445133 é o estorno, em setembro, de uma venda da Casa do Estudante feita em 21/08, antes da tarifa zerada. Qual taxa vale para esse estorno?
 > Resposta:
 
-**P6 — PIX R$ 18.240,00 "PONTE AEREA ESTUDANTIL L" no Meridiano (H10)**
-MRD2026090425, 17/09, valor redondo, sem nenhuma operação da Ponte Câmbio correspondente (os outros PIX desse lojista batem exato com as remessas). É adiantamento para remessa futura, depósito errado ou outra coisa?
+**P6 — PIX de R$ 18.240,00 no Meridiano (H10)**
+O que é o PIX de R$ 18.240,00 recebido de "PONTE AEREA ESTUDANTIL L" em 17/09 (FITID MRD2026090425)? Não achamos nenhuma operação da Ponte Câmbio com esse valor. Os outros PIX desse lojista batem com as remessas dele.
 > Resposta:
 
-**P7 — Proposta de lançamentos (follow-up do Lucca sem resposta) (H11, H12, H13)**
-Devolução PIX Mundo Aberto R$ 12.400 → 2.1.01.001 + pendência; PIX R$ 7.350 → 1.1.09.002 + pendência; transferência R$ 300 mil (30/09) → 1.1.09.001 em trânsito. Ok?
+**P8 — Antecipação da Atlas Idiomas (H15)**
+Existe regra ou limite de antecipação por lojista? A Atlas antecipou R$ 179.592,82 em 15/09 e, até essa data, tinha R$ 55.357,50 em vendas. Quem na Tarvo precisa ser avisado de um caso assim?
 > Resposta:
 
-**P8 — Atlas Idiomas: risco (H15)**
-Além de não ter contrato, a Atlas antecipou R$ 179.592,82 em 15/09 com só R$ 55.357,50 vendidos até ali (2 antecipações depois revertidas). Isso deve ir para alguém além do comercial (risco/compliance)?
+**P4 — Orbe cobrando abaixo do contrato (H04, sem casos em setembro)**
+O que acontece quando a Orbe cobra do lojista uma taxa menor que a contratada? Quem fica com a diferença?
 > Resposta:
 
-**P4 — Orbe cobrando menos que o contrato (H04, regra para outubro)**
-Em setembro não houve caso. Se acontecer, tratamos como divergência negativa + pendência e mantemos a comissão pela taxa contratada. Ok?
-> Resposta:
+---
+Retirada: a antiga P7 (lançamento da devolução de R$ 12.400, do PIX de R$ 7.350 e da transferência de R$ 300 mil). A Helena já respondeu que essa decisão é nossa (S09) e pediu que registrássemos a premissa (S12). Está registrada em H11, H12 e H13.

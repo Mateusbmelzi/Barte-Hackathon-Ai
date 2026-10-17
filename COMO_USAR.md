@@ -2,6 +2,22 @@
 
 Este guia é para quem fecha o mês no financeiro. Não precisa saber programar. A instalação (feita uma vez) está no `README.md`.
 
+## Jeito mais fácil: dois cliques em `fechar_mes.bat`
+Não precisa abrir terminal nem digitar comando.
+
+1. Na pasta do programa, dê **dois cliques em `fechar_mes.bat`**. Abre uma janela preta e, em seguida, o navegador com a tela **"Fechamento mensal — Tarvo"**. **Deixe a janela preta aberta** enquanto usa a tela (fechá-la encerra o programa).
+2. **Passo 1 da tela, Arquivos de entrada**: arraste os 6 arquivos do mês para a área tracejada, todos de uma vez se quiser (ou clique nela para escolher). A lista mostra um ✓ verde, o nome e o tamanho de cada arquivo reconhecido, e "faltando" no que ainda não chegou. Os nomes precisam seguir a tabela da seção 1 abaixo. Um arquivo que não for reconhecido aparece num aviso amarelo e não é usado. Mandou o arquivo errado? Envie o certo por cima (ele substitui o anterior) ou clique em **Limpar e recomeçar**.
+3. **Passo 2, Rodar o fechamento**: o botão só acende com os 6 arquivos reconhecidos. Clique e espere alguns segundos. Aparece o resumo: competência, comissão de checkout e de remessa, notas a emitir, divergências, lançamentos e pendências por responsável. Se algo der errado, aparece uma caixa vermelha explicando o que o programa não conseguiu ler.
+4. **Passo 3, Arquivos para baixar**: os 6 CSVs, cada um com o número de linhas e uma frase do que contém, e um botão **Baixar**. **Baixar tudo (.zip)** traz os 6 de uma vez. Logo abaixo aparecem as primeiras pendências, que são o primeiro arquivo a olhar (seção 4).
+5. Para abrir os CSVs no Excel, siga a seção 3 abaixo.
+6. Terminou: feche a janela preta.
+
+Onde ficam os arquivos: cada vez que você usa a tela, o programa guarda uma cópia do que você enviou e o que ele gerou em `execucoes\<data_hora>\entrada` e `execucoes\<data_hora>\saida`, dentro da pasta do programa (o caminho aparece no rodapé da tela). Os arquivos originais que você enviou não são alterados.
+
+Se a janela preta disser **"Não encontrei um Python com as bibliotecas necessárias"**, a instalação do `README.md` ainda não foi feita neste computador: peça a quem mantém o programa. Se o navegador não abrir sozinho, copie o endereço que aparece na janela preta (algo como `http://127.0.0.1:8765/`) para o navegador. A tela só funciona neste computador, não fica acessível pela rede.
+
+As seções abaixo explicam o mesmo processo pela linha de comando e como ler cada arquivo.
+
 ## 1. Juntar os arquivos do mês
 Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **6 arquivos**, sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
 
@@ -82,7 +98,7 @@ Todas as regras ficam em `src/config.py`, cada uma com o código da regra (R##) 
 | Nome de quem decide nas pendências | `QUEM_HELENA`, `QUEM_COMERCIAL`, `QUEM_RISCO` |
 | Nome dos arquivos de entrada | `PADROES_ARQUIVOS` |
 
-Depois de mudar: rodar `python -m pytest -q` (51 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
+Depois de mudar: rodar `python -m pytest -q` (55 testes, inclusive um outubro simulado; todos devem passar) e o fechamento de novo, e registrar a mudança em `HIPOTESES.md`/`REGRAS_DE_NEGOCIO.md`.
 
 ## 8. Quando a solução não resolve sozinha
 Nesses casos ela **não inventa**: separa o caso, explica o motivo e indica quem decide. Tipos de pendência em `pendencias.csv`:

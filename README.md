@@ -40,13 +40,29 @@ python -m src.fechamento --entrada <pasta com os 6 arquivos> --saida <pasta de s
 - Ao final, o programa imprime um resumo (totais por linha de negócio, notas, divergências, lançamentos e pendências por responsável).
 - Antes de gravar, o programa confere que a soma do rastro de cada número é igual ao número reportado, ao centavo. Se não for, ele para com erro.
 
+## Interface visual (sem terminal)
+Para a analista: dois cliques em **`fechar_mes.bat`** (Windows). Ele entra na pasta do projeto, procura um Python com pandas e openpyxl (nesta ordem: `.venv\Scripts\python.exe`, `C:\Users\<usuário>\AppData\Local\Python\bin\python.exe`, `py`, `python`), sobe a interface e abre o navegador. Se não achar, a janela fica aberta com a explicação.
+
+Pela linha de comando:
+```bash
+python -m app                  # abre o navegador sozinho
+python -m app --sem-navegador  # só sobe o servidor
+```
+- Página única em `http://127.0.0.1:8765/` (se a porta estiver ocupada, tenta 8766, 8767...). Escuta só em 127.0.0.1, então não fica acessível pela rede.
+- Só biblioteca padrão (`http.server` + uma página HTML/CSS/JS). Nenhuma dependência nova. Fontes Inter/Outfit do Google Fonts, com fonte do sistema se estiver offline.
+- Fluxo: enviar os 6 arquivos (arrastar e soltar) → **Rodar fechamento** → baixar cada CSV ou um .zip com todos. O arquivo enviado é reconhecido pelos mesmos padrões de nome de `config.PADROES_ARQUIVOS` (a interface usa a função de `src/leitores.py`). O botão só habilita com os 6 reconhecidos.
+- A interface não calcula nada: chama `src.fechamento.executar()` no mesmo processo e mostra os mesmos totais do resumo da linha de comando. Um erro aparece como mensagem curta na tela (o stack trace vai só para a janela do terminal).
+- Cada uso grava em `execucoes/<AAAA-MM-DD_HHMMSS>/entrada` (cópia dos arquivos enviados) e `/saida` (os 6 CSVs). `execucoes/` está no `.gitignore`.
+- Código em `app/servidor.py` (servidor) e `app/pagina.html` (tela). Teste em `tests/test_app.py`.
+
 ## Como testar
 ```bash
 python -m pytest -q
 ```
-51 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
+55 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
 - leitura dos arquivos, arredondamento, formato das saídas e soma do rastro;
 - `tests/test_gabarito.py` e `tests/test_gabarito_independente.py`: totais de setembro e valores fixos por lojista auditados de forma independente (`docs/02_validacao.md`), conferidos contra os CSVs gerados;
+- `tests/test_app.py`: sobe a interface numa porta livre, envia os 6 arquivos, roda e confere os totais e que o CSV baixado é idêntico ao de `saida/`; também confere que um erro aparece sem stack trace.
 - `tests/test_outubro_simulado.py`: uma cópia dos dados com as datas da Orbe deslocadas para outubro, um lojista novo fora da planilha e um lançamento de extrato desconhecido. Confere que a competência vira 10/2026, que o lojista novo vira pendência e fica fora da nota, que o lançamento vai para HUMANO, que a Casa do Estudante continua com taxa zero, que as remessas de setembro ficam fora de outubro e que o rastro fecha.
 
 Resultado de setembro (para conferência): comissão checkout R$ 207.039,73 (21 lojistas), remessa R$ 39.543,45 (228 operações), 21 notas, divergências checkout R$ 16.973,65 em 210 transações (valor **líquido**: R$ 17.081,18 cobrados a mais menos R$ 107,53 de estornos dessas vendas, H02), divergência remessa R$ 1.418,85 em 23 operações, 184 lançamentos, 18 pendências.
@@ -68,6 +84,9 @@ src/
   extratos.py      classificação dos extratos no plano de contas + conciliações por valor e data
   saidas.py        escrita dos CSVs no formato oficial
   fechamento.py    linha de comando
+app/               interface visual local (python -m app): servidor.py + pagina.html
+fechar_mes.bat     atalho de dois cliques para a interface (Windows)
+execucoes/         uma pasta por uso da interface (entrada + saida), fora do git
 tests/             testes (pytest)
 saida/             CSVs gerados
 01_...05b_...      data pack de setembro (intocado)
