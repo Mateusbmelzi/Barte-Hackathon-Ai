@@ -366,3 +366,12 @@ def acao_do_tipo(tipo):
     return ACOES_POR_TIPO.get(tipo) or {"rotulo": tipo.replace("_", " ").capitalize(),
                                         "objetivo": "Verificar a pendência e decidir o encaminhamento.",
                                         "destinos": list(DESTINO_PADRAO)}
+
+
+# ---------------------------------------------------------------- clientes novos e contratos (IA de contrato)
+# Cliente novo = lojista que aparece nos arquivos do mês (EC na Orbe, CNPJ na Ponte) e não está em
+# cadastro/clientes_conhecidos.csv. Só metadado do resultado/tela: não muda nenhum dos 6 CSVs oficiais.
+STATUS_CLIENTE = ["CONTRATO_PENDENTE", "CONTRATO_ANALISADO", "CONFIRMADO"]
+CONTRATO_LIMITE_CHARS = 60000        # texto do contrato enviado à IA (trunca e avisa)
+CONTRATO_MAX_CORPO = 1500            # e-mail sugerido pela IA a partir do contrato
+CONTRATO_DESTINOS = ["ORBE", "PONTE", "COMERCIAL", "LOJISTA", "CONTABILIDADE"]

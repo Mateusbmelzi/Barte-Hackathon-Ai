@@ -74,6 +74,13 @@ Tabela com papel, nome, CNPJ, e-mail e observação (arquivo `cadastro/contatos.
 
 No topo da aba **Clientes**, escreva em texto a mudança combinada (ex.: "Escola Bridge: Pix a 0,75% desde 01/10, aprovado pelo Comercial") e clique **Propor**. A tela mostra as condições propostas, o **antes e depois** das taxas e as dúvidas ou erros da IA. **Nada é gravado até você clicar em "Confirmar e gravar"** (com seu nome); **Descartar** joga a proposta fora. Se a IA tiver dúvida (falta aprovador, data ou lojista), ela pergunta em vez de propor. Depois de gravar, rode o fechamento de novo para aplicar.
 
+## Cliente novo: contrato lido pela IA
+Quando o fechamento acha um cliente que ainda não está no registro (ou que segue sem contrato), aparece um aviso amarelo no resultado ("N cliente(s) novo(s) detectado(s)") e um número na aba Clientes. O cliente entra na lista de Clientes com o selo "NOVO — contrato pendente".
+
+1. Clique em "Enviar contrato" (no aviso ou na ficha do cliente). No popup, escolha o contrato (.pdf, .docx ou .txt), digite "Seu nome" e clique em "Analisar com IA". "Enviar depois" fecha o popup e o cliente continua pendente. Sem IA configurada, o contrato é só guardado e você pode "Cadastrar condições manualmente" (formulário "+ Nova condição").
+2. A IA lê o contrato (fica em `cadastro/contratos/<cnpj>/`) e mostra, para revisão: taxas (com o trecho do contrato como prova; dá para desmarcar ou corrigir o valor), condições especiais, regras de negócio, ações sugeridas (ex.: avisar a Orbe; "Preparar e-mail" abre o e-mail pronto, nada é enviado pelo programa) e as dúvidas da IA. É extração da IA: revise antes de confirmar.
+3. Escolha "Aprovado por" (Comercial ou Helena (Financeiro)) e clique em "Confirmar e gravar". Só então as condições entram no cadastro e o cliente fica CONFIRMADO. Se o lojista não tiver contato, informe o e-mail no popup ou complete na aba Contatos. Depois, rode o fechamento de novo para aplicar. "Descartar análise" não grava nada.
+
 ## 1. Juntar os arquivos do mês
 Crie uma pasta só para o mês, por exemplo `C:\Fechamento\2026-10`, e coloque nela os **arquivos do mês** (1 de cada tipo, exceto a Orbe, que pode mandar mais de um), sem abrir, sem editar e sem renomear de forma que perca a palavra-chave do nome:
 

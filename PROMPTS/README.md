@@ -8,3 +8,5 @@ Onde colocar:
 - Prints: subpasta `prints/`.
 
 `MOMENTOS.md` marca de 2 a 4 momentos que importaram, com pelo menos um em que a IA errou.
+
+**Status:** os transcripts ainda precisam ser exportados pelo time e colocados nesta pasta (um arquivo por sessão, conforme acima). Este repositório não os inclui automaticamente; nada aqui foi inventado ou reconstruído. Antes de subir, remover chaves de API e dados pessoais.

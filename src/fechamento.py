@@ -13,7 +13,7 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from . import cadastro as cad, checkout, config, extratos, fila as fila_mod, investigacao, remessa, saidas
+from . import cadastro as cad, checkout, clientes_novos, config, extratos, fila as fila_mod, investigacao, remessa, saidas
 from .dinheiro import soma, fmt_br
 from .leitores import ler_taxas_antigas, ler_tudo_parcial
 
@@ -125,12 +125,22 @@ def _neutralizar_conciliacoes(lancs, pend, sem_ponte, bancos_ausentes):
     return [p for p in pend if p["tipo"] not in tipos]
 
 
+def _clientes_novos(d, pasta_cadastro):
+    """Clientes que pedem contrato (novos ou ainda não confirmados). Só metadado: nunca derruba o fechamento."""
+    try:
+        return [c for c in clientes_novos.detectar(d, pasta_cadastro) if c["status"] != "CONFIRMADO"]
+    except Exception as e:  # noqa: BLE001
+        print(f"AVISO: detecção de clientes novos não executada ({type(e).__name__}: {e})", file=sys.stderr)
+        return []
+
+
 def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None, fila=None):
     """`cadastro` = pasta do cadastro de condições comerciais (padrão: cadastro/ na raiz do projeto).
     `fila` = pasta do mês (meses/<AAAA-MM>) cujo fila_log.csv preenche as colunas de status em pendencias.csv e
     divergencias_taxa.csv. Sem fila (CLI/banca): tudo ABERTA e o resto vazio, determinístico."""
     status_fila = fila_mod.status_atual(fila_mod.ler_log(fila))
-    condicoes, bloq_cadastro = _carregar_cadastro(CADASTRO_PADRAO if cadastro is None else cadastro)
+    pasta_cadastro = CADASTRO_PADRAO if cadastro is None else cadastro
+    condicoes, bloq_cadastro = _carregar_cadastro(pasta_cadastro)
     d = ler_tudo_parcial(entrada)
     ok, bloqueios = d["ok"], list(d["bloqueios"])
     if not ok:
@@ -153,11 +163,14 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None,
     # checkout (precisa de Orbe + taxas)
     chk, com_chk, nf_chk, div_chk, pen_chk = [], [], [], [], []
     if chk_ok:
-        chk = checkout.calcular(d["orbe"], d["contratos"], condicoes)
-        com_chk = checkout.comissoes(chk, d["contratos"])
+        # lojista sem linha na planilha mas com TAXA_ESPECIAL de contrato no cadastro: o cadastro é a base (sem efeito
+        # em quem tem linha na planilha; bloqueios do cadastro continuam valendo)
+        contr_chk = clientes_novos.contratos_do_cadastro(d["contratos"], condicoes)
+        chk = checkout.calcular(d["orbe"], contr_chk, condicoes)
+        com_chk = checkout.comissoes(chk, contr_chk)
         nf_chk = checkout.notas(com_chk, comp_txt)
-        div_chk = checkout.divergencias(chk, d["contratos"])
-        pen_chk = checkout.pendencias(chk, com_chk, d["contratos"], condicoes) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
+        div_chk = checkout.divergencias(chk, contr_chk)
+        pen_chk = checkout.pendencias(chk, com_chk, contr_chk, condicoes) + checkout.pendencias_linha_duplicada(d["orbe_duplicadas"])
 
     # remessa (precisa do e-mail da Ponte; sem taxas não há divergência nem cadastro para conferir)
     rem, com_rem, nf_rem, div_rem, pen_rem = [], [], [], [], []
@@ -227,6 +240,7 @@ def executar(entrada=RAIZ, saida=RAIZ / "saida", investigar=True, cadastro=None,
          "bloqueado": {"checkout": not chk_ok, "remessa": not rem_ok,
                        "divergencias_remessa": not rem_ok or sem_taxas,
                        "AURORA": not (lan_ok and "aurora" in ok), "MERIDIANO": not (lan_ok and "meridiano" in ok)},
+         "clientes_novos": _clientes_novos(d, pasta_cadastro),
          "aviso_parcial": ("FECHAMENTO PARCIAL — bloqueado: " + "; ".join(efeitos)) if parcial else None}
 
     # dossiê de investigação (PLANO_IA_01 Fase 1): só LÊ o resultado, depois dos 6 CSVs gravados.

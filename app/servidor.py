@@ -49,6 +49,14 @@ try:
     from src import ia_cadastro
 except Exception:                     # noqa: BLE001
     ia_cadastro = None
+try:                                  # clientes novos e leitura de contrato por IA (opcionais: a tela degrada sem eles)
+    from src import clientes_novos as clientes_novos_mod
+except Exception:                     # noqa: BLE001
+    clientes_novos_mod = None
+try:
+    from src import ia_contrato
+except Exception:                     # noqa: BLE001
+    ia_contrato = None
 
 RAIZ = Path(__file__).resolve().parent.parent
 PASTA_CADASTRO = RAIZ / "cadastro"
@@ -209,6 +217,7 @@ class Estado:
         self.fila = Fila(self)
         self.contatos = Contatos(self)
         self.assistente = Assistente(self)
+        self.novos = ClientesNovos(self)
         self.ia_auto = ia_auto    # True (tela real): após o fechamento, a IA investiga e sugere ações sozinha
         self.geracao = 0          # muda a cada execução: resposta da IA de execução antiga é descartada
         self.mes = mes_anterior(self.hoje or date.today())   # competência escolhida (AAAA-MM)
@@ -481,6 +490,7 @@ class Estado:
             self.erro = None
             self.dossie = r.get("investigacao")
             self.fila.reescrever_csvs()                          # as planilhas refletem o status da fila
+            self.novos.persistir()                               # cliente novo detectado passa a constar junto aos clientes
             if self.ia_auto:
                 self.iniciar_ia_auto()
         except Exception as e:  # noqa: BLE001 - mostrado à analista de forma legível
@@ -566,6 +576,7 @@ class Estado:
             "saidas": self.saidas(),
             "investigacao": self.json_investigacao(),
             "fila": self.fila.resumo() if self.resultado else None,
+            "clientes_novos": self.novos.resumo(),
         }
         if self.resultado and (self.pasta / "saida" / "pendencias.csv").exists():
             d["previa_pendencias"] = _previa(self.pasta / "saida" / "pendencias.csv")
@@ -720,6 +731,12 @@ class Clientes:
             L["contratos"].append(c)
             if c.get("ec"):
                 L["ecs"].add(c["ec"])
+        novos = {i["chave"]: i for i in self.e.novos.itens()}
+        for ch, n in novos.items():          # cliente novo detectado no fechamento: entra na lista mesmo fora da planilha
+            L = lojista(ch, n["nome"])
+            L["novo"] = n
+            if n["ec_orbe"]:
+                L["ecs"].add(n["ec_orbe"])
         ec_para = {ec: ch for ch, L in idx.items() for ec in L["ecs"]}
         for c in conds:                      # o cadastro liga o EC ao CNPJ (de-para, bloqueio...)
             if c["cnpj"] and c["ec_orbe"]:
@@ -787,6 +804,9 @@ class Clientes:
                 selos.append({"codigo": "sem_contrato", "texto": "sem contrato"})
         if "NOTA_PENDENCIA" in ativos:
             selos.append({"codigo": "pendencia", "texto": "com nota de pendência"})
+        n = L.get("novo")
+        if n and n["status"] != "CONFIRMADO":
+            selos.insert(0, {"codigo": "novo", "texto": n["status_texto"]})
         return selos
 
     # ---------------------------------------------------------------- API de leitura
@@ -930,6 +950,7 @@ class Clientes:
                 "linha_planilha": v["linha"] if v else None, "obs_planilha": v["obs"] if v else None,
                 "fechamento_rodado": self.e.r is not None,
             },
+            "novo": L.get("novo"),
             "taxas": [self._taxa(L, f[0], hoje) for f in FAIXAS], "condicoes": conds,
             "faturamento": self._faturamento(L, codigos), "regras": self._regras(L, codigos, hoje), "mes": self._mes(L),
         }
@@ -1316,6 +1337,369 @@ class Assistente:
         return {"ids": ids, "aviso": f"Condições {', '.join(ids)} gravadas no cadastro. {AVISO_RODAR}"}
 
 
+# ------------------------------------------------ clientes novos (contrato -> IA -> revisão -> cadastro; nada grava sem confirmar)
+EXT_CONTRATO = (".pdf", ".docx", ".txt")
+ROTULO_STATUS_NOVO = {"CONTRATO_PENDENTE": "NOVO — contrato pendente", "CONTRATO_ANALISADO": "NOVO — contrato analisado, falta confirmar",
+                      "CONFIRMADO": "contrato confirmado"}
+
+
+def _nome_pasta(chave):
+    """Mesma pasta que src/clientes_novos.guardar_contrato usa: só os dígitos do CNPJ (ou do EC Orbe)."""
+    return so_digitos(chave) or "sem_chave"
+
+
+def _chave_novo(it):
+    c = so_digitos(it.get("cnpj"))
+    if len(c) == 14:
+        return c
+    ec = str(it.get("ec_orbe") or it.get("ec") or "").strip()
+    return "EC" + ec if ec else c
+
+
+class ClientesNovos:
+    """Cliente novo detectado no fechamento: guarda o contrato em cadastro/contratos/<cnpj>/, pede a extração à IA
+    (src/ia_contrato.py), mostra para revisão e só grava as condições no cadastro depois de "Confirmar e gravar"."""
+
+    def __init__(self, estado):
+        self.e = estado
+        self.analises = {}       # chave -> {"estado": "analisando" | "erro", "erro": str} (só em memória)
+
+    # ---------------------------------------------------------------- fontes
+    def pasta(self, chave):
+        return self.e.pasta_cadastro / "contratos" / _nome_pasta(chave)
+
+    def _ler_persistidos(self):
+        if clientes_novos_mod is None:
+            return []
+        try:
+            return [i for i in (_chamar(clientes_novos_mod.ler, self.e.pasta_cadastro) or []) if isinstance(i, dict)]
+        except Exception:  # noqa: BLE001 - módulo ainda sem arquivo/ruim: a tela segue com o que o fechamento achou
+            return []
+
+    def _analise(self, chave):
+        arq = self.pasta(chave) / "analise.json"
+        if not arq.exists():
+            return None
+        try:
+            return json.loads(arq.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return None
+
+    def _gravar_analise(self, chave, dados):
+        pasta = self.pasta(chave)
+        pasta.mkdir(parents=True, exist_ok=True)
+        tmp = pasta / "analise.json.tmp"
+        tmp.write_text(json.dumps(dados, ensure_ascii=False, indent=1), encoding="utf-8")
+        os.replace(tmp, pasta / "analise.json")
+
+    def arquivos(self, chave):
+        pasta = self.pasta(chave)
+        if not pasta.is_dir():
+            return []
+        arqs = sorted((p for p in pasta.iterdir() if p.is_file() and p.suffix.lower() in EXT_CONTRATO), key=lambda p: p.stat().st_mtime)
+        return [{"nome": p.name, "tamanho": p.stat().st_size,
+                 "data_hora_br": _data_br_hora(datetime.fromtimestamp(p.stat().st_mtime).isoformat(timespec="seconds"))} for p in arqs]
+
+    def itens(self):
+        base = {}
+        for it in ((self.e.r or {}).get("clientes_novos") or []):
+            if isinstance(it, dict) and _chave_novo(it):
+                base[_chave_novo(it)] = dict(it)
+        no_fechamento = set(base)
+        for it in self._ler_persistidos():           # o registro também lista os conhecidos já CONFIRMADOS: esses não são "novos"
+            ch = _chave_novo(it)
+            if ch and (ch in base or it.get("status") != "CONFIRMADO" or self._analise(ch)):
+                base[ch] = {**base.get(ch, {}), **{k: v for k, v in it.items() if v not in (None, "")}}
+        out = []
+        for ch, it in base.items():
+            an, arqs = self._analise(ch), self.arquivos(ch)
+            status = it.get("status") or "CONTRATO_PENDENTE"
+            if an and an.get("confirmado_em"):
+                status = "CONFIRMADO"
+            elif an and status != "CONFIRMADO":
+                status = "CONTRATO_ANALISADO"
+            mem = self.analises.get(ch) or {}
+            vb = it.get("valor_bruto")
+            try:
+                vb = Decimal(str(vb)) if vb not in (None, "") else ""
+            except InvalidOperation:
+                pass
+            out.append({"chave": ch, "cnpj": so_digitos(it.get("cnpj")),
+                        "cnpj_fmt": fmt_cnpj(it.get("cnpj")) if so_digitos(it.get("cnpj")) else "",
+                        "ec_orbe": str(it.get("ec_orbe") or ""), "nome": it.get("nome") or fmt_cnpj(it.get("cnpj")) or ch,
+                        "origem": it.get("origem") or "", "qtd_transacoes": it.get("qtd_transacoes"),
+                        "valor_bruto": fmt_br(vb) if isinstance(vb, (Decimal, int, float)) else (vb or ""),
+                        "motivo": it.get("motivo") or "", "status": status, "status_texto": ROTULO_STATUS_NOVO.get(status, status),
+                        "no_fechamento": ch in no_fechamento, "contratos": arqs, "analisando": mem.get("estado") == "analisando",
+                        "erro_analise": mem.get("erro") if mem.get("estado") == "erro" else None})
+        out.sort(key=lambda i: (i["status"] == "CONFIRMADO", i["nome"].lower()))
+        return out
+
+    def item(self, chave):
+        ch = _chave(chave)
+        return next((i for i in self.itens() if i["chave"] == ch), None)
+
+    def _exigir(self, chave):
+        it = self.item(chave)
+        if it is None:
+            raise ErroPedido("Cliente novo não encontrado (rode o fechamento para ele ser detectado).")
+        return it
+
+    # ---------------------------------------------------------------- IA
+    def ia_status(self):
+        if ia_contrato is None:
+            return {"disponivel": False, "motivo": "A leitura de contratos por IA ainda não está disponível neste programa."}
+        try:
+            if hasattr(ia_contrato, "disponivel"):
+                ok = _chamar(ia_contrato.disponivel, raiz=self.e.raiz_ia)
+            elif self.e.cliente_ia is not None:
+                ok = (True, "IA disponível (cliente de teste).")
+            else:
+                ok = ia.disponivel(self.e.raiz_ia)
+        except Exception as ex:  # noqa: BLE001
+            ok = (False, str(ex))
+        ok, motivo = ok if isinstance(ok, tuple) else (bool(ok), "")
+        return {"disponivel": bool(ok), "motivo": motivo or ("" if ok else INSTRUCAO_CHAVE)}
+
+    def resumo(self):
+        return {"itens": self.itens(), "ia": self.ia_status()}
+
+    def _marcar(self, chave, status, usuario):
+        if clientes_novos_mod is None:
+            return
+        try:
+            _chamar(clientes_novos_mod.marcar, self.e.pasta_cadastro, chave, status, usuario)
+        except Exception:  # noqa: BLE001 - o estado real está em analise.json; o módulo é só um espelho
+            traceback.print_exc()
+
+    def persistir(self):
+        """Depois do fechamento: garante que o cliente novo fica gravado junto aos clientes (se o fechamento ainda não gravou)."""
+        if clientes_novos_mod is None or not hasattr(clientes_novos_mod, "adicionar_novo"):
+            return
+        ja = {_chave_novo(i) for i in self._ler_persistidos()}
+        for it in ((self.e.r or {}).get("clientes_novos") or []):
+            if isinstance(it, dict) and _chave_novo(it) and _chave_novo(it) not in ja:
+                try:
+                    _chamar(clientes_novos_mod.adicionar_novo, self.e.pasta_cadastro, dict(it))
+                except Exception:  # noqa: BLE001
+                    traceback.print_exc()
+
+    # ---------------------------------------------------------------- upload + análise
+    def receber_contrato(self, chave, nome, conteudo, usuario):
+        usuario = str(usuario or "").strip()
+        if not usuario:
+            raise ErroPedido('Informe seu nome (campo "Seu nome") antes de analisar o contrato.')
+        it = self._exigir(chave)
+        ch = it["chave"]
+        if it["status"] == "CONFIRMADO":
+            raise ErroPedido("Este cliente já teve o contrato confirmado.")
+        if self.analises.get(ch, {}).get("estado") == "analisando":
+            raise ErroPedido("A análise deste contrato já está em andamento.")
+        nome = _nome_seguro(nome or "")
+        if not conteudo:
+            raise ErroPedido("Escolha o arquivo do contrato (.pdf, .docx ou .txt).")
+        if Path(nome).suffix.lower() not in EXT_CONTRATO:
+            raise ErroPedido("Formato não aceito. Envie o contrato em .pdf, .docx ou .txt.")
+        pasta = self.pasta(ch)
+        pasta.mkdir(parents=True, exist_ok=True)
+        destino, i, h = pasta / nome, 1, _hash(conteudo)
+        for p in pasta.iterdir():                     # mesmo conteúdo já guardado: reaproveita, não duplica
+            if p.is_file() and p.suffix.lower() in EXT_CONTRATO and _hash(p.read_bytes()) == h:
+                destino = p
+                break
+        else:
+            while destino.exists():                  # nunca sobrescreve
+                i += 1
+                destino = pasta / f"{Path(nome).stem}_v{i}{Path(nome).suffix}"
+            destino.write_bytes(conteudo)
+        ia_st = self.ia_status()
+        if not ia_st["disponivel"]:
+            return {"estado": "sem_ia", "contrato": destino.name,
+                    "aviso": f"O contrato foi guardado ({destino.name}), mas a análise por IA não está disponível: {ia_st['motivo']} "
+                             "Você pode cadastrar as condições manualmente."}
+        try:
+            texto = _chamar(ia_contrato.ler_texto, conteudo, nome)
+        except Exception as ex:  # noqa: BLE001
+            raise ErroPedido(f"Não consegui ler o texto do contrato: {ex}") from None
+        if not str(texto or "").strip():
+            raise ErroPedido("O arquivo não tem texto legível (PDF escaneado?). Envie um .txt ou .docx, ou cadastre as condições manualmente.")
+        contexto = {"competencia": (self.e.r or {}).get("competencia"),
+                    "contatos": {c["papel"]: {"nome": c["nome"], "email": c["email"]}
+                                 for c in reversed(contatos_mod.ler(self.e.pasta_cadastro)) if c["papel"] != "LOJISTA"}}
+        cliente = {k: it[k] for k in ("cnpj", "ec_orbe", "nome", "origem", "qtd_transacoes", "motivo")}
+        self.analises[ch] = {"estado": "analisando"}
+        threading.Thread(target=self._rodar, args=(ch, texto, cliente, contexto, destino.name, usuario), daemon=True).start()
+        return {"estado": "analisando", "contrato": destino.name}
+
+    def _rodar(self, ch, texto, cliente, contexto, arquivo, usuario):
+        erro, ext = None, None
+        try:
+            ext = _chamar(ia_contrato.extrair, texto, cliente, contexto, cliente_ia=self.e.cliente_ia, raiz=self.e.raiz_ia)
+            ext = dict(ext or {})
+            erro = ext.get("erro") and str(ext["erro"])
+        except Exception as ex:  # noqa: BLE001 - a IA não pode derrubar a tela
+            traceback.print_exc()
+            erro = f"{type(ex).__name__}: {ex}"
+        with self.e.lock:
+            if erro or ext is None:
+                self.analises[ch] = {"estado": "erro", "erro": erro or "A IA não devolveu resultado."}
+                return
+            self.analises.pop(ch, None)
+            self._gravar_analise(ch, {"estado": "analisado", "arquivo": arquivo, "usuario": usuario,
+                                      "analisado_em": datetime.now().isoformat(timespec="seconds"), "extracao": ext, "emails_preparados": []})
+            if clientes_novos_mod is not None and hasattr(clientes_novos_mod, "registrar_contrato"):
+                try:                                  # guarda o nome do arquivo no registro e marca CONTRATO_ANALISADO
+                    _chamar(clientes_novos_mod.registrar_contrato, self.e.pasta_cadastro, ch, arquivo, usuario)
+                except Exception:  # noqa: BLE001
+                    traceback.print_exc()
+                    self._marcar(ch, "CONTRATO_ANALISADO", usuario)
+            else:
+                self._marcar(ch, "CONTRATO_ANALISADO", usuario)
+
+    # ---------------------------------------------------------------- leitura
+    def detalhe(self, chave):
+        it = self._exigir(chave)
+        an = self._analise(it["chave"])
+        d = {**it, "ia": self.ia_status(), "analise": None}
+        if an:
+            ext = an.get("extracao") or {}
+            acoes = []
+            for n, a in enumerate(ext.get("acoes_sugeridas") or []):
+                papel = str(a.get("destino") or "").upper()
+                try:
+                    cs = contatos_mod.para(papel, it["cnpj"], self.e.pasta_cadastro) if papel else []
+                except Exception:  # noqa: BLE001
+                    cs = []
+                acoes.append({**a, "idx": n, "papel": papel, "rotulo_destino": config.ROTULO_PAPEL.get(papel, a.get("destino") or ""),
+                              "email": "; ".join(c["email"] for c in cs if c["email"]),
+                              "preparada": any(m.get("idx") == n for m in an.get("emails_preparados") or [])})
+            d["analise"] = {k: an.get(k) for k in ("arquivo", "usuario", "analisado_em", "confirmado_em", "confirmado_por",
+                                                    "aprovado_por", "ids", "emails_preparados")}
+            d["analise"]["extracao"] = {**ext, "acoes_sugeridas": acoes}
+        return d
+
+    # ---------------------------------------------------------------- escrita
+    def descartar(self, chave, usuario):
+        it = self._exigir(chave)
+        ch = it["chave"]
+        an = self._analise(ch)
+        if an is None:
+            raise ErroPedido("Não há análise para descartar.")
+        if an.get("confirmado_em"):
+            raise ErroPedido("A análise já foi confirmada e gravada; para desfazer, encerre as condições na ficha do cliente.")
+        arq = self.pasta(ch) / "analise.json"
+        os.replace(arq, arq.with_name(f"analise_descartada_{datetime.now():%Y%m%d_%H%M%S}.json"))
+        self.analises.pop(ch, None)
+        self._marcar(ch, "CONTRATO_PENDENTE", str(usuario or "").strip())
+        return {"ok": True, "aviso": "Análise descartada. Nada foi gravado no cadastro."}
+
+    def preparar_email(self, chave, d):
+        usuario = self.e.clientes._usuario(d, "preparar o e-mail")
+        it = self._exigir(chave)
+        an = self._analise(it["chave"])
+        if an is None:
+            raise ErroPedido("Não há análise para este cliente.")
+        para = _emails(d.get("para"))
+        assunto, corpo = str(d.get("assunto") or "").strip(), str(d.get("corpo") or "").strip()
+        if not para:
+            raise ErroPedido("Informe o destinatário (Para).")
+        if not assunto:
+            raise ErroPedido("Informe o assunto do e-mail.")
+        corpo_crlf = corpo.replace("\r\n", "\n").replace("\n", "\r\n")
+        mailto = f"mailto:{quote(','.join(para), safe='@,')}?subject={quote(assunto, safe='')}&body={quote(corpo_crlf, safe='')}"
+        an.setdefault("emails_preparados", []).append({"idx": d.get("idx"), "usuario": usuario, "quando": datetime.now().isoformat(timespec="seconds"),
+                                                       "para": "; ".join(para), "assunto": assunto})
+        self._gravar_analise(it["chave"], an)
+        return {"ok": True, "mailto": mailto, "cliente": self.detalhe(it["chave"])}
+
+    def confirmar(self, chave, d):
+        c = self.e.clientes
+        usuario = c._usuario(d, "gravar")
+        it = self._exigir(chave)
+        ch = it["chave"]
+        an = self._analise(ch)
+        if an is None:
+            raise ErroPedido("Não há análise para confirmar (envie o contrato e analise primeiro). Nada foi gravado.")
+        if an.get("confirmado_em"):
+            raise ErroPedido("Esta análise já foi confirmada e gravada.")
+        aprovado = str(d.get("aprovado_por") or "").strip()
+        if aprovado not in APROVADORES:
+            raise ErroPedido("Informe quem aprovou (Comercial ou Helena (Financeiro)). A IA não preenche este campo e nada é gravado sem aprovação.")
+        c._exigir_cadastro()
+        if ia_contrato is None or not hasattr(ia_contrato, "para_cadastro"):
+            raise ErroPedido("A montagem das condições a partir do contrato ainda não está disponível neste programa.")
+        ext = dict(an.get("extracao") or {})
+        taxas, conds = list(ext.get("taxas") or []), list(ext.get("condicoes_especiais") or [])
+        sel_t = d.get("taxas") if isinstance(d.get("taxas"), list) else [{"idx": n} for n in range(len(taxas))]
+        novas_t = []
+        for s in sel_t:
+            try:
+                n = int(s.get("idx"))
+                t = dict(taxas[n])
+            except (TypeError, ValueError, IndexError, AttributeError):
+                raise ErroPedido("Seleção de taxa inválida. Recarregue a análise.") from None
+            bruto = s.get("valor") if s.get("valor") not in (None, "") else t.get("valor")
+            try:                                    # o cadastro guarda a taxa em % com ponto ("0.95"); a extração vem com vírgula ("0,95")
+                v = Decimal(str(bruto).strip().replace("%", "").replace(",", "."))
+            except InvalidOperation:
+                raise ErroPedido(f"Valor inválido para {ROTULO_FAIXA.get(t.get('faixa'), t.get('faixa'))}: use um número (ex.: 2,19).") from None
+            if not 0 <= v <= 100:
+                raise ErroPedido("O valor da taxa deve estar entre 0 e 100%.")
+            t["valor"] = format(v.normalize(), "f")
+            novas_t.append(t)
+        sel_c = d.get("condicoes") if isinstance(d.get("condicoes"), list) else list(range(len(conds)))
+        try:
+            novas_c = [dict(conds[int(n)]) for n in sel_c]
+        except (TypeError, ValueError, IndexError):
+            raise ErroPedido("Seleção de condição especial inválida. Recarregue a análise.") from None
+        for cd in novas_c:                          # mesmo formato de taxa do cadastro (ponto, em %)
+            if str(cd.get("valor") or "").strip():
+                try:
+                    cd["valor"] = format(Decimal(str(cd["valor"]).strip().replace("%", "").replace(",", ".")).normalize(), "f")
+                except InvalidOperation:
+                    raise ErroPedido(f"Valor inválido na condição especial \"{cd.get('descricao') or cd.get('tipo')}\".") from None
+        ext_ok = {**ext, "taxas": novas_t, "condicoes_especiais": novas_c, "arquivo": an.get("arquivo") or ""}
+        cliente = {"cnpj": it["cnpj"], "ec_orbe": it["ec_orbe"], "nome": it["nome"], "lojista": it["nome"],
+                   "contrato_arquivo": an.get("arquivo") or ""}
+        try:
+            res = _chamar(ia_contrato.para_cadastro, ext_ok, cliente, aprovado, usuario, self.e.pasta_cadastro) or {}
+        except Exception as ex:  # noqa: BLE001
+            raise ErroPedido(f"Não consegui montar as condições: {ex}") from None
+        if res.get("erros"):
+            raise ErroPedido("Há problemas nas condições e nada foi gravado: " + " ".join(str(x) for x in res["erros"]))
+        condicoes = list(res.get("condicoes") or [])
+        gravadas = []
+        if condicoes:
+            try:
+                gravadas = cadastro.adicionar_varias(self.e.pasta_cadastro, condicoes, usuario, hoje=c._hoje())
+            except ValueError as ex:
+                raise ErroPedido(str(ex)) from None
+        ids = [g["id_condicao"] for g in gravadas]
+        an.update({"confirmado_em": datetime.now().isoformat(timespec="seconds"), "confirmado_por": usuario,
+                   "aprovado_por": aprovado, "ids": ids, "estado": "confirmado"})
+        self._gravar_analise(ch, an)
+        self._marcar(ch, "CONFIRMADO", usuario)
+        avisos = [] if ids else ["Nenhuma taxa ou condição foi marcada: nada entrou no cadastro de condições."]
+        avisos.append(self._contato_lojista(it, d, usuario))
+        msg = (f"Condições {', '.join(ids)} gravadas para {it['nome']}. " if ids else "") + AVISO_RODAR
+        return {"ids": ids, "aviso": msg, "avisos": [a for a in avisos if a], "cliente": self.detalhe(ch)}
+
+    def _contato_lojista(self, it, d, usuario):
+        if len(it["cnpj"]) != 14:
+            return "O cliente ainda não tem CNPJ conhecido: cadastre o contato na aba Contatos quando tiver."
+        if contatos_mod.para("LOJISTA", it["cnpj"], self.e.pasta_cadastro):
+            return ""
+        email = str(d.get("email_lojista") or "").strip()
+        if not email:
+            return "O lojista ainda não tem contato: complete o e-mail na aba Contatos."
+        try:
+            contatos_mod.adicionar(self.e.pasta_cadastro, {"papel": "LOJISTA", "cnpj": it["cnpj"], "nome": it["nome"], "email": email,
+                                                           "observacao": "Cadastrado ao confirmar o contrato"}, usuario)
+        except contatos_mod.ContatoInvalido as ex:
+            return f"Contato do lojista não foi cadastrado ({ex}) Complete na aba Contatos."
+        return "Contato do lojista cadastrado na aba Contatos."
+
+
 def criar_handler(estado):
     class Handler(BaseHTTPRequestHandler):
         server_version = "FechamentoTarvo/1.0"
@@ -1363,6 +1747,14 @@ def criar_handler(estado):
                 except ErroPedido as e:
                     return self._json({"erro": str(e)}, 400)
                 self._json(f if f else {"erro": "Lojista não encontrado."}, 200 if f else 404)
+            elif caminho == "/api/novos" or caminho.startswith("/api/novos/"):
+                try:
+                    with estado.lock:
+                        res = (estado.novos.resumo() if caminho == "/api/novos"
+                               else estado.novos.detalhe(unquote(caminho[len("/api/novos/"):])))
+                except ErroPedido as e:
+                    return self._json({"erro": str(e)}, 404)
+                self._json(res)
             elif caminho == "/api/fila":
                 with estado.lock:
                     self._json(estado.fila.json())
@@ -1462,6 +1854,35 @@ def criar_handler(estado):
                             res = estado.clientes.criar(pedido)
                         else:
                             res = estado.clientes.encerrar(unquote(caminho[len("/api/condicoes/"):-len("/encerrar")]), pedido)
+                except ErroPedido as e:
+                    return self._json({"erro": str(e)}, 400)
+                self._json(res)
+            elif caminho.startswith("/api/novos/"):
+                partes = caminho[len("/api/novos/"):].split("/")
+                if len(partes) != 2 or partes[1] not in ("analisar", "confirmar", "descartar", "email"):
+                    return self._json({"erro": "não encontrado"}, 404)
+                chave, acao = unquote(partes[0]), partes[1]
+                try:
+                    if acao == "analisar":                  # o corpo é o arquivo do contrato (bytes), como em /api/enviar
+                        with estado.lock:
+                            res = estado.novos.receber_contrato(chave, unquote(self.headers.get("X-Nome-Arquivo", "")), corpo,
+                                                                unquote(self.headers.get("X-Usuario", "")))
+                            res["cliente"] = estado.novos.detalhe(chave)
+                        return self._json(res)
+                    try:
+                        pedido = json.loads(corpo.decode("utf-8") or "{}")
+                        if not isinstance(pedido, dict):
+                            raise ValueError
+                    except ValueError:
+                        return self._json({"erro": "Pedido inválido."}, 400)
+                    with estado.lock:
+                        if acao == "confirmar":
+                            res = estado.novos.confirmar(chave, pedido)
+                        elif acao == "descartar":
+                            res = estado.novos.descartar(chave, pedido.get("usuario"))
+                            res["cliente"] = estado.novos.detalhe(chave)
+                        else:
+                            res = estado.novos.preparar_email(chave, pedido)
                 except ErroPedido as e:
                     return self._json({"erro": str(e)}, 400)
                 self._json(res)

@@ -71,7 +71,7 @@ def test_lista_de_clientes_com_selos(ctx):
     por = {c["chave"]: c for c in d["clientes"]}
     assert len(por) >= 25
     assert [s["codigo"] for s in por[CASA]["selos"]] == ["isencao"]
-    assert {s["codigo"] for s in por[ATLAS]["selos"]} == {"bloqueado", "sem_contrato"}   # só no cadastro, não está na planilha vigente
+    assert {s["codigo"] for s in por[ATLAS]["selos"]} == {"bloqueado", "sem_contrato", "novo"}   # só no cadastro, não está na planilha vigente
     assert por[CASA]["cnpj"] == "00.520.815/0001-00" and por[CASA]["ecs"] == ["1018325654"]
     assert any(s["codigo"] == "pendencia" for s in por[MUNDO]["selos"])
     assert [c["nome"].lower() for c in d["clientes"]] == sorted(c["nome"].lower() for c in d["clientes"])
@@ -98,7 +98,7 @@ def test_ficha_da_casa_mostra_isencao_e_taxas_zero(ctx):
 def test_ficha_da_atlas_mostra_bloqueio(ctx):
     url, _, _ = ctx
     f = _get(url + "/api/clientes/" + ATLAS)
-    assert {s["codigo"] for s in f["selos"]} == {"bloqueado", "sem_contrato"}
+    assert {s["codigo"] for s in f["selos"]} == {"bloqueado", "sem_contrato", "novo"}
     assert f["identificacao"]["razao_social_planilha"] is None
     assert all(t["valor"] == "—" for t in f["taxas"])
     assert "Bloqueado" in f["faturamento"][0] and "R15" in f["faturamento"][0]

@@ -1,0 +1,35 @@
+*** DOCUMENTO FICTICIO PARA DEMONSTRACAO E TESTES - NAO E UM CONTRATO REAL ***
+
+CONTRATO DE PRESTACAO DE SERVICOS DE PAGAMENTOS (CHECKOUT) E REMESSA INTERNACIONAL
+
+PARTES
+Tarvo (CONTRATADA) e AURORA INTERCAMBIO LTDA, inscrita no CNPJ sob o no 11.222.333/0001-81 (CONTRATANTE, "Lojista").
+
+CLAUSULA 1 - VIGENCIA
+O presente contrato vigora de 01/10/2026 a 30/09/2028, renovavel por igual periodo mediante acordo escrito.
+
+CLAUSULA 2 - TAXAS DE CHECKOUT (MDR)
+A CONTRATANTE pagara a CONTRATADA, sobre o valor bruto de cada transacao, as seguintes taxas:
+a) Debito: 1,59%
+b) Credito a vista: 2,79%
+c) Credito parcelado de 2 a 6 vezes: 3,29%
+d) Credito parcelado de 7 a 12 vezes: 3,89%
+e) Pix: 0,95%
+f) Antecipacao de recebiveis: 2,15%
+
+CLAUSULA 3 - ISENCAO PROMOCIONAL
+A CONTRATANTE tera isencao total de MDR (itens "a" a "e" da clausula 2) nos 3 primeiros meses de vigencia, ou seja, de 01/10/2026 a 31/12/2026.
+
+CLAUSULA 4 - REMESSA INTERNACIONAL
+Nas operacoes de remessa internacional (cambio) sera aplicado spread de 1,35% sobre o valor da operacao.
+
+CLAUSULA 5 - REPASSE
+O repasse dos valores liquidos a CONTRATANTE sera realizado nos dias 10 e 24 de cada mes.
+
+CLAUSULA 6 - FATURAMENTO
+A CONTRATADA emitira uma nota fiscal mensal de servicos referente a comissao do mes anterior.
+
+CLAUSULA 7 - RESCISAO
+A quebra de contrato por qualquer das partes antes do fim da vigencia acarretara multa equivalente a 20% do valor medio mensal faturado.
+
+Sao Paulo, 15 de setembro de 2026.

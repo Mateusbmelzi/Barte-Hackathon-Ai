@@ -283,6 +283,27 @@
     .cartao { padding: 18px; }
     .arquivos li { flex-direction: column; align-items: flex-start; gap: 8px; }
   }
+  .selo.novo { border-color: #f5d38a; background: #fff7e6; color: #6b4e00; }
+  .aviso-novos { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; margin: 0 0 16px; background: #fff3c4; border-color: #e8c34a; color: #5c4400; }
+  .aviso-novos .acoes { margin: 0; gap: 8px; }
+  .aviso-novos .botao { padding: 6px 16px; font-size: 14px; }
+  .modal-caixa.larga { max-width: 900px; }
+  .nv-bloco { border: 1px solid var(--borda); border-radius: 12px; padding: 12px 14px; margin-top: 14px; }
+  .nv-bloco h4 { margin: 0 0 6px; font-size: 14px; text-transform: uppercase; letter-spacing: .04em; color: var(--texto-suave); }
+  .nv-aviso-ia { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: #fff7e6; border: 1px solid #f5d38a; color: #6b4e00; font-weight: 600; font-size: 14px; }
+  .nv-duvidas { margin-top: 14px; padding: 12px 16px; border-radius: 12px; background: #fdecf1; border: 2px solid #df285d; color: #7a1233; }
+  .nv-duvidas ul { margin: 4px 0 0; padding-left: 20px; }
+  .nv-evid { font-size: 12px; color: var(--texto-suave); font-style: italic; margin-top: 2px; }
+  .nv-linha { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--borda); }
+  .nv-linha:first-of-type { border-top: 0; }
+  .nv-linha > input[type=checkbox] { margin-top: 6px; }
+  .nv-linha .corpo { flex: 1; min-width: 0; }
+  .nv-linha input.campo { width: 110px; min-width: 0; padding: 4px 8px; }
+  .modal-caixa .nv-linha label { flex-direction: row; align-items: center; gap: 6px; margin: 0; }
+  .nv-acao { border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; margin-top: 8px; display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .nv-giro { display: flex; align-items: center; gap: 10px; padding: 24px 0; font-weight: 600; }
+  .nv-giro .giro { display: inline-block; width: 18px; height: 18px; border: 3px solid #df285d55; border-top-color: var(--destaque); border-radius: 50%; animation: gira 0.8s linear infinite; }
+  @keyframes gira { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -291,7 +312,7 @@
     <span class="etiqueta">Ferramenta interna do financeiro</span>
     <h1>Fechamento mensal — Tarvo</h1>
     <p>Escolha o mês, envie os arquivos (a Orbe pode mandar mais de um), clique em “Rodar fechamento” e baixe as planilhas prontas. Os arquivos ficam guardados na pasta do mês: dá para voltar outro dia e enviar só o que mudou. Nada é sobrescrito nem apagado.</p>
-    <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabFila">Fila de trabalho <span class="contador oculto" id="filaBadge"></span></button><button type="button" id="tabCli">Clientes</button><button type="button" id="tabCont">Contatos</button></nav>
+    <nav class="abas"><button type="button" id="tabFech" class="ativa">Fechamento</button><button type="button" id="tabFila">Fila de trabalho <span class="contador oculto" id="filaBadge"></span></button><button type="button" id="tabCli">Clientes <span class="contador oculto" id="cliBadge"></span></button><button type="button" id="tabCont">Contatos</button></nav>
   </div>
 </header>
 
@@ -328,6 +349,7 @@
         <button class="botao grande" id="rodar" type="button" disabled><span class="giro"></span><span id="rodarTexto">Rodar fechamento</span></button>
       </div>
       <div class="erro oculto" id="erro"></div>
+      <div class="aviso aviso-novos oculto" id="avisoNovos"></div>
       <div class="oculto" id="resumo"></div>
     </section>
 
@@ -475,6 +497,7 @@ function desenhar(e) {
   desenharInvestigacao(r ? e.investigacao : null);
   invAtual = r && e.investigacao ? e.investigacao : null;
   atualizarFilaTopo(e.fila);
+  desenharNovos(e.clientes_novos);
 }
 
 // Bloco "Versões" do resultado: o que o fechamento consolidou de cada fonte (r.versoes; escondido se não vier).
@@ -843,6 +866,7 @@ function desenharFicha() {
         <button class="botao leve" type="button" id="dataHoje">Hoje</button>
         ${f.data_competencia ? `<button class="botao leve" type="button" id="dataComp">Competência do último fechamento (${esc(f.competencia)})</button>` : ""}</div>
       <div class="tabela"><table><thead><tr><th>Faixa</th><th>Taxa</th><th>De onde vem</th></tr></thead><tbody>${taxas}</tbody></table></div></section>
+    ${f.novo ? novoFichaHTML(f.novo) : ""}
     <section class="cartao bloco"><div class="ficha-topo"><h2>Condições comerciais</h2>
         <button class="botao" type="button" id="novaCond">+ Nova condição</button></div>
       <p class="sub">Combinados com este lojista, vigentes e encerrados. Nada é apagado: condição errada ou vencida é encerrada.</p>
@@ -854,7 +878,13 @@ function desenharFicha() {
   window.scrollTo({ top: 0 });
 }
 
+function novoFichaHTML(n) {
+  return `<section class="cartao bloco" style="border-color:#e8c34a"><div class="ficha-topo"><h2>Contrato do cliente novo</h2><span class="selo novo">${esc(n.status_texto)}</span></div>
+    ${n.contratos.length ? n.contratos.map((c) => `<p>Contrato anexado: <strong>${esc(c.nome)}</strong> <span class="dica">· enviado em ${esc(c.data_hora_br)}</span></p>`).join("") : `<p class="nada">Nenhum contrato anexado ainda.</p>`}
+    ${n.status === "CONFIRMADO" ? "" : `<div class="acoes"><button class="botao" type="button" id="abrirNovo" data-chave="${esc(n.chave)}">${n.status === "CONTRATO_ANALISADO" ? "Revisar análise do contrato" : "Enviar contrato"}</button></div>`}</section>`;
+}
 $("cliFicha").addEventListener("click", async (ev) => {
+  if (ev.target.id === "abrirNovo") return abrirNovo(ev.target.dataset.chave);
   if (ev.target.id === "voltar") return voltarLista();
   if (ev.target.id === "dataHoje") { dataRef = ""; return abrirFicha(fichaAtual.chave); }
   if (ev.target.id === "dataComp") { dataRef = fichaAtual.data_competencia; return abrirFicha(fichaAtual.chave); }
@@ -951,8 +981,8 @@ async function chamar(url, obj) {
   return { ok: r.ok, dados: d, erro: d.erro || d.aviso_ia || (r.ok ? "" : "O servidor respondeu " + r.status) };
 }
 const nomeAgora = () => (document.activeElement && document.activeElement.classList.contains("nome-usuario") ? document.activeElement.value : $("filaUsr").value).trim() || usuarioNome();
-function abrirModal(html) { $("modalCaixa").innerHTML = html; $("modal").classList.remove("oculto"); }
-function fecharModal() { $("modal").classList.add("oculto"); $("modalCaixa").innerHTML = ""; }
+function abrirModal(html) { $("modalCaixa").classList.remove("larga"); $("modalCaixa").innerHTML = html; $("modal").classList.remove("oculto"); }
+function fecharModal() { clearTimeout(esperaNovo); $("modal").classList.add("oculto"); $("modalCaixa").innerHTML = ""; }
 $("modal").addEventListener("mousedown", (ev) => { if (ev.target.id === "modal") fecharModal(); });
 document.addEventListener("keydown", (ev) => { if (ev.key === "Escape" && !$("modal").classList.contains("oculto")) fecharModal(); });
 const erroBox = (id, msg) => { const b = $(id); b.textContent = msg || ""; b.classList.toggle("oculto", !msg); };
@@ -1120,13 +1150,14 @@ function abrirEmail(i) {
   };
   $("mDestino").onchange = preencher; preencher();
   $("mIrContatos").onclick = (ev) => { ev.preventDefault(); fecharModal(); mostrarAba("contatos"); };
-  $("mCancela").onclick = fecharModal;
+  $("mCancela").onclick = i.aoCancelar || fecharModal;
   $("mAbrir").onclick = async () => {
-    const corpo = { chave: i.chave, usuario: nomeAgora(), para: $("mPara").value, assunto: $("mAssunto").value, corpo: $("mCorpo").value };
-    const r = await chamar("/api/fila/email", corpo);
+    const corpo = { chave: i.chave, usuario: i.usuario || nomeAgora(), para: $("mPara").value, assunto: $("mAssunto").value, corpo: $("mCorpo").value, ...(i.extraEmail || {}) };
+    const r = await chamar(i.urlEmail || "/api/fila/email", corpo);
     if (!r.ok) return erroBox("mErro", r.erro);
     if (r.dados.fila) { filaDados = r.dados.fila; }
     const a = document.createElement("a"); a.href = r.dados.mailto; document.body.appendChild(a); a.click(); a.remove();
+    if (i.aoPreparar) return i.aoPreparar(r.dados);
     $("modalCaixa").innerHTML = `<h3>Você enviou o e-mail?</h3><p>O e-mail abriu no seu programa de e-mail. Depois de enviar lá, confirme aqui para o item ir para “Em acompanhamento”.</p>
       <p class="dica">Para: ${esc(corpo.para)}<br>Assunto: ${esc(corpo.assunto)}</p><div class="erro oculto" id="mErro"></div>
       <div class="acoes"><button class="botao" type="button" id="mSim">Sim, enviei</button><button class="botao leve" type="button" id="mNao">Ainda não</button></div>`;
@@ -1228,6 +1259,166 @@ $("asRes").addEventListener("click", async (ev) => {
   $("asRes").innerHTML = `<div class="sucesso"><strong>${esc(r.dados.aviso)}</strong></div>`;
   fichaAtual = null; carregarClientes();
 });
+
+
+// ------------------------------------------------ clientes novos: contrato -> IA -> revisão -> cadastro (nada grava sem confirmar)
+let novosDados = { itens: [], ia: { disponivel: false, motivo: "" } }, rascunho = {}, esperaNovo = null;
+const FAIXA_ROT = Object.fromEntries([...NOME_FAIXAS.CHECKOUT, ...NOME_FAIXAS.REMESSA]);
+const enc = encodeURIComponent;
+const TIPO_ROT = { ISENCAO: "Isenção (taxa zero)", TAXA_ESPECIAL: "Taxa especial", DE_PARA_EC: "De-para de EC Orbe", BLOQUEIO_FATURAMENTO: "Bloqueio de faturamento", NOTA_PENDENCIA: "Nota / pendência" };
+
+function desenharNovos(n) {
+  if (n) novosDados = n;
+  const pend = novosDados.itens.filter((i) => i.status !== "CONFIRMADO");
+  const b = $("cliBadge"); b.textContent = pend.length; b.classList.toggle("oculto", !pend.length);
+  const doMes = pend.filter((i) => i.no_fechamento), box = $("avisoNovos");
+  box.classList.toggle("oculto", !doMes.length);
+  if (!doMes.length) return;
+  box.innerHTML = `<div><strong>${doMes.length} ${doMes.length === 1 ? "cliente novo detectado" : "clientes novos detectados"}: ${doMes.map((i) => esc(i.nome)).join(", ")}</strong> — envie o contrato para a IA extrair as taxas e as regras.</div>
+    <div class="acoes">${doMes.map((i) => `<button class="botao" type="button" data-novo="${esc(i.chave)}">${doMes.length > 1 ? esc(i.nome) + ": " : ""}${i.status === "CONTRATO_ANALISADO" ? "Revisar análise" : "Enviar contrato"}</button>`).join("")}</div>`;
+}
+$("avisoNovos").addEventListener("click", (ev) => { const b = ev.target.closest("[data-novo]"); if (b) abrirNovo(b.dataset.novo); });
+
+async function atualizarEstado() { try { desenhar(await api("/api/estado")); } catch (_) {} }
+
+async function abrirNovo(chave, aviso, avisos) {
+  clearTimeout(esperaNovo);
+  const r = await chamar("/api/novos/" + enc(chave));
+  if (!r.ok) {
+    abrirModal(`<h3>Cliente novo</h3><div class="erro">${esc(r.erro)}</div><div class="acoes"><button class="botao leve" type="button" id="mCancela">Fechar</button></div>`);
+    $("mCancela").onclick = fecharModal; return;
+  }
+  desenharNovo(r.dados, aviso, avisos || []);
+}
+
+const dado = (t, v) => `<div><dt>${t}</dt><dd>${esc(v || "—")}</dd></div>`;
+function cabecalhoNovo(d) {
+  return `<h3>Cliente novo detectado</h3><p class="dica">${esc(d.motivo || "Aparece nos arquivos do mês e ainda não tem contrato analisado.")}</p>
+    <dl class="dados">${dado("Nome", d.nome)}${dado("CNPJ", d.cnpj_fmt || "não conhecido")}${dado("EC Orbe", d.ec_orbe)}
+      ${dado("Origem", { ORBE: "Orbe (checkout)", PONTE: "Ponte Câmbio (remessa)" }[d.origem] || d.origem)}${dado("Transações no mês", d.qtd_transacoes != null ? int(d.qtd_transacoes) : "")}
+      ${dado("Valor bruto no mês", d.valor_bruto)}</dl>`;
+}
+
+function desenharNovo(d, aviso, avisos) {
+  abrirModal("");
+  $("modalCaixa").classList.add("larga");
+  const chave = d.chave, an = d.analise, cab = cabecalhoNovo(d);
+  const msg = (aviso ? `<div class="sucesso" style="margin-top:12px"><strong>${esc(aviso)}</strong>${(avisos || []).map((a) => `<br>${esc(a)}`).join("")}</div>` : "");
+  const fim = (extra, rotulo) => `<div class="acoes">${extra}<button class="botao leve" type="button" id="nvFechar">${rotulo || "Fechar"}</button></div>`;
+  const pronto = (html) => { $("modalCaixa").innerHTML = `<div id="nvRaiz" data-chave="${esc(chave)}">${html}</div>`; $("nvFechar").onclick = () => { fecharModal(); atualizarEstado(); }; };
+
+  if (d.analisando) {
+    pronto(`${cab}<div class="nv-giro"><span class="giro"></span> Analisando contrato… (pode levar alguns segundos)</div>${fim("")}`);
+    esperaNovo = setTimeout(() => { if ($("nvRaiz") && $("nvRaiz").dataset.chave === chave) abrirNovo(chave); }, 2000);
+    return;
+  }
+  if (an && an.confirmado_em) {
+    pronto(`${cab}${msg}<div class="nv-bloco"><h4>Contrato confirmado</h4>
+      <p>Confirmado por ${esc(an.confirmado_por)} em ${esc(String(an.confirmado_em).replace("T", " "))}; aprovado por <strong>${esc(an.aprovado_por)}</strong>.
+      ${(an.ids || []).length ? "Condições gravadas: " + an.ids.map(esc).join(", ") + "." : "Nenhuma condição foi gravada."}</p>
+      <p class="dica">Rode o fechamento de novo para aplicar.</p></div>${fim("")}`);
+    return;
+  }
+  const contratos = d.contratos.length ? `<div class="nv-bloco"><h4>Contrato anexado</h4>${d.contratos.map((c) => `<div>${esc(c.nome)} <span class="dica">· enviado em ${esc(c.data_hora_br)} · ${tamanho(c.tamanho)}</span></div>`).join("")}</div>` : "";
+  if (!an) {
+    const ia = d.ia;
+    pronto(`${cab}${msg}${contratos}
+      ${ia.disponivel ? "" : `<div class="nv-aviso-ia">IA indisponível: ${esc(ia.motivo)} Você ainda pode guardar o contrato e cadastrar as condições manualmente.</div>`}
+      ${d.erro_analise ? `<div class="erro">A análise falhou: ${esc(d.erro_analise)}. Envie de novo ou cadastre manualmente.</div>` : ""}
+      <label>Contrato (.pdf, .docx ou .txt)<input class="campo" type="file" id="nvArq" accept=".pdf,.docx,.txt"></label>
+      <label>Seu nome<input class="campo nome-usuario" id="nvUsr" autocomplete="name" placeholder="ex.: Helena" value="${esc(nomeUsuarioSalvo())}"></label>
+      <div class="erro oculto" id="nvErro" style="margin-top:10px"></div>
+      ${fim(`<button class="botao ia" type="button" id="nvAnalisar" ${ia.disponivel ? "" : "disabled"}>Analisar com IA</button>
+        ${ia.disponivel ? "" : `<button class="botao secundario" type="button" id="nvGuardar">Guardar contrato</button>`}
+        <button class="botao secundario" type="button" id="nvManual">Cadastrar condições manualmente</button>`, "Enviar depois")}
+      <p class="dica">“Enviar depois” fecha esta janela: o cliente continua marcado como “NOVO — contrato pendente” na aba Clientes.</p>`);
+    const enviar = async (guardar) => {
+      erroBox("nvErro", "");
+      const f = $("nvArq").files[0], usuario = $("nvUsr").value.trim();
+      if (!f) return erroBox("nvErro", "Escolha o arquivo do contrato (.pdf, .docx ou .txt).");
+      if (!usuario) return erroBox("nvErro", 'Informe seu nome (campo "Seu nome").');
+      $("nvAnalisar").disabled = true;
+      const r = await fetch("/api/novos/" + enc(chave) + "/analisar", { method: "POST", headers: { "X-Nome-Arquivo": enc(f.name), "X-Usuario": enc(usuario) }, body: f });
+      const e = await r.json().catch(() => ({}));
+      if (!r.ok) { $("nvAnalisar").disabled = !ia.disponivel; return erroBox("nvErro", e.erro || "O servidor respondeu " + r.status); }
+      atualizarEstado();
+      if (e.estado === "sem_ia") return desenharNovo(e.cliente, e.aviso, []);
+      desenharNovo(e.cliente, "", []);
+    };
+    $("nvAnalisar").onclick = () => enviar(false);
+    if ($("nvGuardar")) $("nvGuardar").onclick = () => enviar(true);
+    $("nvManual").onclick = async () => { fecharModal(); mostrarAba("clientes"); await abrirFicha(chave); abrirFormulario(); };
+    return;
+  }
+  // ---- revisão da extração
+  const ext = an.extracao || {}, ras = rascunho[chave];
+  const marcada = (lista, n) => (ras ? ras[lista].some((x) => (typeof x === "object" ? x.idx : x) === n) : true);
+  const valorTx = (t, n) => { const x = ras && ras.taxas.find((y) => y.idx === n); return x && x.valor !== undefined ? x.valor : (t.valor ?? ""); };
+  const taxas = (ext.taxas || []).map((t, n) => `<div class="nv-linha"><input type="checkbox" data-tx="${n}" ${marcada("taxas", n) ? "checked" : ""} title="Gravar esta taxa">
+      <div class="corpo"><strong>${esc(FAIXA_ROT[t.faixa] || t.faixa)}</strong> <label>valor (%) <input class="campo" data-tv="${n}" value="${esc(valorTx(t, n))}" inputmode="decimal"></label>
+      ${t.evidencia ? `<div class="nv-evid">Trecho do contrato: “${esc(t.evidencia)}”</div>` : ""}</div></div>`).join("") || `<p class="nada">A IA não encontrou taxas no contrato.</p>`;
+  const conds = (ext.condicoes_especiais || []).map((c, n) => `<div class="nv-linha"><input type="checkbox" data-cd="${n}" ${marcada("condicoes", n) ? "checked" : ""} title="Gravar esta condição">
+      <div class="corpo"><strong>${esc(TIPO_ROT[c.tipo] || c.tipo)}</strong>${(c.faixas || []).length ? " · " + c.faixas.map((f) => esc(FAIXA_ROT[f] || f)).join(", ") : ""}${c.valor ? " · " + esc(c.valor) + "%" : ""}
+      ${c.inicio || c.fim ? `<span class="dica"> · ${c.inicio ? "de " + esc(dataBR(c.inicio)) : ""} ${c.fim ? "até " + esc(dataBR(c.fim)) : ""}</span>` : ""}
+      <div>${esc(c.descricao)}</div>${c.evidencia ? `<div class="nv-evid">Trecho do contrato: “${esc(c.evidencia)}”</div>` : ""}</div></div>`).join("") || `<p class="nada">Nenhuma condição especial identificada.</p>`;
+  const regras = (ext.regras_negocio || []).map((r) => `<div class="nv-linha"><div class="corpo"><strong>${esc(r.assunto)}</strong><div>${esc(r.texto)}</div>
+      ${r.evidencia ? `<div class="nv-evid">Trecho do contrato: “${esc(r.evidencia)}”</div>` : ""}</div></div>`).join("") || `<p class="nada">Nenhuma regra de negócio específica identificada.</p>`;
+  const acoes = (ext.acoes_sugeridas || []).map((a) => `<div class="nv-acao"><div style="flex:1;min-width:220px"><strong>${esc(a.rotulo_destino || a.destino)}</strong>: ${esc(a.motivo)}
+      ${a.preparada ? `<span class="selo ativa">e-mail preparado</span>` : ""}${a.email ? "" : `<div class="dica">Sem e-mail cadastrado para este destino (você informa ao preparar).</div>`}</div>
+      <button class="botao secundario mini" type="button" data-acao="${a.idx}">Preparar e-mail</button></div>`).join("") || `<p class="nada">Sem ações sugeridas.</p>`;
+  const duvidas = (ext.duvidas || []).length ? `<div class="nv-duvidas"><strong>Dúvidas da IA — decida antes de confirmar</strong><ul>${ext.duvidas.map((x) => `<li>${esc(typeof x === "object" ? (x.texto || x.pergunta || JSON.stringify(x)) : x)}</li>`).join("")}</ul></div>` : "";
+  const vig = ext.vigencia_inicio || ext.vigencia_fim ? ` Vigência: ${ext.vigencia_inicio ? "de " + esc(dataBR(ext.vigencia_inicio)) : ""} ${ext.vigencia_fim ? "até " + esc(dataBR(ext.vigencia_fim)) : ""}.` : "";
+  const partes = ext.partes && typeof ext.partes === "object" ? (Array.isArray(ext.partes) ? ext.partes : Object.values(ext.partes)).filter(Boolean).join(" · ") : (ext.partes || "");
+  pronto(`${cab}${msg}${contratos}
+    <div class="nv-aviso-ia">Extração da IA — revise antes de confirmar. Nada é gravado até você clicar em “Confirmar e gravar”.</div>
+    <p class="dica" style="margin-top:8px">Analisado em ${esc(String(an.analisado_em || "").replace("T", " "))} por ${esc(an.usuario)} · arquivo ${esc(an.arquivo)}${partes ? " · Partes: " + esc(partes) : ""}.${vig}</p>
+    ${duvidas}
+    <div class="nv-bloco"><h4>Taxas extraídas</h4><p class="dica">Desmarque o que não deve ser gravado; edite o valor se a IA errou.</p>${taxas}</div>
+    <div class="nv-bloco"><h4>Condições especiais</h4>${conds}</div>
+    <div class="nv-bloco"><h4>Regras de negócio específicas</h4><p class="dica">Só para leitura: confira e, se precisar, registre como “Nota / pendência” na ficha do cliente.</p>${regras}</div>
+    <div class="nv-bloco"><h4>Ações sugeridas</h4><p class="dica">Nada é enviado por este programa: o e-mail abre pronto no seu programa de e-mail.</p>${acoes}</div>
+    <div class="nv-bloco"><h4>Confirmação</h4>
+      <label>Aprovado por (obrigatório)<select class="campo" id="nvAprov"><option value="">Escolha…</option><option ${ras && ras.aprovado_por === "Comercial" ? "selected" : ""}>Comercial</option><option ${ras && ras.aprovado_por === "Helena (Financeiro)" ? "selected" : ""}>Helena (Financeiro)</option></select></label>
+      <label>Seu nome<input class="campo nome-usuario" id="nvUsr" autocomplete="name" placeholder="ex.: Helena" value="${esc((ras && ras.usuario) || nomeUsuarioSalvo())}"></label>
+      <label>E-mail do lojista (opcional, cria o contato LOJISTA se ainda não houver)<input class="campo" id="nvEmail" type="email" placeholder="nome@empresa.com.br" value="${esc((ras && ras.email_lojista) || "")}"></label>
+      <div class="erro oculto" id="nvErro" style="margin-top:10px"></div>
+      <div class="acoes"><button class="botao" type="button" id="nvConfirmar">Confirmar e gravar</button><button class="botao secundario" type="button" id="nvDescartar">Descartar análise</button></div></div>
+    ${fim("")}`);
+  const ler = () => ({
+    taxas: [...document.querySelectorAll("[data-tx]:checked")].map((x) => ({ idx: +x.dataset.tx, valor: document.querySelector(`[data-tv="${x.dataset.tx}"]`).value.trim() })),
+    condicoes: [...document.querySelectorAll("[data-cd]:checked")].map((x) => +x.dataset.cd),
+    aprovado_por: $("nvAprov").value, usuario: $("nvUsr").value.trim(), email_lojista: $("nvEmail").value.trim() });
+  const guardar = () => { rascunho[chave] = ler(); };
+  $("nvRaiz").addEventListener("input", guardar); $("nvRaiz").addEventListener("change", guardar);
+  $("nvRaiz").addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-acao]"); if (!b) return;
+    guardar();
+    const a = ext.acoes_sugeridas[+b.dataset.acao];
+    abrirEmail({ chave, titulo: "Cliente novo: " + d.nome, valor: null, usuario: ($("nvUsr").value || "").trim() || nomeUsuarioSalvo(), urlEmail: "/api/novos/" + enc(chave) + "/email", extraEmail: { idx: a.idx },
+      sugestao: { emails: [{ papel: a.papel, assunto: a.assunto, corpo: a.corpo }] },
+      contatos: [{ papel: a.papel, rotulo: a.rotulo_destino || a.destino, email: a.email, nome: "" }],
+      aoPreparar: () => abrirNovo(chave, "E-mail preparado e aberto no seu programa de e-mail. Nada foi enviado por este programa."), aoCancelar: () => abrirNovo(chave) });
+  });
+  $("nvConfirmar").onclick = async () => {
+    erroBox("nvErro", "");
+    const f = ler();
+    if (!f.aprovado_por) return erroBox("nvErro", "Informe quem aprovou (Comercial ou Helena (Financeiro)).");
+    if (!f.usuario) return erroBox("nvErro", 'Informe seu nome (campo "Seu nome").');
+    $("nvConfirmar").disabled = true;
+    const r = await chamar("/api/novos/" + enc(chave) + "/confirmar", f);
+    $("nvConfirmar").disabled = false;
+    if (!r.ok) return erroBox("nvErro", r.erro);
+    delete rascunho[chave];
+    await atualizarEstado();
+    desenharNovo(r.dados.cliente, r.dados.aviso, r.dados.avisos);
+  };
+  $("nvDescartar").onclick = async () => {
+    const r = await chamar("/api/novos/" + enc(chave) + "/descartar", { usuario: $("nvUsr").value.trim() });
+    if (!r.ok) return erroBox("nvErro", r.erro);
+    delete rascunho[chave]; atualizarEstado();
+    desenharNovo(r.dados.cliente, r.dados.aviso, []);
+  };
+}
 
 mostrarAba((location.hash || "").slice(1));
 </script>

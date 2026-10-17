@@ -9,7 +9,9 @@ Todo o cálculo é feito por regras fixas, escritas em `src/config.py`. Nenhum n
 
 Testado do zero com Python 3.11 (pandas 2.2 e 3.0) e Python 3.14. Nenhuma chave de API é necessária.
 
-1. Clonar e entrar na pasta:
+> **Passo 0 (obrigatório): coloque os arquivos do case na raiz do repositório (ou numa pasta e use `--entrada <pasta>`); eles não estão no repositório.** São os arquivos `01_orbe...`, `02_tabela...`, `03_email...`, `04_plano...`, `05a...`, `05b...` e `06_orbe_ajustes...` (os nomes originais, sem renomear). Sem eles o fechamento não roda e os testes que dependem dos dados são pulados.
+
+1. Clonar e entrar na pasta (depois, copiar os arquivos do case para dentro dela):
    ```bash
    git clone https://github.com/Mateusbmelzi/Barte-Hackathon-Ai.git
    cd Barte-Hackathon-Ai
@@ -26,7 +28,23 @@ Testado do zero com Python 3.11 (pandas 2.2 e 3.0) e Python 3.14. Nenhuma chave 
    # .venv/bin/python -m src.fechamento                         # Linux/macOS
    ```
    Sem argumentos, lê os arquivos do case na raiz e **sobrescreve** os 6 CSVs de `saida/`. Para outro mês ou outra pasta: `--entrada <pasta com os arquivos do mês> --saida <pasta de saída>` (o nome de cada arquivo precisa conter a palavra-chave descrita em [Como rodar](#como-rodar)).
-4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados são idênticos byte a byte aos do repositório. Testes: `.venv\Scripts\python -m pytest -q` (236 testes).
+4. Comparar com o entregue: `git status --short saida/` (ou `git diff --stat saida/`) deve vir **vazio**, ou seja, os CSVs gerados com os arquivos do case (passo 0) são idênticos byte a byte aos de `saida/` no repositório (`rastro.csv` só difere se os arquivos tiverem outro nome). Testes: `.venv\Scripts\python -m pytest -q` (430 testes; precisam dos arquivos do case na raiz, senão os que dependem dos dados são pulados).
+
+### Chave de API (opcional, só para a IA)
+O fechamento e os 6 CSVs funcionam igual **sem chave**; a IA é um complemento. Para ligá-la:
+1. Copie `.env.example` para `.env` na raiz do repositório (`copy .env.example .env` no Windows; `cp .env.example .env` no Linux/macOS).
+2. Escreva nele `ANTHROPIC_API_KEY=sk-ant-...` (chave da Anthropic, console.anthropic.com) **ou** uma chave do OpenRouter (`sk-or-...`, na mesma variável ou em `OPENROUTER_API_KEY`).
+3. Só para a chave da Anthropic direta: `.venv\Scripts\python -m pip install -r requirements-ia.txt` (a opção OpenRouter não instala nada).
+4. O `.env` está no `.gitignore` e nunca vai para o GitHub. Cuidado: o Bloco de Notas pode salvar como `.env.txt`; o nome precisa ser exatamente `.env`.
+
+A IA aparece em: **Fila de trabalho** (ações sugeridas), **investigação de divergências**, **assistente de cadastro** (aba Clientes) e **leitura de contrato** (cliente novo). Detalhes em [Investigação com IA](#investigação-com-ia-opcional).
+
+### O que a interface tem hoje
+Abas da tela (`python -m app`):
+- **Fechamento**: enviar os arquivos do mês, rodar, baixar os 6 CSVs ou o .zip, cartão de investigação de divergências.
+- **Fila de trabalho**: pendências e divergências com a ação sugerida (regra decide, IA sugere), para a analista tratar uma a uma.
+- **Clientes**: condições comerciais por cliente (isenções, spread, de-para de EC, bloqueio), com **assistente de cadastro** (IA) e **cliente novo / leitura de contrato** (IA propõe, a analista confirma).
+- **Contatos**: a quem escrever sobre cada pendência (dados fictícios); o e-mail abre no cliente de e-mail (`mailto`), não é enviado sozinho.
 
 Alternativa sem terminal: `.venv\Scripts\python -m app` abre a interface no navegador (enviar os arquivos do mês, rodar, baixar os CSVs), ou dois cliques em `fechar_mes.bat` no Windows. Ver [Interface visual](#interface-visual-sem-terminal).
 
@@ -104,7 +122,7 @@ plano de contas + cada extrato (Aurora e Meridiano são independentes). Detalhes
 ```bash
 python -m pytest -q
 ```
-236 testes. Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
+430 testes (precisam dos arquivos do case na raiz; sem eles os testes que dependem dos dados são pulados). Rodam o fechamento numa pasta temporária (os arquivos originais não são tocados) e conferem:
 - leitura dos arquivos, arredondamento, formato das saídas e soma do rastro;
 - `tests/test_gabarito.py` e `tests/test_gabarito_independente.py`: totais de setembro e valores fixos por lojista auditados de forma independente (`docs/02_validacao.md`), conferidos contra os CSVs gerados;
 - `tests/test_app.py`: sobe a interface numa porta livre, envia os arquivos, roda e confere os totais e que o CSV baixado é idêntico ao de `saida/`; também confere que um erro aparece sem stack trace.
@@ -115,7 +133,7 @@ Resultado de setembro (para conferência): comissão checkout R$ 203.735,34 (21 
 Critérios novos de 17/10 (S40–S54, `REGRAS_DE_NEGOCIO.md` R67–R76): devolver ao lojista = o que o parceiro descontou de fato menos a comissão contratada (Casa R$ 15.396,77; a lista `divergencias_taxa.csv` segue a fórmula e soma R$ 15.397,42); o contrato decide quem deve, não o aviso, e a Casa é concessão fora do contrato; alerta de antecipação só para lojista novo (em setembro, só a Atlas); com fonte ausente ou layout inesperado o fechamento sai **parcial**, com `status = PROVISORIO` e pendência `FONTE_AUSENTE`/`LAYOUT_INESPERADO`.
 
 ## Chave de API
-Nenhuma chave é necessária para o fechamento: ele roda offline. A chave só habilita a investigação com IA, que é opcional (seção abaixo).
+Ver a seção "Chave de API (opcional, só para a IA)" no início. Nenhuma chave é necessária para o fechamento: ele roda offline.
 
 ## Investigação com IA (opcional)
 O fechamento **não precisa** de chave nem de internet: os 6 CSVs e o dossiê (`saida/investigacao/dossie.json` e `.md`) saem iguais com ou sem IA. O pipeline tem 5 passos: (1) o fechamento detecta a divergência; (2) o código monta o caso (linha do tempo das taxas, condições do cliente, regras aplicáveis); (3) **a regra decide a ação** (devolver, cobrar, contestar), com valores e R##; (4) **a IA explica a causa** (Claude Sonnet 5.5, `src/ia.py`, prompt `investigacao-v4`), escolhendo numa lista fechada de causas e citando evidências com referência; (5) **a analista decide**: Concordo, Discordo ou Preciso verificar, com comentário. A IA não decide ação nem valor.
@@ -158,7 +176,7 @@ fechar_mes.bat     atalho de dois cliques para a interface (Windows)
 meses/             uma pasta por mês da interface (entrada com versões + execucoes), fora do git
 tests/             testes (pytest)
 saida/             CSVs gerados
-01_...05b_...      data pack de setembro (intocado)
+01_...06_...       arquivos do case (NÃO estão no repositório; a banca os coloca na raiz)
 ```
 
 ## Arquivos de saída
@@ -183,4 +201,8 @@ Cada número de saída tem um `id_saida` (ex.: `COM-CHK-0005`, `DIV-0012`, `NF-0
 - **Planilha de taxas é manual.** O programa trata os defeitos atuais (CNPJ sem zero à esquerda, taxa em texto, "padrão", vigência em texto, linha riscada), mas um formato novo de vigência ou um EC sem código vira pendência, e o lojista fica fora da nota até alguém corrigir a planilha ou o de-para em `config.py`.
 - **Premissas nossas.** As perguntas ao financeiro foram respondidas em 17/10 (S18–S54; H01, H02, H04, H08, H10, H14 e H15 viraram regra; H03 foi substituída por R52; H28–H34 são premissas novas, com H30, H33 e H34 ainda sem resposta). Seguem como decisão nossa, com o critério escrito, as premissas marcadas "Decidida" ou "Decisão do desenvolvedor" em `HIPOTESES.md` (ex.: H06 tolerância, H07 Spread %, H11–H13 contas). Mudando uma decisão, muda-se o parâmetro em `config.py` e roda de novo.
 - **Competência** vem sempre da Orbe (mês mais frequente de `data_movimento`). Se o relatório da Ponte for de outro mês (ou trouxer operações de outro mês), essas operações ficam fora da comissão e da nota e viram **1 pendência por mês de contratação** (`REMESSA_FORA_COMPETENCIA`, H24); o resto do fechamento roda normalmente.
+- **Remessa:** a taxa do cadastro não é usada como base para lojista fora da planilha de taxas.
+- **Guarda-corpo "já foi feito"** (Fila de trabalho): pode descartar um e-mail que seria bom.
+- **E-mail:** abre no cliente de e-mail (`mailto`); o programa não envia sozinho. Os **contatos são fictícios**.
+- **IA varia entre execuções**; nenhum número oficial vem dela.
 - Não emite nota fiscal nem faz lançamento no ERP: gera os arquivos para a analista conferir e lançar.
