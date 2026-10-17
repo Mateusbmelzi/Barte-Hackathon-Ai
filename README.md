@@ -195,6 +195,8 @@ Formato: separador `;`, ponto decimal, datas AAAA-MM-DD, CNPJ com 14 dígitos, U
 Cada número de saída tem um `id_saida` (ex.: `COM-CHK-0005`, `DIV-0012`, `NF-0021`, `LAN-0040`, `PEN-0007`). Em `rastro.csv` há uma linha para cada linha de origem que compõe aquele número, com o nome do arquivo de origem, a referência (id_transacao Orbe, Nº Operação Ponte, `L##` do Aurora, FITID do Meridiano) e o valor que ela contribui. Filtrando `rastro.csv` por um `id_saida` e somando `valor`, obtém-se exatamente o número reportado. O programa verifica isso a cada execução. Pendências sem valor (ex.: "vigência não reconhecida") não aparecem no rastro.
 
 ## Limitações conhecidas
+
+- **Arquivos do case no histórico do Git:** por falta de tempo, não foi possível apagar do histórico de commits os arquivos de dados do case (01 a 06, LEIA-ME e PDF de instruções). Eles foram removidos da versão atual do repositório e estão no `.gitignore`; colocar os arquivos do case na raiz continua sendo necessário para rodar.
 - **Classificação dos extratos por regras de texto (regex).** Um lançamento com descrição que nenhuma regra conhece cai em `1.1.09.002` com método HUMANO e vira pendência. É preciso acrescentar a regra em `config.REGRAS_EXTRATO`.
 - **Sem conciliação Orbe × banco parcela a parcela** (S16): os créditos Orbe no Aurora são só classificados. Falta a agenda de recebíveis da Orbe.
 - **Depende do layout dos arquivos.** Mudança de colunas, de nome de aba ("vigentes") ou de formato do anexo da Ponte, ou um arquivo que não chegou, não derruba o mês: o fechamento sai **parcial** (S53, R76). Fecha o que não depende da fonte, marca notas e comissões como `PROVISORIO`, bloqueia o resto e abre `FONTE_AUSENTE` ou `LAYOUT_INESPERADO` para a Helena. Ele não tenta adivinhar.
